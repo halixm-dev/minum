@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "873255446363",
+    "project_id": "halixm-minum",
+    "storage_bucket": "halixm-minum.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873255446363:android:31678280e192a9d6b15c7e",
+        "android_client_info": {
+          "package_name": "com.halixm.minum"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "873255446363-svh9jnedeq3in9o5ocgkhhnd8ifhnv5d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.halixm.minum",
+            "certificate_hash": "33e65d748b5b4ef0fa4736ecb36fbbb909873885"
+          }
+        },
+        {
+          "client_id": "873255446363-phamsb7d2qbna252qbj90pq1505ctval.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYNXte7y77WMqfAu-eKYFEYNvMsiSBaH4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "873255446363-phamsb7d2qbna252qbj90pq1505ctval.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "873255446363-9v372ib6baa046od59d2unm0uueet61t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.halixm.minum"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

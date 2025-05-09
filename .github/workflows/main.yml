@@ -1,0 +1,90 @@
+# .github/workflows/main.yml
+
+name: Minum CI/CD
+
+on:
+  push:
+    branches: [ main, develop ] # Triggers on pushes to main and develop
+  pull_request:
+    branches: [ main, develop ] # Triggers on PRs targeting main and develop
+
+jobs:
+  build_and_test:
+    name: Build & Test Flutter App
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Checks out your repository under $GITHUB_WORKSPACE
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # Temurin is a good open-source JDK
+          java-version: '17' # Flutter android builds often require Java 11 or 17
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2 # Sets up Flutter SDK
+        with:
+          channel: 'stable' # Use the stable channel of Flutter
+          # You can specify a Flutter version if needed:
+          # flutter-version: '3.19.0'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project source
+        run: flutter analyze # Runs Dart analyzer to check for errors and warnings
+
+      - name: Run unit and widget tests
+        run: flutter test --coverage # Runs all tests in the test/ directory and generates coverage
+
+      # Optional: Upload coverage report (e.g., to Codecov)
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }} # Add CODECOV_TOKEN to your GitHub secrets
+      #     files: coverage/lcov.info
+      #     fail_ci_if_error: true
+
+      # Integration tests (require an emulator or device, more complex to set up in CI)
+      # This is a placeholder for how you might run them.
+      # You'd typically need to set up an emulator (e.g., using reactivecircus/android-emulator-runner)
+      # - name: Run integration tests
+      #   run: flutter test integration_test
+
+      # Optional: Build Android App (APK or AppBundle)
+      # This step is useful to ensure the app builds correctly.
+      # You might not want to store artifacts for every PR unless it's a release candidate.
+      - name: Build Android APK (Debug)
+        run: flutter build apk --debug
+
+      # - name: Build Android App Bundle (Release - requires signing setup)
+      #   if: github.ref == 'refs/heads/main' # Example: only build release on main branch
+      #   run: |
+      #     echo "Store password and key alias in secrets for release builds"
+      #     # flutter build appbundle --release \
+      #     #   --keystore=<path_to_keystore> \
+      #     #   --store-password=${{ secrets.ANDROID_STORE_PASSWORD }} \
+      #     #   --key-alias=${{ secrets.ANDROID_KEY_ALIAS }} \
+      #     #   --key-password=${{ secrets.ANDROID_KEY_PASSWORD }}
+      #   env:
+      #     ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+      #     ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      #     ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # Optional: Build iOS App (requires a macOS runner)
+      # - name: Build iOS App (Debug)
+      #   if: runner.os == 'macOS' # This job would need to run on a macOS runner
+      #   run: |
+      #     flutter build ios --debug --no-codesign
+
+      # Example: Upload APK artifact (useful for testing PRs)
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk

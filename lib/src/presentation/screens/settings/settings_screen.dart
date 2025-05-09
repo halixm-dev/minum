@@ -1,0 +1,950 @@
+// lib/src/presentation/screens/settings/settings_screen.dart
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:minum/src/core/constants/app_colors.dart';
+import 'package:minum/src/core/constants/app_strings.dart'; // Assuming AppStrings class exists
+import 'package:minum/src/core/utils/app_utils.dart';
+import 'package:minum/src/data/models/user_model.dart'; // MeasurementUnit is here
+import 'package:minum/src/navigation/app_routes.dart';
+import 'package:minum/src/presentation/providers/auth_provider.dart';
+import 'package:minum/src/presentation/providers/theme_provider.dart'; // ThemeProvider is here
+import 'package:minum/src/presentation/providers/user_provider.dart';
+import 'package:minum/src/services/hydration_service.dart';
+import 'package:minum/src/services/notification_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
+import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const String prefsRemindersEnabled = 'prefs_reminders_enabled';
+const String prefsReminderIntervalHours = 'prefs_reminder_interval_hours';
+const String prefsReminderStartTimeHour = 'prefs_reminder_start_time_hour';
+const String prefsReminderStartTimeMinute = 'prefs_reminder_start_time_minute';
+const String prefsReminderEndTimeHour = 'prefs_reminder_end_time_hour';
+const String prefsReminderEndTimeMinute = 'prefs_reminder_end_time_minute';
+
+// Helper extension for MeasurementUnit to get a display name
+extension MeasurementUnitDisplayName on MeasurementUnit {
+  String get displayName {
+    switch (this) {
+      case MeasurementUnit.ml:
+        return AppStrings.ml; // Assuming AppStrings.ml exists and is "mL"
+      case MeasurementUnit.oz:
+        return AppStrings.oz; }
+  }
+}
+
+// Helper extension for ThemeProvider to get current theme name string
+extension ThemeProviderName on ThemeProvider {
+  String get currentThemeName {
+    switch (themeMode) {
+      case ThemeMode.light:
+        return AppStrings.lightTheme; // Assuming AppStrings.lightTheme exists
+      case ThemeMode.dark:
+        return AppStrings.darkTheme; // Assuming AppStrings.darkTheme exists
+      case ThemeMode.system:
+        return AppStrings.systemTheme; }
+  }
+}
+
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String _appVersion = 'Loading...';
+
+  bool _enableReminders = true;
+  double _selectedIntervalHours = 1.0;
+  TimeOfDay _selectedStartTime = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _selectedEndTime = const TimeOfDay(hour: 22, minute: 0);
+
+  final List<double> _reminderIntervals = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
+
+  final TextEditingController _dailyGoalController = TextEditingController();
+  MeasurementUnit _tempSelectedUnit = MeasurementUnit.ml;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppVersion();
+    _loadReminderSettings();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _updateControllersFromProvider();
+      }
+    });
+  }
+
+  void _updateControllersFromProvider() {
+    if (!mounted) return;
+    final userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
+    if (userProfile != null) {
+      final String currentGoalText = userProfile.dailyGoalMl.toInt().toString();
+      if (_dailyGoalController.text != currentGoalText) {
+        _dailyGoalController.text = currentGoalText;
+      }
+      _tempSelectedUnit = userProfile.preferredUnit;
+    } else {
+      _dailyGoalController.text = "2000"; // Default goal if no profile
+      _tempSelectedUnit = MeasurementUnit.ml; // Default unit
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _dailyGoalController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() {
+        _appVersion = '${packageInfo.version} (Build ${packageInfo.buildNumber})';
+      });
+    } catch (e) {
+      logger.e("Error loading app version: $e");
+      if (mounted) {
+        setState(() {
+          _appVersion = 'N/A';
+        });
+      }
+    }
+  }
+
+  Future<void> _loadReminderSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _enableReminders = prefs.getBool(prefsRemindersEnabled) ?? true;
+      _selectedIntervalHours = prefs.getDouble(prefsReminderIntervalHours) ?? 1.0;
+      _selectedStartTime = TimeOfDay(
+        hour: prefs.getInt(prefsReminderStartTimeHour) ?? 8,
+        minute: prefs.getInt(prefsReminderStartTimeMinute) ?? 0,
+      );
+      _selectedEndTime = TimeOfDay(
+        hour: prefs.getInt(prefsReminderEndTimeHour) ?? 22,
+        minute: prefs.getInt(prefsReminderEndTimeMinute) ?? 0,
+      );
+    });
+  }
+
+  Future<void> _saveReminderSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Capture context before await if it's to be used after for UI operations
+    final currentContext = context;
+    await prefs.setBool(prefsRemindersEnabled, _enableReminders);
+    await prefs.setDouble(prefsReminderIntervalHours, _selectedIntervalHours);
+    await prefs.setInt(prefsReminderStartTimeHour, _selectedStartTime.hour);
+    await prefs.setInt(prefsReminderStartTimeMinute, _selectedStartTime.minute);
+    await prefs.setInt(prefsReminderEndTimeHour, _selectedEndTime.hour);
+    await prefs.setInt(prefsReminderEndTimeMinute, _selectedEndTime.minute);
+
+    logger.i("Reminder settings saved: Enabled: $_enableReminders, Interval: $_selectedIntervalHours hrs, Start: $_selectedStartTime, End: $_selectedEndTime");
+
+    // Check mounted status of the captured context
+    if (!currentContext.mounted) return;
+    AppUtils.showSnackBar(currentContext, "Reminder settings saved!");
+
+    _rescheduleNotifications(); // This method also checks mounted status internally if needed for its own context uses
+  }
+
+  void _rescheduleNotifications() {
+    if (!mounted) return; // Checks current state's mounted status
+    final notificationService = Provider.of<NotificationService>(context, listen: false);
+    notificationService.cancelAllNotifications();
+
+    if (_enableReminders) {
+      logger.i("Rescheduling notifications: Interval: $_selectedIntervalHours hrs, Start: $_selectedStartTime, End: $_selectedEndTime");
+      DateTime currentTime = DateTime.now();
+      DateTime scheduleStart = DateTime(currentTime.year, currentTime.month, currentTime.day, _selectedStartTime.hour, _selectedStartTime.minute);
+      DateTime scheduleEnd = DateTime(currentTime.year, currentTime.month, currentTime.day, _selectedEndTime.hour, _selectedEndTime.minute);
+
+      if (scheduleEnd.isBefore(scheduleStart)) {
+        scheduleEnd = scheduleEnd.add(const Duration(days: 1));
+      }
+
+      int notificationId = 100;
+      DateTime nextReminderTime = scheduleStart;
+
+      if (currentTime.isAfter(scheduleStart)) {
+        int intervalInMinutes = (_selectedIntervalHours * 60).toInt();
+        nextReminderTime = scheduleStart;
+        while(nextReminderTime.isBefore(currentTime)){
+          nextReminderTime = nextReminderTime.add(Duration(minutes: intervalInMinutes));
+          if (nextReminderTime.day != scheduleStart.day && scheduleEnd.day == scheduleStart.day) {
+            scheduleStart = scheduleStart.add(const Duration(days:1));
+            scheduleEnd = scheduleEnd.add(const Duration(days:1));
+            nextReminderTime = scheduleStart;
+            break;
+          }
+        }
+      }
+
+      if(nextReminderTime.isBefore(scheduleStart)){
+        nextReminderTime = scheduleStart;
+      }
+
+      int scheduledCount = 0;
+      while (nextReminderTime.isBefore(scheduleEnd) || nextReminderTime.isAtSameMomentAs(scheduleEnd)) {
+        if (nextReminderTime.isAfter(DateTime.now())) {
+          notificationService.scheduleHydrationReminder(
+              id: notificationId++,
+              title: AppStrings.reminderTitle,
+              body: "Time for some water! Stay hydrated.",
+              scheduledTime: nextReminderTime,
+              payload: {'type': 'hydration_reminder'}
+          );
+          scheduledCount++;
+        }
+        int intervalMinutes = (_selectedIntervalHours * 60).toInt();
+        nextReminderTime = nextReminderTime.add(Duration(minutes: intervalMinutes));
+
+        if (nextReminderTime.isAfter(scheduleEnd)) {
+          scheduleStart = DateTime(nextReminderTime.year, nextReminderTime.month, nextReminderTime.day, _selectedStartTime.hour, _selectedStartTime.minute);
+          scheduleEnd = DateTime(nextReminderTime.year, nextReminderTime.month, nextReminderTime.day, _selectedEndTime.hour, _selectedEndTime.minute);
+          if (scheduleEnd.isBefore(scheduleStart)) {
+            scheduleEnd = scheduleEnd.add(const Duration(days: 1));
+          }
+          nextReminderTime = scheduleStart;
+
+          if (nextReminderTime.isBefore(DateTime.now().add(const Duration(days: -1)))){
+            logger.w("Breaking notification scheduling loop: nextReminderTime is in the past.");
+            break;
+          }
+        }
+        if (notificationId > 150) {
+          logger.w("Breaking notification scheduling loop: Exceeded max notification ID.");
+          break;
+        }
+      }
+      logger.i("Scheduled $scheduledCount reminders. Next check starts from $nextReminderTime");
+    } else {
+      logger.i("Reminders are disabled. All notifications cancelled.");
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
+    final TimeOfDay initialTime = isStartTime ? _selectedStartTime : _selectedEndTime;
+    // context (from method parameter) is captured before await
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      helpText: isStartTime ? "Select Reminder Start Time" : "Select Reminder End Time",
+    );
+
+    // Check context.mounted after await before using it for UI (SnackBar)
+    // Also check if the State itself is still mounted for setState
+    if (!context.mounted) return;
+    if (picked == null) return;
+
+
+    bool isValidSelection = false;
+    if (isStartTime) {
+      if (_isTimeBeforeOrEqual(picked, _selectedEndTime)) {
+        _selectedStartTime = picked;
+        isValidSelection = true;
+      } else {
+        if (picked.hour > _selectedEndTime.hour || (picked.hour == _selectedEndTime.hour && picked.minute > _selectedEndTime.minute)) {
+          _selectedStartTime = picked;
+          isValidSelection = true;
+        } else {
+          // context is already checked for mounted status above
+          AppUtils.showSnackBar(context, "Start time must be before end time for a same-day schedule.", isError: true);
+        }
+      }
+    } else {
+      if (_isTimeBeforeOrEqual(_selectedStartTime, picked)) {
+        _selectedEndTime = picked;
+        isValidSelection = true;
+      } else {
+        if (picked.hour < _selectedStartTime.hour || (picked.hour == _selectedStartTime.hour && picked.minute < _selectedStartTime.minute)) {
+          _selectedEndTime = picked;
+          isValidSelection = true;
+        } else {
+          // context is already checked for mounted status above
+          AppUtils.showSnackBar(context, "End time must be after start time for a same-day schedule.", isError: true);
+        }
+      }
+    }
+
+    if (isValidSelection) {
+      if (!mounted) return; // Check State's mounted status before setState
+      setState(() {});
+      _saveReminderSettings(); // This will use this.context, which is fine after mounted check
+    }
+  }
+
+  bool _isTimeBeforeOrEqual(TimeOfDay time1, TimeOfDay time2) {
+    if (time1.hour < time2.hour) return true;
+    if (time1.hour == time2.hour && time1.minute <= time2.minute) return true;
+    return false;
+  }
+
+
+  void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
+    logger.d("SettingsScreen: _showThemeDialog called");
+    // context is used to show dialog, which is synchronous here.
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) { // dialogContext is fresh here
+        return AlertDialog(
+          title: const Text(AppStrings.theme),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              RadioListTile<ThemeMode>(
+                title: const Text(AppStrings.lightTheme),
+                value: ThemeMode.light,
+                groupValue: themeProvider.themeMode,
+                onChanged: (ThemeMode? value) {
+                  if (value != null) themeProvider.setThemeMode(value);
+                  // dialogContext is used to pop, check its mounted status
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text(AppStrings.darkTheme),
+                value: ThemeMode.dark,
+                groupValue: themeProvider.themeMode,
+                onChanged: (ThemeMode? value) {
+                  if (value != null) themeProvider.setThemeMode(value);
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text(AppStrings.systemTheme),
+                value: ThemeMode.system,
+                groupValue: themeProvider.themeMode,
+                onChanged: (ThemeMode? value) {
+                  if (value != null) themeProvider.setThemeMode(value);
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditDailyGoalManualDialog(BuildContext context, UserProvider userProvider) {
+    final TextEditingController localGoalController = TextEditingController(
+        text: userProvider.userProfile?.dailyGoalMl.toInt().toString() ?? '2000'
+    );
+    // screenContext is captured here (it's the 'context' parameter)
+    final BuildContext screenContext = context;
+
+    showDialog(
+      context: screenContext, // Use captured screenContext to show dialog
+      builder: (BuildContext dialogContext) { // dialogContext is fresh
+        return AlertDialog(
+          title: const Text("Set Daily Goal Manually"),
+          content: CustomTextField(
+            controller: localGoalController,
+            labelText: "Goal (${AppStrings.ml})",
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            validator: (val) => AppUtils.validateNumber(val),
+          ),
+          actions: <Widget>[
+            TextButton(
+                child: const Text(AppStrings.cancel),
+                onPressed: () {
+                  localGoalController.dispose();
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                }
+            ),
+            TextButton(
+              child: const Text(AppStrings.save),
+              onPressed: () async {
+                final newGoal = double.tryParse(localGoalController.text);
+                if (newGoal != null && newGoal > 0) {
+                  // No need to capture screenContext again, it's already available as 'screenContext'
+                  // dialogContext is also available from the builder.
+
+                  await userProvider.updateDailyGoal(newGoal);
+                  localGoalController.dispose();
+
+                  if (!dialogContext.mounted) return;
+                  Navigator.of(dialogContext).pop();
+
+                  // Check screenContext's mounted status before showing SnackBar on it
+                  if (!screenContext.mounted) return;
+                  AppUtils.showSnackBar(screenContext, "Daily goal updated!");
+                } else {
+                  // Show SnackBar on dialogContext
+                  if (!dialogContext.mounted) return;
+                  AppUtils.showSnackBar(dialogContext, "Please enter a valid goal.", isError: true);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleCalculateSuggestion(BuildContext context, UserProvider userProvider, HydrationService hydrationService) async {
+    final UserModel? currentUser = userProvider.userProfile;
+    // Capture the initial context from the method parameter.
+    final BuildContext initialContext = context;
+
+    if (!initialContext.mounted) return;
+
+    if (currentUser == null) {
+      AppUtils.showSnackBar(initialContext, "User profile not available. Please try again later.", isError: true);
+      return;
+    }
+
+    bool profileCompleteForCalc = currentUser.weightKg != null && currentUser.weightKg! > 0 &&
+        currentUser.age != null &&
+        currentUser.gender != null &&
+        currentUser.activityLevel != null;
+
+    if (!profileCompleteForCalc) {
+      // initialContext is used for showConfirmationDialog
+      if (!initialContext.mounted) return;
+      final bool? goToProfile = await AppUtils.showConfirmationDialog(
+          initialContext,
+          title: "Complete Profile",
+          content: "To calculate a suggested goal, please complete your profile with Weight, Date of Birth, Gender, and Activity Level.\n\nWould you like to go to your profile now?",
+          confirmText: "Go to Profile",
+          cancelText: "Later"
+      );
+      // After await, check initialContext.mounted again before navigation
+      if (!initialContext.mounted) return;
+      if (goToProfile == true) {
+        Navigator.of(initialContext).pushNamed(AppRoutes.profile);
+      }
+      return;
+    }
+
+    if (!initialContext.mounted) return;
+    AppUtils.showLoadingDialog(initialContext, message: "Calculating...");
+
+    double suggestedGoal = 0;
+    bool calculationSuccess = false;
+    try {
+      suggestedGoal = await hydrationService.calculateRecommendedDailyIntake(user: currentUser);
+      calculationSuccess = true;
+    } catch (e) {
+      logger.e("Error calculating suggested goal: $e");
+    }
+
+    if (!initialContext.mounted) return;
+    AppUtils.hideLoadingDialog(initialContext);
+
+    if (!calculationSuccess) {
+      AppUtils.showSnackBar(initialContext, "Could not calculate suggested goal. Please try again.", isError: true);
+      return;
+    }
+
+    if (!initialContext.mounted) return;
+    final bool? apply = await AppUtils.showConfirmationDialog(
+        initialContext,
+        title: "Suggested Goal",
+        content: "Based on your profile, we suggest a daily goal of ${suggestedGoal.toInt()} ${AppStrings.ml}. Would you like to apply this goal?",
+        confirmText: "Apply Goal",
+        cancelText: "Not Now"
+    );
+
+    if (!initialContext.mounted) return;
+    if (apply == true) {
+      await userProvider.updateDailyGoal(suggestedGoal);
+      if (!initialContext.mounted) return;
+      AppUtils.showSnackBar(initialContext, "Suggested goal applied and saved!");
+    }
+  }
+
+  void _showDailyGoalOptionsDialog(BuildContext context, UserProvider userProvider, HydrationService hydrationService) {
+    logger.d("SettingsScreen: _showDailyGoalOptionsDialog called");
+    // screenContext is the 'context' parameter
+    final BuildContext screenContext = context;
+
+    showDialog(
+      context: screenContext,
+      builder: (BuildContext dialogContext) { // dialogContext is fresh
+        return AlertDialog(
+          title: const Text(AppStrings.dailyWaterGoal),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text("Enter Manually"),
+                onTap: () {
+                  // screenContext is passed to the next dialog showing method
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  _showEditDailyGoalManualDialog(screenContext, userProvider);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.calculate_outlined),
+                title: const Text("Calculate Suggestion"),
+                onTap: () {
+                  // screenContext is passed
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  _handleCalculateSuggestion(screenContext, userProvider, hydrationService);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+              },
+              child: const Text(AppStrings.cancel),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditMeasurementUnitDialog(BuildContext context, UserProvider userProvider) {
+    logger.d("SettingsScreen: _showEditMeasurementUnitDialog called");
+    _tempSelectedUnit = userProvider.userProfile?.preferredUnit ?? MeasurementUnit.ml;
+    // screenContext is the 'context' parameter
+    final BuildContext screenContext = context;
+
+    showDialog(
+      context: screenContext,
+      builder: (BuildContext dialogContext) { // dialogContext is fresh
+        return StatefulBuilder(builder: (stfBuilderContext, setDialogState) {
+          return AlertDialog(
+            title: const Text(AppStrings.measurementUnit),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                RadioListTile<MeasurementUnit>(
+                  title: const Text(AppStrings.ml),
+                  value: MeasurementUnit.ml,
+                  groupValue: _tempSelectedUnit,
+                  onChanged: (MeasurementUnit? value) {
+                    if (value != null) {
+                      setDialogState(() {
+                        _tempSelectedUnit = value;
+                      });
+                    }
+                  },
+                ),
+                RadioListTile<MeasurementUnit>(
+                  title: const Text(AppStrings.oz),
+                  value: MeasurementUnit.oz,
+                  groupValue: _tempSelectedUnit,
+                  onChanged: (MeasurementUnit? value) {
+                    if (value != null) {
+                      setDialogState(() {
+                        _tempSelectedUnit = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                  child: const Text(AppStrings.cancel),
+                  onPressed: () {
+                    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  }
+              ),
+              TextButton(
+                child: const Text(AppStrings.save),
+                onPressed: () async {
+                  await userProvider.updatePreferredUnit(_tempSelectedUnit);
+
+                  if (!dialogContext.mounted) return;
+                  Navigator.of(dialogContext).pop();
+
+                  if (!screenContext.mounted) return;
+                  AppUtils.showSnackBar(screenContext, "Measurement unit updated!");
+                },
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  void _showEditFavoriteVolumesDialog(BuildContext context, UserProvider userProvider) {
+    logger.d("SettingsScreen: _showEditFavoriteVolumesDialog called");
+    List<TextEditingController> dialogControllers =
+    (userProvider.userProfile?.favoriteIntakeVolumes ?? ['250', '500', '750'])
+        .map((vol) => TextEditingController(text: vol))
+        .toList();
+
+    if (dialogControllers.isEmpty) {
+      dialogControllers.add(TextEditingController(text: '250'));
+    }
+    // screenContext is the 'context' parameter
+    final BuildContext screenContext = context;
+
+    showDialog(
+        context: screenContext,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) { // dialogContext is fresh
+          return StatefulBuilder(
+              builder: (stfContext, setDialogState) {
+                return AlertDialog(
+                  title: Text("Edit Favorite Volumes (${AppStrings.ml})"),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ...List.generate(dialogControllers.length, (index) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4.h),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CustomTextField(
+                                    controller: dialogControllers[index],
+                                    labelText: "Volume ${index + 1}",
+                                    hintText: "e.g., 250",
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.remove_circle_outline, color: Theme.of(stfContext).colorScheme.error),
+                                  onPressed: dialogControllers.length > 1 ? () {
+                                    setDialogState(() {
+                                      dialogControllers[index].dispose();
+                                      dialogControllers.removeAt(index);
+                                    });
+                                  } : null,
+                                )
+                              ],
+                            ),
+                          );
+                        }),
+                        if (dialogControllers.length < 5)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              icon: const Icon(Icons.add_circle_outline),
+                              label: const Text("Add Volume"),
+                              onPressed: () {
+                                setDialogState(() {
+                                  dialogControllers.add(TextEditingController());
+                                });
+                              },
+                            ),
+                          ),
+                        if (dialogControllers.isEmpty)
+                          Padding(
+                            padding: EdgeInsets.only(top:8.h),
+                            child: Text("Add at least one volume.", style: TextStyle(color: Theme.of(stfContext).colorScheme.error)),
+                          )
+                      ],
+                    ),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                        child: const Text(AppStrings.cancel),
+                        onPressed: () {
+                          if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                        }
+                    ),
+                    TextButton(
+                      child: const Text(AppStrings.save),
+                      onPressed: () async {
+                        final List<String> newVolumes = dialogControllers
+                            .map((controller) => controller.text.trim())
+                            .where((text) {
+                          if (text.isEmpty) return false;
+                          final val = double.tryParse(text);
+                          return val != null && val > 0 && val < 5000;
+                        })
+                            .toList();
+
+                        final List<String> volumesToSave = newVolumes.isNotEmpty ? newVolumes : const ['250', '500', '750'];
+
+                        bool success = false;
+                        try {
+                          await userProvider.updateFavoriteIntakeVolumes(volumesToSave);
+                          success = true;
+                        } catch (e) {
+                          logger.e("Error saving favorite volumes: $e");
+                          if (dialogContext.mounted) { // Show error on dialog if still mounted
+                            AppUtils.showSnackBar(dialogContext, "Failed to save volumes. Please try again.", isError: true);
+                          }
+                        }
+
+                        if (!dialogContext.mounted) return;
+                        Navigator.of(dialogContext).pop();
+
+                        if (success) {
+                          if (!screenContext.mounted) return;
+                          AppUtils.showSnackBar(screenContext, "Favorite volumes updated!");
+                        }
+                      },
+                    ),
+                  ],
+                );
+              }
+          );
+        }).then((_) {
+      for (var controller in dialogControllers) {
+        controller.dispose();
+      }
+      logger.d("Favorite volume dialog controllers disposed after dialog closed.");
+    });
+  }
+
+
+  Future<void> _handleLogout() async {
+    // screenContext is this.context
+    final BuildContext screenContext = context;
+    if (!screenContext.mounted) return;
+
+    final authProvider = Provider.of<AuthProvider>(screenContext, listen: false);
+    final bool? confirmed = await AppUtils.showConfirmationDialog(
+      screenContext,
+      title: AppStrings.logout,
+      content: 'Are you sure you want to log out?',
+      confirmText: AppStrings.logout,
+    );
+
+    if (!screenContext.mounted) return;
+    if (confirmed == true) {
+      await authProvider.signOut();
+      // Assuming navigation to login is handled by an AuthWrapper or similar
+    }
+  }
+
+  void _handleLogin() {
+    // screenContext is this.context
+    if (!context.mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+  }
+
+  void _showIntervalPicker(BuildContext context) {
+    logger.d("SettingsScreen: _showIntervalPicker called");
+    // context parameter is used to show modal bottom sheet
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext builderContext) { // builderContext is fresh
+        return SizedBox(
+          height: 250.h,
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(12.h),
+                child: Text("Select Reminder Interval", style: Theme.of(builderContext).textTheme.titleLarge),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _reminderIntervals.length,
+                  itemBuilder: (BuildContext listContext, int index) { // listContext is fresh
+                    final interval = _reminderIntervals[index];
+                    return ListTile(
+                      title: Text("${interval.toStringAsFixed(interval.truncateToDouble() == interval ? 0 : 1)} hours"),
+                      onTap: () {
+                        // Check State's mounted status before setState
+                        if (!mounted) return;
+                        setState(() {
+                          _selectedIntervalHours = interval;
+                        });
+                        _saveReminderSettings(); // Uses this.context, fine after mounted check
+
+                        // builderContext is used to pop
+                        if (builderContext.mounted) Navigator.pop(builderContext);
+                      },
+                      selected: _selectedIntervalHours == interval,
+                      selectedTileColor: AppColors.primaryColor.withAlpha((255 * 0.1).round()), // Corrected opacity
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
+    final hydrationService = Provider.of<HydrationService>(context, listen: false);
+    final userProfile = userProvider.userProfile;
+
+    if (userProfile != null && _dailyGoalController.text != userProfile.dailyGoalMl.toInt().toString()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) { // Check State's mounted status
+          _dailyGoalController.text = userProfile.dailyGoalMl.toInt().toString();
+        }
+      });
+    }
+
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Settings"),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _buildSectionTitle(AppStrings.general),
+            _buildSettingsTile(
+              icon: Icons.person_outline,
+              title: AppStrings.profile,
+              subtitle: "Manage your personal details",
+              onTap: () {
+                if (!context.mounted) return;
+                Navigator.of(context).pushNamed(AppRoutes.profile);
+              },
+            ),
+            _buildSettingsTile(
+              icon: Icons.color_lens_outlined,
+              title: AppStrings.theme,
+              subtitle: themeProvider.currentThemeName,
+              onTap: () => _showThemeDialog(context, themeProvider),
+            ),
+            _buildSettingsTile(
+              icon: Icons.water_drop_outlined,
+              title: AppStrings.dailyWaterGoal,
+              subtitle: "${userProfile?.dailyGoalMl.toInt() ?? 'N/A'} ${AppStrings.ml}",
+              onTap: () => _showDailyGoalOptionsDialog(context, userProvider, hydrationService),
+            ),
+            _buildSettingsTile(
+              icon: Icons.straighten_outlined,
+              title: AppStrings.measurementUnit,
+              subtitle: userProfile?.preferredUnit.displayName ?? AppStrings.ml,
+              onTap: () => _showEditMeasurementUnitDialog(context, userProvider),
+            ),
+            _buildSettingsTile(
+              icon: Icons.format_list_numbered_outlined,
+              title: "Favorite Quick Add Volumes",
+              subtitle: "${userProfile?.favoriteIntakeVolumes.join(', ') ?? "250, 500, 750"} ${AppStrings.ml}",
+              onTap: () => _showEditFavoriteVolumesDialog(context, userProvider),
+            ),
+
+            _buildSectionTitle(AppStrings.reminders),
+            SwitchListTile(
+              title: Text(AppStrings.enableReminders),
+              value: _enableReminders,
+              onChanged: (bool value) {
+                if (!mounted) return; // Check State's mounted status
+                setState(() {
+                  _enableReminders = value;
+                });
+                _saveReminderSettings();
+              },
+              secondary: const Icon(Icons.notifications_active_outlined),
+              activeColor: AppColors.primaryColor,
+            ),
+            if (_enableReminders) ...[
+              _buildSettingsTile(
+                icon: Icons.hourglass_empty_outlined,
+                title: "Reminder Interval",
+                subtitle: "${_selectedIntervalHours.toStringAsFixed(_selectedIntervalHours.truncateToDouble() == _selectedIntervalHours ? 0 : 1)} hours",
+                onTap: () => _showIntervalPicker(context),
+              ),
+              _buildSettingsTile(
+                icon: Icons.schedule_outlined,
+                title: "Reminder Start Time",
+                subtitle: _selectedStartTime.format(context),
+                onTap: () => _selectTime(context, true),
+              ),
+              _buildSettingsTile(
+                icon: Icons.watch_later_outlined,
+                title: "Reminder End Time",
+                subtitle: _selectedEndTime.format(context),
+                onTap: () => _selectTime(context, false),
+              ),
+            ],
+            Divider(height: 30.h),
+            if (authProvider.isAuthenticated)
+              _buildSettingsTile(
+                icon: Icons.logout_outlined,
+                title: AppStrings.logout,
+                onTap: _handleLogout,
+                tileColor: AppColors.errorColor.withAlpha((255 * 0.1).round()), // Corrected opacity
+                textColor: AppColors.errorColor,
+              )
+            else
+              _buildSettingsTile(
+                icon: Icons.login_outlined,
+                title: "Login / Sign Up",
+                onTap: _handleLogin,
+                tileColor: AppColors.primaryColor.withAlpha((255 * 0.1).round()), // Corrected opacity
+                textColor: AppColors.primaryColor,
+              ),
+
+            SizedBox(height: 20.h),
+            Center(
+              child: Text(
+                '${AppStrings.appName} - Version: $_appVersion',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            SizedBox(height: 20.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10.h),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+    Color? tileColor,
+    Color? textColor,
+  }) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 4.h),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      child: ListTile(
+        leading: Icon(icon, color: textColor ?? Theme.of(context).iconTheme.color),
+        title: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
+        subtitle: subtitle != null
+            ? Text(subtitle, style: TextStyle(color: textColor?.withAlpha((255 * 0.7).round()))) // Corrected opacity
+            : null,
+        onTap: onTap,
+        tileColor: tileColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      ),
+    );
+  }
+}
