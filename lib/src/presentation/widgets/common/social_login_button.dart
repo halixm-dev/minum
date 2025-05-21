@@ -57,11 +57,12 @@ class SocialLoginButton extends StatelessWidget {
           ),
           textStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: effectiveTextColor),
         ).copyWith(
-          minimumSize: WidgetStateProperty.all(Size(0, effectiveHeight)), // Updated
-          backgroundColor: WidgetStateProperty.resolveWith<Color?>( // Updated
-                (Set<WidgetState> states) { // Updated
-              if (states.contains(WidgetState.disabled)) { // Updated
-                return effectiveBackgroundColor.withOpacity(0.7);
+          minimumSize: WidgetStateProperty.all(Size(0, effectiveHeight)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+              if (states.contains(WidgetState.disabled)) {
+                // Use withAlpha for disabled state background
+                return effectiveBackgroundColor.withAlpha((255 * 0.7).round());
               }
               return effectiveBackgroundColor;
             },

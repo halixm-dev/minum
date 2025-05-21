@@ -40,7 +40,8 @@ final logger = Logger(
     lineLength: 120,
     colors: true,
     printEmojis: true,
-    printTime: false,
+    // Updated: Replaced 'printTime: false' with 'dateTimeFormat: DateTimeFormat.none'
+    dateTimeFormat: DateTimeFormat.none,
   ),
 );
 

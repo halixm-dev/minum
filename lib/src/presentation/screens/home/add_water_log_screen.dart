@@ -62,6 +62,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   }
 
   Future<void> _selectDateTime(BuildContext context) async {
+    if (!mounted) return;
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDateTime,
@@ -69,6 +70,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (pickedDate != null) {
+      if (!mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
@@ -88,55 +90,59 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   }
 
   Future<void> _saveOrUpdateLog() async {
-    if (_formKey.currentState!.validate()) {
-      final hydrationProvider = Provider.of<HydrationProvider>(context, listen: false);
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      double amountMl;
-      final double enteredAmount = double.tryParse(_amountController.text.trim()) ?? 0.0;
+    final hydrationProvider = Provider.of<HydrationProvider>(context, listen: false);
 
-      if (_currentUnit == MeasurementUnit.oz) {
-        amountMl = enteredAmount * 29.5735;
-      } else {
-        amountMl = enteredAmount;
+    double amountMl;
+    final double enteredAmount = double.tryParse(_amountController.text.trim()) ?? 0.0;
+
+    if (_currentUnit == MeasurementUnit.oz) {
+      amountMl = enteredAmount * 29.5735;
+    } else {
+      amountMl = enteredAmount;
+    }
+
+    if (amountMl <= 0) {
+      if (mounted) {
+        AppUtils.showSnackBar(context, "Please enter a valid amount.", isError: true);
       }
+      return;
+    }
 
-      if (amountMl <= 0) {
-        if (mounted) AppUtils.showSnackBar(context, "Please enter a valid amount.", isError: true);
-        return;
-      }
-
+    if (mounted) {
       AppUtils.showLoadingDialog(context, message: _isEditMode ? "Updating log..." : "Logging water...");
+    }
 
-      try {
-        if (_isEditMode) {
-          final updatedEntry = widget.entryToEdit!.copyWith(
-              amountMl: amountMl,
-              timestamp: _selectedDateTime,
-              notes: _notesController.text.trim(),
-              source: widget.entryToEdit!.source?.contains("manual") ?? true ? (widget.entryToEdit!.source ?? "manual_edit") : "manual_edit"
-          );
-          await hydrationProvider.updateHydrationEntry(updatedEntry);
-        } else {
-          await hydrationProvider.addHydrationEntry(
-            amountMl,
-            entryTime: _selectedDateTime,
+    try {
+      if (_isEditMode) {
+        final updatedEntry = widget.entryToEdit!.copyWith(
+            amountMl: amountMl,
+            timestamp: _selectedDateTime,
             notes: _notesController.text.trim(),
-            source: 'manual_add',
-          );
-        }
-
-        if (mounted) {
-          AppUtils.hideLoadingDialog(context);
-          // The provider will set actionStatus, UI can listen to it for snackbars
-          Navigator.of(context).pop();
-        }
-      } catch (e) {
-        logger.e("Error saving/updating water log: $e");
-        if (mounted) {
-          AppUtils.hideLoadingDialog(context);
-          // UI can listen to provider.errorMessage
-        }
+            source: widget.entryToEdit!.source?.contains("manual") ?? true ? (widget.entryToEdit!.source ?? "manual_edit") : "manual_edit"
+        );
+        await hydrationProvider.updateHydrationEntry(updatedEntry);
+      } else {
+        await hydrationProvider.addHydrationEntry(
+          amountMl,
+          entryTime: _selectedDateTime,
+          notes: _notesController.text.trim(),
+          source: 'manual_add',
+        );
       }
+
+      if (!mounted) return;
+      AppUtils.hideLoadingDialog(context);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+    } catch (e) {
+      logger.e("Error saving/updating water log: $e");
+      if (!mounted) return;
+      AppUtils.hideLoadingDialog(context);
     }
   }
 
@@ -157,21 +163,14 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       });
     }
 
-    // Listen to actionStatus to show snackbars
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && (hydrationProvider.actionStatus == HydrationActionStatus.success || hydrationProvider.actionStatus == HydrationActionStatus.error)) {
         if (hydrationProvider.actionStatus == HydrationActionStatus.success && ModalRoute.of(context)?.isCurrent == true) {
-          // Check if success message is relevant (e.g., not for initial load)
-          // For now, we assume any success after processing is fine to show.
-          // The pop navigation might happen before this if not careful.
-          // It's often better to show snackbars on the screen you navigate *to*, or before popping.
         } else if (hydrationProvider.actionStatus == HydrationActionStatus.error && hydrationProvider.errorMessage != null) {
           AppUtils.showSnackBar(context, hydrationProvider.errorMessage!, isError: true);
         }
-        // Reset status in provider if needed, or handle it via a listener that consumes the event once.
       }
     });
-
 
     return Scaffold(
       appBar: AppBar(
@@ -184,6 +183,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
               icon: const Icon(Icons.delete_outline),
               tooltip: "Delete Log",
               onPressed: () async {
+                if (!mounted) return;
                 final bool? confirmed = await AppUtils.showConfirmationDialog(
                   context,
                   title: "Delete Log",
@@ -191,20 +191,18 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                   confirmText: "Delete",
                 );
                 if (confirmed == true && widget.entryToEdit != null) {
+                  if (!mounted) return;
                   AppUtils.showLoadingDialog(context, message: "Deleting log...");
                   try {
-                    // **CORRECTED CALL**: Pass the whole entry object
                     await hydrationProvider.deleteHydrationEntry(widget.entryToEdit!);
-                    if (mounted) {
-                      AppUtils.hideLoadingDialog(context);
-                      // Snackbars are now ideally handled by listening to provider's actionStatus
-                      Navigator.of(context).pop();
-                    }
+                    if (!mounted) return;
+                    AppUtils.hideLoadingDialog(context);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   } catch (e) {
                     logger.e("Error deleting log from AddWaterLogScreen: $e");
-                    if (mounted) {
-                      AppUtils.hideLoadingDialog(context);
-                    }
+                    if (!mounted) return;
+                    AppUtils.hideLoadingDialog(context);
                   }
                 }
               },
@@ -281,4 +279,3 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
     );
   }
 }
-    
