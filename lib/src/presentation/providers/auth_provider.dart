@@ -130,11 +130,11 @@ class AuthProvider with ChangeNotifier {
     } on fb_auth.FirebaseAuthException catch (e) {
       if (_isDisposed) return;
       _handleAuthError(e.message ?? "Password reset failed.", e.code, notify: false);
-      throw e;
+      rethrow;
     } catch (e) {
       if (_isDisposed) return;
       _handleAuthError(e.toString(), "unknown-error", notify: false);
-      throw e;
+      rethrow;
     }
   }
 
