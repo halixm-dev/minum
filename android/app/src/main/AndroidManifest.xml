@@ -1,13 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <application
-        android:label="Minum"
-        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -27,24 +19,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <service android:name="io.flutter.plugins.awesomenotifications.services.AwesomeNotificationService" android:exported="false" />
-        <receiver android:name="io.flutter.plugins.awesomenotifications.broadcasts.AwesomeScheduledNotificationReceiver" android:exported="false" />
-        <receiver android:name="io.flutter.plugins.awesomenotifications.broadcasts.AwesomeDismissButtonReceiver" android:exported="false" />
-        <receiver android:name="io.flutter.plugins.awesomenotifications.broadcasts.AwesomeActionButtonReceiver" android:exported="false" />
-        <receiver
-            android:name="io.flutter.plugins.awesomenotifications.core.broadcasters.receivers.AwesomeNotificationRebootReceiver"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </receiver>
-
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
