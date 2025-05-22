@@ -1,11 +1,11 @@
-// lib/src/presentation/widgets/common/custom_text_field.dart
+// lib/src/widgets/common/custom_text_field.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_colors.dart'; // Using AppColors for consistency
 
 class CustomTextField extends StatelessWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final String labelText;
   final String? hintText;
   final bool obscureText;
@@ -24,11 +24,11 @@ class CustomTextField extends StatelessWidget {
   final ValueChanged<String>? onFieldSubmitted;
   final bool enabled;
   final AutovalidateMode? autovalidateMode;
-  final String? initialValue; // If not using a controller
+  final String? initialValue; // Used only when controller is null
 
   const CustomTextField({
     super.key,
-    required this.controller,
+    this.controller,
     required this.labelText,
     this.hintText,
     this.obscureText = false,
@@ -57,11 +57,10 @@ class CustomTextField extends StatelessWidget {
 
     return TextFormField(
       controller: controller,
-      initialValue: initialValue, // Use only if controller is not provided (though controller is required here)
+      initialValue: controller == null ? initialValue : null,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
-        // Using theme defaults and overriding if needed
         labelStyle: inputDecorationTheme.labelStyle ?? TextStyle(fontSize: 14.sp, color: AppColors.lightTextSecondary),
         hintStyle: inputDecorationTheme.hintStyle ?? TextStyle(fontSize: 14.sp, color: AppColors.lightTextHint),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp) : null,
@@ -87,8 +86,8 @@ class CustomTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(8.r),
           borderSide: BorderSide(color: Colors.grey.shade300, width: 1.w),
         ),
-        filled: inputDecorationTheme.filled, // Could make this configurable
-        fillColor: inputDecorationTheme.fillColor, // Could make this configurable
+        filled: inputDecorationTheme.filled,
+        fillColor: inputDecorationTheme.fillColor,
         contentPadding: inputDecorationTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
       ),
       obscureText: obscureText,

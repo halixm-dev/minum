@@ -1,5 +1,4 @@
 // lib/src/presentation/screens/profile/profile_screen.dart
-import 'dart:io'; // For File type if using image_picker
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,8 +14,6 @@ import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show GUEST_USER_ID;
-import 'package:minum/src/navigation/app_routes.dart';
-
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

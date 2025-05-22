@@ -75,9 +75,11 @@ class AppTheme {
       labelStyle: GoogleFonts.inter(color: AppColors.lightTextSecondary, fontSize: 14.sp), // Apply Inter
       hintStyle: GoogleFonts.inter(color: AppColors.lightTextHint, fontSize: 14.sp), // Apply Inter
     ),
-    cardTheme: CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
       color: AppColors.lightSurface,
     ),
     iconTheme: const IconThemeData(
@@ -155,10 +157,12 @@ class AppTheme {
       labelStyle: GoogleFonts.inter(color: AppColors.darkTextSecondary, fontSize: 14.sp), // Apply Inter
       hintStyle: GoogleFonts.inter(color: AppColors.darkTextHint, fontSize: 14.sp), // Apply Inter
     ),
-    cardTheme: CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      color: AppColors.darkSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      color: AppColors.lightSurface,
     ),
     iconTheme: const IconThemeData(
       color: AppColors.darkIcon,
