@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/data/repositories/user_repository.dart';
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show GUEST_USER_ID;
+import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
 
@@ -34,7 +34,7 @@ class UserProvider with ChangeNotifier {
   UserModel? get userProfile => _userProfile;
   UserProfileStatus get status => _status;
   String? get errorMessage => _errorMessage;
-  bool get isGuestUser => _userProfile != null && _userProfile!.id == GUEST_USER_ID;
+  bool get isGuestUser => _userProfile != null && _userProfile!.id == guestUserId;
 
   UserProvider({required AuthService authService, required UserRepository userRepository})
       : _authService = authService,
@@ -64,7 +64,7 @@ class UserProvider with ChangeNotifier {
     _authSubscription = _authService.authStateChanges.listen((UserModel? authUserFromService) async {
       if (_isDisposed) return;
 
-      if (authUserFromService != null && authUserFromService.id.isNotEmpty && authUserFromService.id != GUEST_USER_ID) {
+      if (authUserFromService != null && authUserFromService.id.isNotEmpty && authUserFromService.id != guestUserId) {
         logger.i("UserProvider: Auth user detected (ID: ${authUserFromService.id}). Setting profile.");
 
         _status = UserProfileStatus.loading;
@@ -129,7 +129,7 @@ class UserProvider with ChangeNotifier {
       final WeatherCondition guestWeather = _parseEnum(prefs.getString(prefsGuestSelectedWeather), WeatherCondition.values) ?? WeatherCondition.temperate;
 
       _userProfile = UserModel(
-        id: GUEST_USER_ID, displayName: "Guest User", createdAt: DateTime.now(),
+        id: guestUserId, displayName: "Guest User", createdAt: DateTime.now(),
         dailyGoalMl: guestGoal, preferredUnit: guestUnit, favoriteIntakeVolumes: guestFavorites,
         dateOfBirth: guestDob, gender: guestGender, weightKg: guestWeight, heightCm: guestHeight,
         activityLevel: guestActivity, healthConditions: guestHealth, selectedWeatherCondition: guestWeather,
@@ -141,7 +141,7 @@ class UserProvider with ChangeNotifier {
       _status = UserProfileStatus.error;
       _errorMessage = "Failed to load guest profile: $e";
       logger.e("UserProvider: Error loading guest profile: $e");
-      _userProfile = UserModel(id: GUEST_USER_ID, createdAt: DateTime.now(), displayName: "Guest");
+      _userProfile = UserModel(id: guestUserId, createdAt: DateTime.now(), displayName: "Guest");
     }
     // Note: _safeNotifyListeners() is called by the method that invokes _loadGuestProfile (e.g. _subscribeToAuthChanges)
   }
@@ -237,7 +237,7 @@ class UserProvider with ChangeNotifier {
   Future<void> fetchUserProfile(String uid) async {
     // ... (logic as before, ensuring _migrateGuestSettingsToFirebaseUser is called with prefs)
     if (_isDisposed) { return; }
-    if (uid == GUEST_USER_ID) { await _loadGuestProfile(); _safeNotifyListeners(); return; }
+    if (uid == guestUserId) { await _loadGuestProfile(); _safeNotifyListeners(); return; }
     if (uid.isEmpty) { _status = UserProfileStatus.idle; _userProfile = null; _safeNotifyListeners(); return; }
 
     _status = UserProfileStatus.loading; _errorMessage = null; _safeNotifyListeners();
@@ -274,7 +274,7 @@ class UserProvider with ChangeNotifier {
     _safeNotifyListeners(); // Notify UI that an update is starting
 
     try {
-      if (updatedProfile.id == GUEST_USER_ID) {
+      if (updatedProfile.id == guestUserId) {
         final prefs = await SharedPreferences.getInstance();
         if (_isDisposed) { _status = UserProfileStatus.idle; /* Or previous status */ return; } // Revert status if disposed
 

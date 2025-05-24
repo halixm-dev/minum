@@ -41,11 +41,9 @@ class AppTheme {
       onTertiaryContainer: AppColors.onTertiaryContainerLight,
       error: AppColors.errorColor,
       onError: AppColors.onError,
-      background: AppColors.lightScaffoldBackground, // Or lightBackground
-      onBackground: AppColors.lightText,
-      surface: AppColors.lightSurface,
-      onSurface: AppColors.lightText,
-      surfaceVariant: AppColors.surfaceVariantLight,
+      surface: AppColors.lightScaffoldBackground, // Intended: color from original background
+      onSurface: AppColors.lightText, // Intended: color from original onBackground
+      surfaceContainerHighest: AppColors.surfaceVariantLight, 
       onSurfaceVariant: AppColors.onSurfaceVariantLight,
       outline: AppColors.outlineLight,
       outlineVariant: AppColors.outlineVariantLight,
@@ -146,15 +144,13 @@ class AppTheme {
       onTertiaryContainer: AppColors.onTertiaryContainerDark,
       error: AppColors.errorColor, // Remains the same
       onError: AppColors.onError, // Remains the same
-      background: AppColors.darkScaffoldBackground, // Or darkBackground
-      onBackground: AppColors.darkText,
-      surface: AppColors.darkSurface,
-      onSurface: AppColors.darkText,
-      surfaceVariant: AppColors.surfaceVariantDark,
+      surface: AppColors.darkScaffoldBackground, // Intended: color from original background
+      onSurface: AppColors.darkText, // Intended: color from original onBackground
+      surfaceContainerHighest: AppColors.surfaceVariantDark, 
       onSurfaceVariant: AppColors.onSurfaceVariantDark,
       outline: AppColors.outlineDark,
       outlineVariant: AppColors.outlineVariantDark,
-      shadow: AppColors.shadowColor, // M3 uses less shadow in dark, but we can keep it or use a more subtle one like Colors.black.withOpacity(0.1)
+      shadow: AppColors.shadowColor, // M3 uses less shadow in dark, but we can keep it or use a more subtle one like Colors.black.withAlpha((255 * 0.1).round())
       scrim: Colors.black54, // Default M3 scrim is often a translucent black, darker for dark theme
       inverseSurface: AppColors.lightSurface,
       onInverseSurface: AppColors.lightText,

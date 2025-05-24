@@ -14,9 +14,8 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/widgets/common/custom_button.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
 import 'package:minum/main.dart';
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show GUEST_USER_ID;
+import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
 
 
 enum HistoryViewType { weekly, monthly }
@@ -64,7 +63,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
     if (loggedInUserId != null) {
       _currentDataScopeId = loggedInUserId;
     } else {
-      _currentDataScopeId = GUEST_USER_ID;
+      _currentDataScopeId = guestUserId;
     }
     _fetchHistoryData();
   }
@@ -73,7 +72,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final userProvider = Provider.of<UserProvider>(context);
-    final newScopeId = userProvider.userProfile?.id ?? GUEST_USER_ID;
+    final newScopeId = userProvider.userProfile?.id ?? guestUserId;
 
     if (newScopeId != _currentDataScopeId) {
       logger.d("HydrationHistoryScreen: Data scope changed from $_currentDataScopeId to $newScopeId. Re-fetching data.");
@@ -306,7 +305,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
   Widget _buildLoginToSyncPrompt(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      color: theme.colorScheme.primaryContainer.withOpacity(0.3), // Changed
+      color: theme.colorScheme.primaryContainer.withAlpha((255 * 0.3).round()), // Changed
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         children: [
@@ -337,7 +336,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.no_drinks_outlined, size: 70.sp, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6)), // Use theme
+            Icon(Icons.no_drinks_outlined, size: 70.sp, color: theme.colorScheme.onSurfaceVariant.withAlpha((255 * 0.6).round())), // Use theme
             SizedBox(height: 20.h),
             Text(
               AppStrings.noDataAvailable,
@@ -349,7 +348,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               isLoggedIn
                   ? 'No hydration logs found for the selected period.'
                   : 'Log some water to see your history here. Log in to sync across devices!',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8)),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant.withAlpha((255 * 0.8).round())),
               textAlign: TextAlign.center,
             ),
             if (!isLoggedIn) SizedBox(height: 20.h),
@@ -505,7 +504,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               show: true,
               drawVerticalLine: false,
               horizontalInterval: (maxY / 5).ceilToDouble() > 0 ? (maxY / 5).ceilToDouble() : 1,
-              getDrawingHorizontalLine: (value) => FlLine(color: theme.colorScheme.outlineVariant.withOpacity(0.5), strokeWidth: 0.5), // Changed
+              getDrawingHorizontalLine: (value) => FlLine(color: theme.colorScheme.outlineVariant.withAlpha((255 * 0.5).round()), strokeWidth: 0.5), // Changed
             ),
           ),
         ),

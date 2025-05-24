@@ -53,7 +53,7 @@ class MainHydrationView extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.local_drink_outlined, size: 60.sp, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7)), // Changed
+                Icon(Icons.local_drink_outlined, size: 60.sp, color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha((255 * 0.7).round())), // Changed
                 SizedBox(height: 16.h),
                 Text(
                   'No water logged yet for today.',
@@ -62,7 +62,7 @@ class MainHydrationView extends StatelessWidget {
                 SizedBox(height: 8.h),
                 Text(
                   'Tap the (+) button to add your first drink!',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.8)), // Changed
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha((255 * 0.8).round())), // Changed
                   textAlign: TextAlign.center,
                 ),
               ],

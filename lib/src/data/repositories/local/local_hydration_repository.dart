@@ -7,14 +7,14 @@ import 'package:minum/main.dart'; // For logger
 
 // This constant can be defined globally or passed around.
 // It represents the user ID for entries made when not logged in.
-const String GUEST_USER_ID = "local_guest_user";
+const String guestUserId = "local_guest_user";
 
 class LocalHydrationRepository implements HydrationRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
   Future<void> addHydrationEntry(String userId, HydrationEntry entry) async {
-    final String effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final String effectiveUserId = userId.isEmpty ? guestUserId : userId;
 
     final HydrationEntry entryToSave = entry.copyWith(
         userId: effectiveUserId,
@@ -31,7 +31,7 @@ class LocalHydrationRepository implements HydrationRepository {
   @override
   Future<void> updateHydrationEntry(String userId, HydrationEntry entry) async {
     int? localIdToUpdate = entry.localDbId;
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId; // Ensure effectiveUserId is used
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId; // Ensure effectiveUserId is used
 
     if (localIdToUpdate == null && entry.id != null) {
       // Use effectiveUserId when looking up by Firestore ID
@@ -55,7 +55,7 @@ class LocalHydrationRepository implements HydrationRepository {
   // Updated method signature to match interface (will be HydrationEntry entryToDelete)
   @override
   Future<void> deleteHydrationEntry(String userId, HydrationEntry entryToDelete) async {
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
 
     if (entryToDelete.localDbId != null) {
       await _dbHelper.markHydrationEntryAsDeletedByLocalId(entryToDelete.localDbId!);
@@ -76,7 +76,7 @@ class LocalHydrationRepository implements HydrationRepository {
   @override
   Future<HydrationEntry?> getHydrationEntry(String userId, String entryId) async {
     // entryId is assumed to be Firestore ID
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     int? localId = await _dbHelper.getLocalIdFromFirestoreId(entryId, effectiveUserId);
     if(localId != null) {
       return await _dbHelper.getHydrationEntryByLocalId(localId);
@@ -92,7 +92,7 @@ class LocalHydrationRepository implements HydrationRepository {
   @override
   Stream<List<HydrationEntry>> getHydrationEntriesForDateRange(
       String userId, DateTime startDate, DateTime endDate) {
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     logger.d("LocalHydrationRepo: Getting entries for user/scope: $effectiveUserId, range: $startDate - $endDate");
 
     return Stream.fromFuture(
@@ -107,7 +107,7 @@ class LocalHydrationRepository implements HydrationRepository {
   }
 
   Future<List<HydrationEntry>> getUnsyncedNewOrUpdatedEntries(String userId) async {
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getUnsyncedNewOrUpdatedEntries(effectiveUserId);
   }
 
@@ -116,7 +116,7 @@ class LocalHydrationRepository implements HydrationRepository {
   }
 
   Future<List<HydrationEntry>> getDeletedUnsyncedEntries(String userId) async {
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getDeletedUnsyncedEntries(effectiveUserId);
   }
 
@@ -129,12 +129,12 @@ class LocalHydrationRepository implements HydrationRepository {
   }
 
   Future<int?> getLocalIdFromFirestoreId(String firestoreId, String userId) async {
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getLocalIdFromFirestoreId(firestoreId, effectiveUserId);
   }
 
   Future<int> upsertHydrationEntry(HydrationEntry entry, String userId) async {
-    final effectiveUserId = userId.isEmpty ? GUEST_USER_ID : userId;
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     final entryToUpsert = entry.copyWith(userId: effectiveUserId, isSynced: true, isLocallyDeleted: false);
     return _dbHelper.upsertHydrationEntry(entryToUpsert, effectiveUserId);
   }
