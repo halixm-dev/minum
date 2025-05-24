@@ -13,7 +13,7 @@ import 'package:minum/src/presentation/widgets/common/custom_button.dart';
 import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show GUEST_USER_ID;
+import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -223,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 
     final tempUserForCalc = UserModel(
-      id: userProvider.userProfile?.id ?? GUEST_USER_ID,
+      id: userProvider.userProfile?.id ?? guestUserId,
       createdAt: userProvider.userProfile?.createdAt ?? DateTime.now(),
       displayName: _displayNameController.text.trim(),
       weightKg: double.tryParse(_weightController.text.trim()),

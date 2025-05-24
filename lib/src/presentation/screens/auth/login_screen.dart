@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: BoxDecoration( // Optional: Add a subtle gradient or background image
             gradient: LinearGradient(
               colors: [
-                theme.colorScheme.primaryContainer.withOpacity(0.5), // Changed
+                theme.colorScheme.primaryContainer.withAlpha((255 * 0.5).round()), // Changed
                 theme.scaffoldBackgroundColor,
                 theme.scaffoldBackgroundColor,
               ],
@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 CustomButton(
                   text: 'Skip login for now',
                   onPressed: _skipLogin,
-                  backgroundColor: theme.colorScheme.secondaryContainer.withOpacity(0.7), // Changed
+                  backgroundColor: theme.colorScheme.secondaryContainer.withAlpha((255 * 0.7).round()), // Changed
                   textColor: theme.colorScheme.onSecondaryContainer, // Changed
                 ),
                 const Spacer(flex: 1),

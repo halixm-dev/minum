@@ -2,7 +2,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
 import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
 import 'package:minum/src/core/utils/app_utils.dart'; // For formatting amount
 

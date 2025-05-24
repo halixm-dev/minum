@@ -39,7 +39,7 @@ class SyncableHydrationRepository implements HydrationRepository {
     }
   }
 
-  String get _effectiveUserId => _authService.currentUser?.id ?? GUEST_USER_ID;
+  String get _effectiveUserId => _authService.currentUser?.id ?? guestUserId;
   bool get _isUserLoggedIn => _authService.currentUser != null;
 
   void _debouncedSyncAllData({String? currentUserId}) {
@@ -63,7 +63,7 @@ class SyncableHydrationRepository implements HydrationRepository {
     logger.d("SyncableRepo: Adding entry for scope $currentScopeId. Amount: ${entryToSaveLocally.amountMl}");
     await _localRepository.addHydrationEntry(currentScopeId, entryToSaveLocally);
 
-    if (_isUserLoggedIn && currentScopeId != GUEST_USER_ID) {
+    if (_isUserLoggedIn && currentScopeId != guestUserId) {
       logger.d("SyncableRepo: User $currentScopeId logged in. Debouncing sync after add.");
       _debouncedSyncAllData(currentUserId: currentScopeId);
     }
@@ -82,7 +82,7 @@ class SyncableHydrationRepository implements HydrationRepository {
 
     await _localRepository.updateHydrationEntry(currentScopeId, entryToUpdateLocally);
 
-    if (_isUserLoggedIn && currentScopeId != GUEST_USER_ID) {
+    if (_isUserLoggedIn && currentScopeId != guestUserId) {
       logger.d("SyncableRepo: User $currentScopeId logged in. Debouncing sync after update.");
       _debouncedSyncAllData(currentUserId: currentScopeId);
     }
@@ -105,7 +105,7 @@ class SyncableHydrationRepository implements HydrationRepository {
       await _localRepository.deleteHydrationEntry(currentScopeId, entryToDelete);
 
       // 3. If logged in, attempt to sync this deletion to Firebase.
-      if (_isUserLoggedIn && currentScopeId != GUEST_USER_ID) {
+      if (_isUserLoggedIn && currentScopeId != guestUserId) {
         logger.d("SyncableRepo: User $currentScopeId logged in. Debouncing sync after delete initiation for (potentially) synced entry.");
         _debouncedSyncAllData(currentUserId: currentScopeId);
       }
@@ -161,8 +161,8 @@ class SyncableHydrationRepository implements HydrationRepository {
 
     final String userIdToSync = currentUserId ?? _effectiveUserId;
 
-    if (userIdToSync == GUEST_USER_ID) {
-      logger.i("SyncableRepo: User is GUEST_USER_ID. Skipping Firebase sync.");
+    if (userIdToSync == guestUserId) {
+      logger.i("SyncableRepo: User is guestUserId. Skipping Firebase sync.");
       _isSyncing = false;
       return;
     }
@@ -248,14 +248,14 @@ class SyncableHydrationRepository implements HydrationRepository {
   }
 
   Future<void> migrateGuestDataToUser(String firebaseUserId) async {
-    if (GUEST_USER_ID == firebaseUserId) {
-      logger.w("SyncableRepo: migrateGuestDataToUser called with GUEST_USER_ID. This should not happen if user is truly logging in.");
+    if (guestUserId == firebaseUserId) {
+      logger.w("SyncableRepo: migrateGuestDataToUser called with guestUserId. This should not happen if user is truly logging in.");
       return;
     }
 
-    logger.i("SyncableRepo: Attempting to migrate guest data (from scope '$GUEST_USER_ID') to user '$firebaseUserId'.");
+    logger.i("SyncableRepo: Attempting to migrate guest data (from scope '$guestUserId') to user '$firebaseUserId'.");
     try {
-      int updatedRows = await _localRepository.updateGuestEntriesToUser(GUEST_USER_ID, firebaseUserId);
+      int updatedRows = await _localRepository.updateGuestEntriesToUser(guestUserId, firebaseUserId);
       logger.i("SyncableRepo: Migrated $updatedRows guest entries to user $firebaseUserId locally (marked as unsynced, Firestore ID cleared).");
 
       if (updatedRows > 0) {

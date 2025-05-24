@@ -6,7 +6,7 @@ import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/main.dart'; // For logger
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show GUEST_USER_ID;
+import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
 
 enum HydrationLogStatus { idle, loading, loaded, error }
 enum HydrationActionStatus { idle, processing, success, error }
@@ -54,7 +54,7 @@ class HydrationProvider with ChangeNotifier {
         _currentUserId = newUserId;
         logger.i("HydrationProvider: User changed to ${_currentUserId ?? 'guest'}. Fetching entries for $_selectedDate.");
         _cancelEntriesSubscription();
-        final userIdForFetch = _currentUserId ?? GUEST_USER_ID;
+        final userIdForFetch = _currentUserId ?? guestUserId;
         if (userIdForFetch.isNotEmpty) {
           await fetchHydrationEntriesForDate(_selectedDate);
         } else {
@@ -62,8 +62,8 @@ class HydrationProvider with ChangeNotifier {
           _logStatus = HydrationLogStatus.idle;
           _safeNotifyListeners();
         }
-      } else if (_currentUserId == null && GUEST_USER_ID.isNotEmpty && _dailyEntries.isEmpty && _logStatus == HydrationLogStatus.idle) {
-        _currentUserId = GUEST_USER_ID;
+      } else if (_currentUserId == null && guestUserId.isNotEmpty && _dailyEntries.isEmpty && _logStatus == HydrationLogStatus.idle) {
+        _currentUserId = guestUserId;
         logger.i("HydrationProvider: Initializing for guest user. Fetching entries for $_selectedDate.");
         await fetchHydrationEntriesForDate(_selectedDate);
       }
@@ -84,7 +84,7 @@ class HydrationProvider with ChangeNotifier {
     _selectedDate = normalizedDate;
     logger.i("HydrationProvider: Selected date changed to $_selectedDate.");
     _cancelEntriesSubscription();
-    final userIdForFetch = _currentUserId ?? GUEST_USER_ID;
+    final userIdForFetch = _currentUserId ?? guestUserId;
     if (userIdForFetch.isNotEmpty) {
       await fetchHydrationEntriesForDate(_selectedDate);
     } else {
@@ -96,8 +96,8 @@ class HydrationProvider with ChangeNotifier {
 
   Future<void> fetchHydrationEntriesForDate(DateTime date) async {
     if (_isDisposed) return;
-    final userIdForFetch = _currentUserId ?? GUEST_USER_ID;
-    if (userIdForFetch.isEmpty && userIdForFetch != GUEST_USER_ID) {
+    final userIdForFetch = _currentUserId ?? guestUserId;
+    if (userIdForFetch.isEmpty && userIdForFetch != guestUserId) {
       _logStatus = HydrationLogStatus.idle;
       _dailyEntries = [];
       _safeNotifyListeners();
@@ -136,8 +136,8 @@ class HydrationProvider with ChangeNotifier {
 
   Stream<List<HydrationEntry>> getEntriesForDateRangeStream(String userId, DateTime startDate, DateTime endDate) {
     if (_isDisposed) return Stream.value([]);
-    final userIdForFetch = userId.isEmpty ? GUEST_USER_ID : userId;
-    if (userIdForFetch.isEmpty && userIdForFetch != GUEST_USER_ID) {
+    final userIdForFetch = userId.isEmpty ? guestUserId : userId;
+    if (userIdForFetch.isEmpty && userIdForFetch != guestUserId) {
       logger.w("HydrationProvider: User ID is empty for date range stream, returning empty stream.");
       return Stream.value([]);
     }
@@ -148,8 +148,8 @@ class HydrationProvider with ChangeNotifier {
 
   Future<void> addHydrationEntry(double amountMl, {DateTime? entryTime, String? notes, String? source}) async {
     if (_isDisposed) return;
-    final userIdForAction = _currentUserId ?? GUEST_USER_ID;
-    if (userIdForAction.isEmpty && userIdForAction != GUEST_USER_ID) {
+    final userIdForAction = _currentUserId ?? guestUserId;
+    if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
       _actionStatus = HydrationActionStatus.error;
       _errorMessage = "User not authenticated or guest scope not identified.";
       _safeNotifyListeners();
@@ -189,8 +189,8 @@ class HydrationProvider with ChangeNotifier {
 
   Future<void> updateHydrationEntry(HydrationEntry entry) async {
     if (_isDisposed) return;
-    final userIdForAction = _currentUserId ?? GUEST_USER_ID;
-    if (userIdForAction.isEmpty && userIdForAction != GUEST_USER_ID) {
+    final userIdForAction = _currentUserId ?? guestUserId;
+    if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
       _actionStatus = HydrationActionStatus.error;
       _errorMessage = "User not authenticated or guest scope not identified.";
       _safeNotifyListeners();
@@ -222,8 +222,8 @@ class HydrationProvider with ChangeNotifier {
 
   Future<void> deleteHydrationEntry(HydrationEntry entryToDelete) async {
     if (_isDisposed) return;
-    final userIdForAction = _currentUserId ?? GUEST_USER_ID;
-    if (userIdForAction.isEmpty && userIdForAction != GUEST_USER_ID) {
+    final userIdForAction = _currentUserId ?? guestUserId;
+    if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
       _actionStatus = HydrationActionStatus.error;
       _errorMessage = "User not authenticated or guest scope not identified.";
       _safeNotifyListeners();
