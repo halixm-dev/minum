@@ -1,49 +1,49 @@
 // lib/src/app.dart
-
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/presentation/screens/auth_gate_screen.dart'; // Default home screen
 import 'package:provider/provider.dart';
-
-import 'package:minum/src/core/theme/app_theme.dart';
 import 'package:minum/src/presentation/providers/theme_provider.dart';
-import 'package:minum/src/navigation/app_router.dart'; // Import your AppRouter
-// Import your AppRoutes for initialRoute if needed
+import 'package:minum/src/navigation/app_router.dart';
 
 class MinumApp extends StatelessWidget {
   const MinumApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    // listen: true is important here so MaterialApp rebuilds on theme changes
+    final themeProvider = Provider.of<ThemeProvider>(context); 
 
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (context, child) {
-        return MaterialApp(
-          title: 'Minum - Water Reminder',
-          debugShowCheckedModeBanner: false,
+      builder: (screenUtilContext, child) { // Renamed context to avoid conflict, though not strictly necessary here
+        return DynamicColorBuilder(
+          builder: (ColorScheme? lightDynamicScheme, ColorScheme? darkDynamicScheme) {
+            // Update ThemeProvider with the dynamic palettes after the build frame.
+            // Use the 'context' from MinumApp's build method, which has ThemeProvider in its widget tree.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Provider.of<ThemeProvider>(context, listen: false) 
+                  .setDynamicColorSchemes(lightDynamicScheme, darkDynamicScheme);
+            });
 
-          themeMode: themeProvider.themeMode,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
+            return MaterialApp(
+              title: 'Minum - Water Reminder',
+              debugShowCheckedModeBanner: false,
 
-          // Option 1: Keep `home` and add `onGenerateRoute` for other routes.
-          // `AuthGateScreen` will be the initial screen loaded by MaterialApp.
-          // Any `pushNamed` calls will then use `AppRouter.generateRoute`.
-          home: const AuthGateScreen(),
-          onGenerateRoute: AppRouter.generateRoute, // <-- ENSURE THIS LINE IS PRESENT AND UNCOMMENTED
+              themeMode: themeProvider.themeMode,
+              theme: themeProvider.currentLightThemeData, // Use new getter
+              darkTheme: themeProvider.currentDarkThemeData, // Use new getter
 
-          // Option 2: Use `initialRoute` with `onGenerateRoute` (more common for fully named routing)
-          // If you use this, make sure AppRoutes.authGate (or your intended initial route like AppRoutes.splash)
-          // is handled correctly by AppRouter.generateRoute.
-          // initialRoute: AppRoutes.splash, // Or AppRoutes.authGate if that's your true entry point for routing
-          // onGenerateRoute: AppRouter.generateRoute,
-
-          builder: (context, widget) {
-            return widget!;
+              home: const AuthGateScreen(),
+              onGenerateRoute: AppRouter.generateRoute,
+              
+              builder: (materialAppContext, widget) { // This builder is for MaterialApp
+                return widget!;
+              },
+            );
           },
         );
       },

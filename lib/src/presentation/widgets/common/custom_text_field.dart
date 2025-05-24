@@ -65,25 +65,25 @@ class CustomTextField extends StatelessWidget {
         hintStyle: inputDecorationTheme.hintStyle ?? TextStyle(fontSize: 14.sp, color: AppColors.lightTextHint),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp) : null,
         suffixIcon: suffixIcon,
-        border: inputDecorationTheme.border ?? OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+        border: inputDecorationTheme.border ?? OutlineInputBorder(borderRadius: BorderRadius.circular(4.r)),
         enabledBorder: inputDecorationTheme.enabledBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(4.r),
           borderSide: BorderSide(color: AppColors.lightInputBorder, width: 1.w),
         ),
         focusedBorder: inputDecorationTheme.focusedBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(4.r),
           borderSide: BorderSide(color: theme.primaryColor, width: 1.5.w),
         ),
         errorBorder: inputDecorationTheme.errorBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(4.r),
           borderSide: BorderSide(color: theme.colorScheme.error, width: 1.w),
         ),
         focusedErrorBorder: inputDecorationTheme.focusedErrorBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(4.r),
           borderSide: BorderSide(color: theme.colorScheme.error, width: 1.5.w),
         ),
         disabledBorder: inputDecorationTheme.disabledBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(4.r),
           borderSide: BorderSide(color: Colors.grey.shade300, width: 1.w),
         ),
         filled: inputDecorationTheme.filled,

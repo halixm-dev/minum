@@ -1,4 +1,5 @@
 // lib/src/core/theme/app_theme.dart
+// dynamic_color import removed as CorePalette is no longer directly used here.
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import google_fonts
@@ -7,32 +8,15 @@ import 'package:minum/src/core/constants/app_colors.dart';
 class AppTheme {
   AppTheme._(); // Private constructor
 
-  // Helper to apply Inter font with specific styles
-
-  static final ThemeData lightTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    primaryColor: AppColors.primaryColor,
-    scaffoldBackgroundColor: AppColors.lightScaffoldBackground,
-    // fontFamily: 'Inter', // No longer needed, GoogleFonts handles it
-    appBarTheme: AppBarTheme(
-      elevation: 0,
-      backgroundColor: AppColors.lightAppBarBackground,
-      iconTheme: const IconThemeData(color: AppColors.lightAppBarText),
-      titleTextStyle: GoogleFonts.inter( // Apply Inter font
-        color: AppColors.lightAppBarText,
-        fontSize: 18.sp,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-    colorScheme: const ColorScheme.light(
-      brightness: Brightness.light, // Explicitly set
+  static final ThemeData lightTheme = buildThemeDataFromScheme(
+    const ColorScheme.light(
+      brightness: Brightness.light,
       primary: AppColors.primaryColor,
       onPrimary: AppColors.onPrimary,
       primaryContainer: AppColors.primaryContainerLight,
       onPrimaryContainer: AppColors.onPrimaryContainerLight,
-      secondary: AppColors.secondaryLight, // Was accentColor
-      onSecondary: AppColors.onSecondaryLight, // Was onSecondary
+      secondary: AppColors.secondaryLight,
+      onSecondary: AppColors.onSecondaryLight,
       secondaryContainer: AppColors.secondaryContainerLight,
       onSecondaryContainer: AppColors.onSecondaryContainerLight,
       tertiary: AppColors.tertiaryLight,
@@ -41,177 +25,153 @@ class AppTheme {
       onTertiaryContainer: AppColors.onTertiaryContainerLight,
       error: AppColors.errorColor,
       onError: AppColors.onError,
-      surface: AppColors.lightScaffoldBackground, // Intended: color from original background
-      onSurface: AppColors.lightText, // Intended: color from original onBackground
+      surface: AppColors.lightSurface, 
+      onSurface: AppColors.lightText,
       surfaceContainerHighest: AppColors.surfaceVariantLight, 
       onSurfaceVariant: AppColors.onSurfaceVariantLight,
       outline: AppColors.outlineLight,
       outlineVariant: AppColors.outlineVariantLight,
       shadow: AppColors.shadowColor,
-      scrim: Colors.black12, // Default M3 scrim is often a translucent black
+      scrim: Colors.black12,
       inverseSurface: AppColors.darkSurface,
       onInverseSurface: AppColors.darkText,
       inversePrimary: AppColors.primaryColorDark,
-      // surfaceTint is often primary in M3
       surfaceTint: AppColors.primaryColor,
     ),
-    textTheme: GoogleFonts.interTextTheme( // Apply Inter to the whole text theme
-        ThemeData.light().textTheme.copyWith( // Start with base light theme text styles
-          displayLarge: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold, color: AppColors.lightText),
-          displayMedium: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.lightText),
-          headlineMedium: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600, color: AppColors.lightText),
-          titleLarge: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: AppColors.lightText),
-          bodyLarge: TextStyle(fontSize: 16.sp, color: AppColors.lightText),
-          bodyMedium: TextStyle(fontSize: 14.sp, color: AppColors.lightTextSecondary),
-          labelLarge: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.onPrimary),
-        )
-    ),
-    buttonTheme: ButtonThemeData(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-      buttonColor: AppColors.primaryColor,
-      textTheme: ButtonTextTheme.primary,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: AppColors.onPrimary,
-        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
-        textStyle: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600), // Apply Inter
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-      ),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(color: AppColors.lightInputBorder),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(color: AppColors.lightInputBorder),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(color: AppColors.primaryColor, width: 2.0),
-      ),
-      labelStyle: GoogleFonts.inter(color: AppColors.lightTextSecondary, fontSize: 14.sp), // Apply Inter
-      hintStyle: GoogleFonts.inter(color: AppColors.lightTextHint, fontSize: 14.sp), // Apply Inter
-    ),
-    cardTheme: const CardThemeData(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-      color: AppColors.lightSurface, // Corrected: Was AppColors.lightSurface
-    ),
-    iconTheme: const IconThemeData(
-      color: AppColors.lightIcon,
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: AppColors.primaryColor,
-      foregroundColor: AppColors.onPrimary,
-    ),
+    Brightness.light
   );
 
-  static final ThemeData darkTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    primaryColor: AppColors.primaryColorDark,
-    scaffoldBackgroundColor: AppColors.darkScaffoldBackground,
-    // fontFamily: 'Inter', // No longer needed
-    appBarTheme: AppBarTheme(
-      elevation: 0,
-      backgroundColor: AppColors.darkAppBarBackground,
-      iconTheme: const IconThemeData(color: AppColors.darkAppBarText),
-      titleTextStyle: GoogleFonts.inter( // Apply Inter
-        color: AppColors.darkAppBarText,
-        fontSize: 18.sp,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-    colorScheme: const ColorScheme.dark(
-      brightness: Brightness.dark, // Explicitly set
+  static final ThemeData darkTheme = buildThemeDataFromScheme(
+    const ColorScheme.dark(
+      brightness: Brightness.dark,
       primary: AppColors.primaryColorDark,
       onPrimary: AppColors.onPrimaryDark,
       primaryContainer: AppColors.primaryContainerDark,
       onPrimaryContainer: AppColors.onPrimaryContainerDark,
-      secondary: AppColors.secondaryDark, // Was accentColorDark
-      onSecondary: AppColors.onSecondaryDark, // Original onSecondaryDark (Colors.black)
+      secondary: AppColors.secondaryDark,
+      onSecondary: AppColors.onSecondaryDark,
       secondaryContainer: AppColors.secondaryContainerDark,
       onSecondaryContainer: AppColors.onSecondaryContainerDark,
       tertiary: AppColors.tertiaryDark,
       onTertiary: AppColors.onTertiaryDark,
       tertiaryContainer: AppColors.tertiaryContainerDark,
       onTertiaryContainer: AppColors.onTertiaryContainerDark,
-      error: AppColors.errorColor, // Remains the same
-      onError: AppColors.onError, // Remains the same
-      surface: AppColors.darkScaffoldBackground, // Intended: color from original background
-      onSurface: AppColors.darkText, // Intended: color from original onBackground
-      surfaceContainerHighest: AppColors.surfaceVariantDark, 
+      error: AppColors.errorColor,
+      onError: AppColors.onError,
+      surface: AppColors.darkSurface,
+      onSurface: AppColors.darkText,
       onSurfaceVariant: AppColors.onSurfaceVariantDark,
       outline: AppColors.outlineDark,
       outlineVariant: AppColors.outlineVariantDark,
-      shadow: AppColors.shadowColor, // M3 uses less shadow in dark, but we can keep it or use a more subtle one like Colors.black.withAlpha((255 * 0.1).round())
-      scrim: Colors.black54, // Default M3 scrim is often a translucent black, darker for dark theme
+      shadow: AppColors.shadowColor,
+      scrim: Colors.black54,
+      surfaceContainerHighest: AppColors.surfaceVariantDark,
       inverseSurface: AppColors.lightSurface,
       onInverseSurface: AppColors.lightText,
       inversePrimary: AppColors.primaryColor,
-      // surfaceTint is often primary in M3
       surfaceTint: AppColors.primaryColorDark,
     ),
-    textTheme: GoogleFonts.interTextTheme( // Apply Inter to the whole text theme
-        ThemeData.dark().textTheme.copyWith( // Start with base dark theme text styles
-          displayLarge: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold, color: AppColors.darkText),
-          displayMedium: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.darkText),
-          headlineMedium: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600, color: AppColors.darkText),
-          titleLarge: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: AppColors.darkText),
-          bodyLarge: TextStyle(fontSize: 16.sp, color: AppColors.darkText),
-          bodyMedium: TextStyle(fontSize: 14.sp, color: AppColors.darkTextSecondary),
-          labelLarge: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.onPrimaryDark),
-        )
-    ),
-    buttonTheme: ButtonThemeData(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-      buttonColor: AppColors.primaryColorDark,
-      textTheme: ButtonTextTheme.primary,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryColorDark,
-        foregroundColor: AppColors.onPrimaryDark,
-        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
-        textStyle: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600), // Apply Inter
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-      ),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(color: AppColors.darkInputBorder),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(color: AppColors.darkInputBorder),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(color: AppColors.primaryColorDark, width: 2.0),
-      ),
-      labelStyle: GoogleFonts.inter(color: AppColors.darkTextSecondary, fontSize: 14.sp), // Apply Inter
-      hintStyle: GoogleFonts.inter(color: AppColors.darkTextHint, fontSize: 14.sp), // Apply Inter
-    ),
-    cardTheme: const CardThemeData(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-      color: AppColors.darkSurface,
-    ),
-    iconTheme: const IconThemeData(
-      color: AppColors.darkIcon,
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: AppColors.primaryColorDark,
-      foregroundColor: AppColors.onPrimaryDark,
-    ),
+    Brightness.dark
   );
+
+  static ThemeData themeFromSeed({required Color seedColor, required Brightness brightness}) {
+    final colorScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
+    return buildThemeDataFromScheme(colorScheme, brightness);
+  }
+
+  // The themeFromCorePalette method has been removed because this file should no longer
+  // directly reference CorePalette from the dynamic_color package.
+  // ThemeProvider is now responsible for converting a CorePalette to a ColorScheme
+  // (using AppTheme.themeFromSeed if necessary, or directly creating ColorScheme objects)
+  // and then calling buildThemeDataFromScheme or themeFromSeed.
+
+  static ThemeData buildThemeDataFromScheme(ColorScheme colorScheme, Brightness brightness) {
+    final baseTextTheme = brightness == Brightness.light ? ThemeData.light().textTheme : ThemeData.dark().textTheme;
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      colorScheme: colorScheme,
+      primaryColor: colorScheme.primary, // M2 compatibility
+      scaffoldBackgroundColor: colorScheme.surface,
+      // M3 uses surface for AppBars by default, but surfaceContainer might be desired for a slight tint
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        // backgroundColor: colorScheme.surface, // Standard M3 AppBar
+        backgroundColor: colorScheme.surfaceContainer, // Slightly more elevated/distinct
+        iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+        titleTextStyle: GoogleFonts.roboto(
+          color: colorScheme.onSurface,
+          fontSize: 18.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      textTheme: GoogleFonts.robotoTextTheme(baseTextTheme.copyWith(
+        displayLarge: TextStyle(fontSize: 57.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface),
+        displayMedium: TextStyle(fontSize: 45.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface),
+        displaySmall: TextStyle(fontSize: 36.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface),
+        headlineLarge: TextStyle(fontSize: 32.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface),
+        headlineMedium: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface), // Often onSurface for emphasis
+        headlineSmall: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface),  // Often onSurface for emphasis
+        titleLarge: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface), // M3 titles are often onSurface
+        titleMedium: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500, color: colorScheme.onSurface), 
+        titleSmall: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: colorScheme.onSurface),
+        bodyLarge: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurface),
+        bodyMedium: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant),
+        bodySmall: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant),
+        labelLarge: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: colorScheme.onPrimary), // Used in ElevatedButtons
+        labelMedium: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500, color: colorScheme.onSurface), // Or onSurface
+        labelSmall: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w500, color: colorScheme.onSurface), // Or onSurface
+      )),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
+          textStyle: GoogleFonts.roboto(fontSize: 14.sp, fontWeight: FontWeight.w500), // M3 uses labelLarge for buttons
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)), // M3 uses full pill shape (large radius)
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true, // M3 TextFields are typically filled
+        fillColor: colorScheme.surfaceContainerHighest, // M3 filled text field color
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(4.r), 
+          borderSide: BorderSide.none, // M3 uses no border for filled variant by default, relies on fill
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(4.r),
+          borderSide: BorderSide.none, // Or colorScheme.outline for a subtle border
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(4.r),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2.0), // Focused indicator
+        ),
+        labelStyle: GoogleFonts.roboto(color: colorScheme.onSurfaceVariant, fontSize: 14.sp),
+        hintStyle: GoogleFonts.roboto(color: colorScheme.onSurfaceVariant, fontSize: 14.sp),
+      ),
+      cardTheme: CardThemeData( // Corrected from CardTheme to CardThemeData
+        elevation: 0, // M3 cards can be elevation 0 if filled/stroked
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.r))), 
+        color: colorScheme.surfaceContainer, // M3 card color
+        // surfaceTintColor: colorScheme.surfaceTint, // Optional tint for elevation effect
+      ),
+      iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
+        elevation: 3, // M3 FABs have a slight elevation
+      ),
+      buttonTheme: ButtonThemeData( // Keep M2 buttonTheme for compatibility if needed by older custom widgets
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)), // M3 like pill shape
+        buttonColor: colorScheme.primary,
+        textTheme: ButtonTextTheme.primary, 
+      ),
+      // Consider adding other M3 component themes:
+      // dialogTheme: DialogTheme(backgroundColor: colorScheme.surfaceContainerHigh, titleTextStyle: ...),
+      // bottomSheetTheme: BottomSheetThemeData(backgroundColor: colorScheme.surfaceContainer),
+      // chipTheme: ChipThemeData(backgroundColor: colorScheme.secondaryContainer, labelStyle: TextStyle(color: colorScheme.onSecondaryContainer)),
+      // navigationBarTheme: NavigationBarThemeData(backgroundColor: colorScheme.surfaceContainer, indicatorColor: colorScheme.secondaryContainer),
+    );
+  }
 }
