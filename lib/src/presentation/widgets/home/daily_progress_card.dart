@@ -44,7 +44,7 @@ class DailyProgressCard extends StatelessWidget {
               'Your Daily Goal',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withAlpha((255 * 0.8).round()),
+                color: theme.colorScheme.onSurfaceVariant, // Changed
               ),
             ),
             SizedBox(height: 12.h),
@@ -59,14 +59,14 @@ class DailyProgressCard extends StatelessWidget {
                         TextSpan(
                           text: AppUtils.formatAmount(consumedInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0),
                           style: theme.textTheme.displaySmall?.copyWith(
-                            color: AppColors.primaryColor,
+                            color: theme.colorScheme.primary, // Changed
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         TextSpan(
                           text: ' / ${AppUtils.formatAmount(goalInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString',
                           style: theme.textTheme.titleLarge?.copyWith(
-                            color: theme.colorScheme.onSurface.withAlpha((255 * 0.7).round()),
+                            color: theme.colorScheme.onSurfaceVariant, // Changed
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -76,12 +76,12 @@ class DailyProgressCard extends StatelessWidget {
                 ),
                 SizedBox(width: 10.w),
                 if (progress >= 1.0)
-                  Icon(Icons.check_circle_rounded, color: AppColors.successColor, size: 30.sp)
+                  Icon(Icons.check_circle_rounded, color: theme.colorScheme.tertiary, size: 30.sp) // Changed
                 else
                   Text(
                     '${AppUtils.formatAmount(remainingInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString left',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppColors.primaryColor,
+                      color: theme.colorScheme.primary, // Changed
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -93,8 +93,8 @@ class DailyProgressCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 10.h,
-                backgroundColor: AppColors.primaryColor.withAlpha((255 * 0.2).round()),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                backgroundColor: theme.colorScheme.primaryContainer, // Changed
+                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary), // Changed
               ),
             ),
             SizedBox(height: 8.h),
@@ -103,7 +103,7 @@ class DailyProgressCard extends StatelessWidget {
               child: Text(
                 '${(progress * 100).toStringAsFixed(0)}% completed',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withAlpha((255 * 0.6).round()),
+                  color: theme.colorScheme.onSurfaceVariant, // Changed
                 ),
               ),
             ),

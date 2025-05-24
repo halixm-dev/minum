@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bottomNavProvider = Provider.of<BottomNavProvider>(context);
     final currentIndex = bottomNavProvider.currentIndex;
-    final user = Provider.of<UserProvider>(context).userProfile;
+    // final user = Provider.of<UserProvider>(context).userProfile; // Removed as it's unused
 
     return Scaffold(
       appBar: AppBar(
@@ -67,22 +67,23 @@ class _HomeScreenState extends State<HomeScreen> {
           //       Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
           //     },
           //   ),
-          if (currentIndex == 2) // Profile icon still shown on Settings tab
-            IconButton(
-              icon: CircleAvatar(
-                radius: 16.r,
-                backgroundColor: AppColors.primaryColor.withAlpha(50),
-                backgroundImage: (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
-                    ? NetworkImage(user.photoUrl!)
-                    : null,
-                child: (user?.photoUrl == null || user!.photoUrl!.isEmpty)
-                    ? Icon(Icons.person_outline, size: 18.sp, color: AppColors.primaryColor)
-                    : null,
-              ),
-              onPressed: () {
-                Navigator.of(context).pushNamed(AppRoutes.profile);
-              },
-            ),
+          // Removed profile icon from Settings tab AppBar as per new requirements
+          // if (currentIndex == 2) 
+          //   IconButton(
+          //     icon: CircleAvatar(
+          //       radius: 16.r,
+          //       backgroundColor: AppColors.primaryColor.withAlpha(50),
+          //       backgroundImage: (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
+          //           ? NetworkImage(user.photoUrl!)
+          //           : null,
+          //       child: (user?.photoUrl == null || user!.photoUrl!.isEmpty)
+          //           ? Icon(Icons.person_outline, size: 18.sp, color: AppColors.primaryColor)
+          //           : null,
+          //     ),
+          //     onPressed: () {
+          //       Navigator.of(context).pushNamed(AppRoutes.profile);
+          //     },
+          //   ),
         ],
       ),
       body: IndexedStack(

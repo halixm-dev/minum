@@ -630,6 +630,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   itemCount: _reminderIntervals.length,
                   itemBuilder: (BuildContext listContext, int index) { // listContext is fresh
                     final interval = _reminderIntervals[index];
+                    final theme = Theme.of(builderContext); // Get theme from builderContext
                     return ListTile(
                       title: Text("${interval.toStringAsFixed(interval.truncateToDouble() == interval ? 0 : 1)} hours"),
                       onTap: () {
@@ -644,7 +645,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (builderContext.mounted) Navigator.pop(builderContext);
                       },
                       selected: _selectedIntervalHours == interval,
-                      selectedTileColor: AppColors.primaryColor.withAlpha((255 * 0.1).round()), // Corrected opacity
+                      selectedTileColor: theme.colorScheme.primaryContainer.withOpacity(0.3), // Changed
                     );
                   },
                 ),
@@ -675,9 +676,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Settings"),
-      ),
+      // appBar: AppBar(
+      //   title: const Text("Settings"), // Removed as it's likely provided by HomeScreen
+      // ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
         child: Column(
@@ -730,7 +731,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _saveReminderSettings();
               },
               secondary: const Icon(Icons.notifications_active_outlined),
-              activeColor: AppColors.primaryColor,
+              activeColor: Theme.of(context).colorScheme.primary, // Changed
             ),
             if (_enableReminders) ...[
               _buildSettingsTile(
@@ -758,16 +759,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.logout_outlined,
                 title: AppStrings.logout,
                 onTap: _handleLogout,
-                tileColor: AppColors.errorColor.withAlpha((255 * 0.1).round()), // Corrected opacity
-                textColor: AppColors.errorColor,
+                tileColor: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3), // Changed
+                textColor: Theme.of(context).colorScheme.error, // Changed
               )
             else
               _buildSettingsTile(
                 icon: Icons.login_outlined,
                 title: "Login / Sign Up",
                 onTap: _handleLogin,
-                tileColor: AppColors.primaryColor.withAlpha((255 * 0.1).round()), // Corrected opacity
-                textColor: AppColors.primaryColor,
+                tileColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3), // Changed
+                textColor: Theme.of(context).colorScheme.primary, // Changed
               ),
 
             SizedBox(height: 20.h),
@@ -791,7 +792,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
-          color: AppColors.primaryColor,
+          color: Theme.of(context).colorScheme.primary, // Changed
         ),
       ),
     );

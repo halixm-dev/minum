@@ -72,7 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Icon(Icons.lock_reset_outlined, size: 70.h, color: AppColors.primaryColor),
+                  Icon(Icons.lock_reset_outlined, size: 70.h, color: Theme.of(context).colorScheme.primary), // Changed
                   SizedBox(height: 20.h),
                   Text(
                     'Forgot Your Password?',
