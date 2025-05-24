@@ -76,6 +76,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
         initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
       );
       if (pickedTime != null) {
+        if (!mounted) return;
         setState(() {
           _selectedDateTime = DateTime(
             pickedDate.year,
@@ -201,7 +202,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                     Navigator.of(context).pop();
                   } catch (e) {
                     logger.e("Error deleting log from AddWaterLogScreen: $e");
-                    if (!mounted) return;
+                    if (!mounted) return; // Added check for catch block
                     AppUtils.hideLoadingDialog(context);
                   }
                 }

@@ -30,6 +30,9 @@ class AppTheme {
       background: AppColors.lightScaffoldBackground, 
       onBackground: AppColors.lightText,
       surfaceVariant: AppColors.surfaceVariantLight,
+      surface: AppColors.lightScaffoldBackground, // Intended: color from original background
+      onSurface: AppColors.lightText, // Intended: color from original onBackground
+      surfaceContainerHighest: AppColors.surfaceVariantLight, 
       onSurfaceVariant: AppColors.onSurfaceVariantLight,
       outline: AppColors.outlineLight,
       outlineVariant: AppColors.outlineVariantLight,
@@ -70,6 +73,16 @@ class AppTheme {
       outlineVariant: AppColors.outlineVariantDark,
       shadow: AppColors.shadowColor,
       scrim: Colors.black54,
+      error: AppColors.errorColor, // Remains the same
+      onError: AppColors.onError, // Remains the same
+      surface: AppColors.darkScaffoldBackground, // Intended: color from original background
+      onSurface: AppColors.darkText, // Intended: color from original onBackground
+      surfaceContainerHighest: AppColors.surfaceVariantDark, 
+      onSurfaceVariant: AppColors.onSurfaceVariantDark,
+      outline: AppColors.outlineDark,
+      outlineVariant: AppColors.outlineVariantDark,
+      shadow: AppColors.shadowColor, // M3 uses less shadow in dark, but we can keep it or use a more subtle one like Colors.black.withAlpha((255 * 0.1).round())
+      scrim: Colors.black54, // Default M3 scrim is often a translucent black, darker for dark theme
       inverseSurface: AppColors.lightSurface,
       onInverseSurface: AppColors.lightText,
       inversePrimary: AppColors.primaryColor,
