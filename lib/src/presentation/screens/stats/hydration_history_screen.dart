@@ -258,6 +258,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Added theme definition
     final userProvider = Provider.of<UserProvider>(context);
     final bool isLoggedIn = userProvider.userProfile != null;
     final UserModel? currentUser = userProvider.userProfile;
@@ -274,25 +275,25 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
             child: _isLoadingHistory && _historyEntries.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : (_historyEntries.isEmpty && _currentDataScopeId != null)
-                ? _buildEmptyState(isLoggedIn)
+                ? _buildEmptyState(isLoggedIn, theme) // Pass theme
                 : _currentDataScopeId == null
                 ? const Center(child: Text("Initializing..."))
                 : CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(child: _buildChartSection(preferredUnit)),
+                SliverToBoxAdapter(child: _buildChartSection(preferredUnit, theme)), // Pass theme
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 12.h),
                     child: Text(
                       _selectedViewType == HistoryViewType.weekly ? 'Daily Totals' : 'Weekly Totals',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600), // Use theme
                     ),
                   ),
                 ),
                 if (_selectedViewType == HistoryViewType.weekly)
-                  _buildWeeklySummaryList(context, preferredUnit)
+                  _buildWeeklySummaryList(context, preferredUnit, theme) // Pass theme
                 else if (_selectedViewType == HistoryViewType.monthly)
-                  _buildMonthlySummaryList(context, preferredUnit),
+                  _buildMonthlySummaryList(context, preferredUnit, theme), // Pass theme
                 SliverToBoxAdapter(child: SizedBox(height: 20.h)),
               ],
             ),
@@ -303,17 +304,18 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
   }
 
   Widget _buildLoginToSyncPrompt(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      color: AppColors.accentColor.withAlpha(50),
+      color: theme.colorScheme.primaryContainer.withOpacity(0.3), // Changed
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         children: [
-          Icon(Icons.sync_outlined, color: AppColors.primaryColor, size: 28.sp),
+          Icon(Icons.sync_outlined, color: theme.colorScheme.onPrimaryContainer, size: 28.sp), // Changed
           SizedBox(width: 12.w),
           Expanded(
             child: Text(
               "You have local data. Log in to sync and backup your history!",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primaryColor),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onPrimaryContainer), // Changed
             ),
           ),
           SizedBox(width: 8.w),
@@ -328,18 +330,18 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
     );
   }
 
-  Widget _buildEmptyState(bool isLoggedIn) {
+  Widget _buildEmptyState(bool isLoggedIn, ThemeData theme) { // Added theme parameter
     return Center(
       child: Padding(
         padding: EdgeInsets.all(20.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.no_drinks_outlined, size: 70.sp, color: Colors.grey[400]),
+            Icon(Icons.no_drinks_outlined, size: 70.sp, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6)), // Use theme
             SizedBox(height: 20.h),
             Text(
               AppStrings.noDataAvailable,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
+              style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 8.h),
@@ -347,7 +349,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               isLoggedIn
                   ? 'No hydration logs found for the selected period.'
                   : 'Log some water to see your history here. Log in to sync across devices!',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8)),
               textAlign: TextAlign.center,
             ),
             if (!isLoggedIn) SizedBox(height: 20.h),
@@ -363,7 +365,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
     );
   }
 
-  Widget _buildChartSection(MeasurementUnit unit) {
+  Widget _buildChartSection(MeasurementUnit unit, ThemeData theme) { // Added theme parameter
     if (_historyEntries.isEmpty && _selectedDateRange == null) return const SizedBox.shrink();
 
     List<BarChartGroupData> barGroups = [];
@@ -380,7 +382,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
             barRods: [
               BarChartRodData(
                   toY: AppUtils.convertToPreferredUnit(totalForDay, unit),
-                  color: AppColors.primaryColor,
+                  color: theme.colorScheme.primary, // Changed
                   width: 16.w,
                   borderRadius: BorderRadius.circular(4.r)
               )
@@ -419,7 +421,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
             barRods: [
               BarChartRodData(
                   toY: AppUtils.convertToPreferredUnit(totalForWeek, unit),
-                  color: AppColors.primaryColor,
+                  color: theme.colorScheme.primary, // Changed
                   width: 16.w,
                   borderRadius: BorderRadius.circular(4.r)
               )
@@ -444,7 +446,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
             barTouchData: BarTouchData(
               enabled: true,
               touchTooltipData: BarTouchTooltipData(
-                getTooltipColor: (BarChartGroupData group) => AppColors.primaryColor.withAlpha(220),
+                getTooltipColor: (BarChartGroupData group) => theme.colorScheme.primary.withAlpha(220), // Changed
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   String label;
                   if (_selectedViewType == HistoryViewType.weekly) {
@@ -503,7 +505,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               show: true,
               drawVerticalLine: false,
               horizontalInterval: (maxY / 5).ceilToDouble() > 0 ? (maxY / 5).ceilToDouble() : 1,
-              getDrawingHorizontalLine: (value) => FlLine(color: AppColors.lightTextHint.withAlpha(50), strokeWidth: 0.5),
+              getDrawingHorizontalLine: (value) => FlLine(color: theme.colorScheme.outlineVariant.withOpacity(0.5), strokeWidth: 0.5), // Changed
             ),
           ),
         ),
@@ -512,6 +514,8 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
   }
 
   Widget _bottomTitleWidgets(double value, TitleMeta meta) {
+    // This method uses Theme.of(context) directly, which is acceptable as it's self-contained or can be updated if needed.
+    // For this fix, we are focusing on the main `theme` variable propagation.
     String text = '';
     final TextStyle style = TextStyle(fontSize: 10.sp, color: Theme.of(context).textTheme.bodySmall?.color, fontWeight: FontWeight.w500);
 
@@ -530,7 +534,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
     );
   }
 
-  Widget _buildWeeklySummaryList(BuildContext context, MeasurementUnit unit) {
+  Widget _buildWeeklySummaryList(BuildContext context, MeasurementUnit unit, ThemeData theme) { // Added theme parameter
     if (_selectedDateRange == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
 
     List<Widget> dayTiles = [];
@@ -543,11 +547,11 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
       dayTiles.add(
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.primaryColor.withAlpha(30),
-              child: Text(DateFormat.E().format(day).substring(0,1), style: TextStyle(color: AppColors.primaryColor, fontWeight: FontWeight.bold)),
+              backgroundColor: theme.colorScheme.primaryContainer, // Changed
+              child: Text(DateFormat.E().format(day).substring(0,1), style: TextStyle(color: theme.colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold)), // Changed
             ),
-            title: Text(DateFormat('EEEE, MMM d').format(day), style: Theme.of(context).textTheme.titleMedium),
-            trailing: Text('$displayTotal $unitString', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
+            title: Text(DateFormat('EEEE, MMM d').format(day), style: theme.textTheme.titleMedium),
+            trailing: Text('$displayTotal $unitString', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)), // Changed
             onTap: () {
               // Set the selected date in HydrationProvider for MainHydrationView
               Provider.of<HydrationProvider>(context, listen: false).setSelectedDate(day);
@@ -580,7 +584,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
     return weeks;
   }
 
-  Widget _buildMonthlySummaryList(BuildContext context, MeasurementUnit unit) {
+  Widget _buildMonthlySummaryList(BuildContext context, MeasurementUnit unit, ThemeData theme) { // Added theme parameter
     if (_selectedDateRange == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
 
     final List<DateTimeRange> weeksInMonth = _getWeeksInMonth(_selectedDateRange!.start, _selectedDateRange!.end);
@@ -602,11 +606,11 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
       weekTiles.add(
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.accentColor.withAlpha(50),
-              child: Text('W${i+1}', style: TextStyle(color: AppColors.primaryColor, fontWeight: FontWeight.bold)),
+              backgroundColor: theme.colorScheme.secondaryContainer, // Changed
+              child: Text('W${i+1}', style: TextStyle(color: theme.colorScheme.onSecondaryContainer, fontWeight: FontWeight.bold)), // Changed
             ),
-            title: Text(weekLabel, style: Theme.of(context).textTheme.titleMedium),
-            trailing: Text('$displayTotal $unitString', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
+            title: Text(weekLabel, style: theme.textTheme.titleMedium),
+            trailing: Text('$displayTotal $unitString', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)), // Changed
             onTap: () {
               setState(() {
                 _selectedViewType = HistoryViewType.weekly;

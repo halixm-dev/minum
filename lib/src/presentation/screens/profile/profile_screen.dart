@@ -276,11 +276,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (apply == true) {
-      if (mounted) {
+      // Ensure context captured before await is still valid
+      if (!confirmationDialogContext.mounted) return; // Added check for captured context
+      if (mounted) { // Check for the State's mounted status
         setState(() {
           _dailyGoalController.text = suggestedGoal.toInt().toString();
           _isDirty = true;
         });
+        // confirmationDialogContext is used here, its mounted status was checked above.
         AppUtils.showSnackBar(confirmationDialogContext, "Suggested goal applied to form. Remember to save your profile.");
       }
     }
@@ -388,8 +391,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: TextButton(
                 onPressed: _isLoading ? null : _saveProfile,
                 child: _isLoading
-                    ? SizedBox(width: 20.r, height: 20.r, child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text("SAVE", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ? SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary)) // Ensure progress indicator contrasts
+                    : Text("SAVE", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)), // Changed color
               ),
             )
         ],
@@ -401,26 +404,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50.r,
-                      backgroundColor: AppColors.primaryColor.withAlpha(50),
-                      backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
-                          ? NetworkImage(user.photoUrl!)
-                          : null,
-                      child: (user.photoUrl == null || user.photoUrl!.isEmpty)
-                          ? Text(
-                        user.displayName?.isNotEmpty == true ? user.displayName![0].toUpperCase() : "?",
-                        style: TextStyle(fontSize: 40.sp, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
-                      )
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 24.h),
+              // Center(
+              //   child: Stack(
+              //     children: [
+              //       CircleAvatar(
+              //         radius: 50.r,
+              //         backgroundColor: AppColors.primaryColor.withAlpha(50),
+              //         backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+              //             ? NetworkImage(user.photoUrl!)
+              //             : null,
+              //         child: (user.photoUrl == null || user.photoUrl!.isEmpty)
+              //             ? Text(
+              //           user.displayName?.isNotEmpty == true ? user.displayName![0].toUpperCase() : "?",
+              //           style: TextStyle(fontSize: 40.sp, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+              //         )
+              //             : null,
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              // SizedBox(height: 24.h), // Removed profile photo display section
 
               _buildSectionTitle('Personal Information'),
               CustomTextField( controller: _displayNameController, focusNode: _displayNameFocusNode, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name")),
@@ -617,8 +620,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
                 onSelectionChanged(newSelection);
               },
-              selectedColor: AppColors.primaryColor.withAlpha(60),
-              checkmarkColor: AppColors.primaryColor,
+              selectedColor: Theme.of(context).colorScheme.secondaryContainer, // Changed
+              checkmarkColor: Theme.of(context).colorScheme.onSecondaryContainer, // Changed
+              labelStyle: TextStyle(color: isSelected ? Theme.of(context).colorScheme.onSecondaryContainer : Theme.of(context).colorScheme.onSurfaceVariant), // Ensure text color contrasts
               labelPadding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 0),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             );

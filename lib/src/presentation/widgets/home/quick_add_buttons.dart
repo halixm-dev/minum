@@ -52,17 +52,17 @@ class QuickAddButtons extends StatelessWidget {
               final String displayAmount = AppUtils.formatAmount(displayVolume, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0);
 
               return ActionChip(
-                avatar: Icon(Icons.add_circle_outline, size: 20.sp, color: AppColors.primaryColor),
+                avatar: Icon(Icons.add_circle_outline, size: 20.sp, color: theme.colorScheme.onSecondaryContainer), // Changed
                 label: Text('$displayAmount $_unitString'),
                 labelStyle: TextStyle(
-                  color: AppColors.primaryColor,
+                  color: theme.colorScheme.onSecondaryContainer, // Changed
                   fontWeight: FontWeight.w500,
                   fontSize: 14.sp,
                 ),
-                backgroundColor: AppColors.primaryColor.withAlpha((255 * 0.1).round()),
+                backgroundColor: theme.colorScheme.secondaryContainer, // Changed
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25.r),
-                  side: BorderSide(color: AppColors.primaryColor.withAlpha((255 * 0.3).round()), width: 1.w),
+                  side: BorderSide(color: theme.colorScheme.outline, width: 1.w), // Changed
                 ),
                 onPressed: () {
                   onQuickAdd(volumeMl);

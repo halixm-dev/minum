@@ -10,6 +10,7 @@ class AppTheme {
   // Helper to apply Inter font with specific styles
 
   static final ThemeData lightTheme = ThemeData(
+    useMaterial3: true,
     brightness: Brightness.light,
     primaryColor: AppColors.primaryColor,
     scaffoldBackgroundColor: AppColors.lightScaffoldBackground,
@@ -25,14 +26,36 @@ class AppTheme {
       ),
     ),
     colorScheme: const ColorScheme.light(
+      brightness: Brightness.light, // Explicitly set
       primary: AppColors.primaryColor,
-      secondary: AppColors.accentColor,
-      surface: AppColors.lightSurface,
-      error: AppColors.errorColor,
       onPrimary: AppColors.onPrimary,
-      onSecondary: AppColors.onSecondary,
-      onSurface: AppColors.lightText,
+      primaryContainer: AppColors.primaryContainerLight,
+      onPrimaryContainer: AppColors.onPrimaryContainerLight,
+      secondary: AppColors.secondaryLight, // Was accentColor
+      onSecondary: AppColors.onSecondaryLight, // Was onSecondary
+      secondaryContainer: AppColors.secondaryContainerLight,
+      onSecondaryContainer: AppColors.onSecondaryContainerLight,
+      tertiary: AppColors.tertiaryLight,
+      onTertiary: AppColors.onTertiaryLight,
+      tertiaryContainer: AppColors.tertiaryContainerLight,
+      onTertiaryContainer: AppColors.onTertiaryContainerLight,
+      error: AppColors.errorColor,
       onError: AppColors.onError,
+      background: AppColors.lightScaffoldBackground, // Or lightBackground
+      onBackground: AppColors.lightText,
+      surface: AppColors.lightSurface,
+      onSurface: AppColors.lightText,
+      surfaceVariant: AppColors.surfaceVariantLight,
+      onSurfaceVariant: AppColors.onSurfaceVariantLight,
+      outline: AppColors.outlineLight,
+      outlineVariant: AppColors.outlineVariantLight,
+      shadow: AppColors.shadowColor,
+      scrim: Colors.black12, // Default M3 scrim is often a translucent black
+      inverseSurface: AppColors.darkSurface,
+      onInverseSurface: AppColors.darkText,
+      inversePrimary: AppColors.primaryColorDark,
+      // surfaceTint is often primary in M3
+      surfaceTint: AppColors.primaryColor,
     ),
     textTheme: GoogleFonts.interTextTheme( // Apply Inter to the whole text theme
         ThemeData.light().textTheme.copyWith( // Start with base light theme text styles
@@ -80,7 +103,7 @@ class AppTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      color: AppColors.lightSurface,
+      color: AppColors.darkSurface, // Corrected: Was AppColors.lightSurface
     ),
     iconTheme: const IconThemeData(
       color: AppColors.lightIcon,
@@ -92,6 +115,7 @@ class AppTheme {
   );
 
   static final ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
     brightness: Brightness.dark,
     primaryColor: AppColors.primaryColorDark,
     scaffoldBackgroundColor: AppColors.darkScaffoldBackground,
@@ -107,14 +131,36 @@ class AppTheme {
       ),
     ),
     colorScheme: const ColorScheme.dark(
+      brightness: Brightness.dark, // Explicitly set
       primary: AppColors.primaryColorDark,
-      secondary: AppColors.accentColorDark,
-      surface: AppColors.darkSurface,
-      error: AppColors.errorColor,
       onPrimary: AppColors.onPrimaryDark,
-      onSecondary: AppColors.onSecondaryDark,
+      primaryContainer: AppColors.primaryContainerDark,
+      onPrimaryContainer: AppColors.onPrimaryContainerDark,
+      secondary: AppColors.secondaryDark, // Was accentColorDark
+      onSecondary: AppColors.onSecondaryDark, // Original onSecondaryDark (Colors.black)
+      secondaryContainer: AppColors.secondaryContainerDark,
+      onSecondaryContainer: AppColors.onSecondaryContainerDark,
+      tertiary: AppColors.tertiaryDark,
+      onTertiary: AppColors.onTertiaryDark,
+      tertiaryContainer: AppColors.tertiaryContainerDark,
+      onTertiaryContainer: AppColors.onTertiaryContainerDark,
+      error: AppColors.errorColor, // Remains the same
+      onError: AppColors.onError, // Remains the same
+      background: AppColors.darkScaffoldBackground, // Or darkBackground
+      onBackground: AppColors.darkText,
+      surface: AppColors.darkSurface,
       onSurface: AppColors.darkText,
-      onError: AppColors.onError,
+      surfaceVariant: AppColors.surfaceVariantDark,
+      onSurfaceVariant: AppColors.onSurfaceVariantDark,
+      outline: AppColors.outlineDark,
+      outlineVariant: AppColors.outlineVariantDark,
+      shadow: AppColors.shadowColor, // M3 uses less shadow in dark, but we can keep it or use a more subtle one like Colors.black.withOpacity(0.1)
+      scrim: Colors.black54, // Default M3 scrim is often a translucent black, darker for dark theme
+      inverseSurface: AppColors.lightSurface,
+      onInverseSurface: AppColors.lightText,
+      inversePrimary: AppColors.primaryColor,
+      // surfaceTint is often primary in M3
+      surfaceTint: AppColors.primaryColorDark,
     ),
     textTheme: GoogleFonts.interTextTheme( // Apply Inter to the whole text theme
         ThemeData.dark().textTheme.copyWith( // Start with base dark theme text styles

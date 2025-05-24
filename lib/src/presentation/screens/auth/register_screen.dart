@@ -99,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Create Account',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: AppColors.primaryColor,
+                      color: Theme.of(context).colorScheme.primary, // Changed
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -202,8 +202,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: <TextSpan>[
                           TextSpan(
                             text: AppStrings.signInHere,
-                            style: const TextStyle(
-                              color: AppColors.primaryColor,
+                            style: TextStyle( // Changed to use Theme.of(context)
+                              color: Theme.of(context).colorScheme.primary, // Changed
                               fontWeight: FontWeight.bold,
                               decoration: TextDecoration.underline,
                             ),

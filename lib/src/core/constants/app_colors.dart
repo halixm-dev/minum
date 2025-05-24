@@ -59,4 +59,56 @@ class AppColors {
   static const Color dividerColor = Color(0xFFE0E0E0); // For light theme
   static const Color darkDividerColor = Color(0xFF3A3A3A); // For dark theme
   static const Color shadowColor = Color(0x33000000); // Light shadow
+
+  // --- Material 3 Semantic Colors ---
+
+  // --- M3 Light Theme Colors ---
+  // Primary Family
+  static const Color primaryContainerLight = Color(0xFFD1E4FF);
+  static const Color onPrimaryContainerLight = Color(0xFF001D36);
+
+  // Secondary Family (derived from accentColor)
+  static const Color secondaryLight = accentColor; // M3 secondary can be the M2 accent
+  static const Color onSecondaryLight = onSecondary; // M3 onSecondary for M2 accent (Colors.black)
+  static const Color secondaryContainerLight = Color(0xFFCFE6F2);
+  static const Color onSecondaryContainerLight = Color(0xFF0A1E29);
+
+  // Tertiary Family
+  static const Color tertiaryLight = Color(0xFF008080); // Teal
+  static const Color onTertiaryLight = Color(0xFFFFFFFF);
+  static const Color tertiaryContainerLight = Color(0xFFB2DFDB);
+  static const Color onTertiaryContainerLight = Color(0xFF002524);
+
+  // Surface Variant Family
+  static const Color surfaceVariantLight = Color(0xFFE0E4E8);
+  static const Color onSurfaceVariantLight = Color(0xFF404850); // Could also be lightTextSecondary
+
+  // Outline Family
+  static const Color outlineLight = Color(0xFF73777F);
+  static const Color outlineVariantLight = Color(0xFFC3C7CF);
+
+  // --- M3 Dark Theme Colors ---
+  // Primary Family
+  static const Color primaryContainerDark = Color(0xFF004A77);
+  static const Color onPrimaryContainerDark = Color(0xFFD1E4FF);
+
+  // Secondary Family (derived from accentColorDark)
+  static const Color secondaryDark = accentColorDark; // M3 secondary can be the M2 accentDark
+  // AppColors.onSecondaryDark (Colors.black) will be used for onSecondaryDark in ColorScheme
+  static const Color secondaryContainerDark = Color(0xFF2C4A5E);
+  static const Color onSecondaryContainerDark = Color(0xFFCFE6F2);
+
+  // Tertiary Family
+  static const Color tertiaryDark = Color(0xFF006A6A);
+  static const Color onTertiaryDark = Color(0xFFFFFFFF);
+  static const Color tertiaryContainerDark = Color(0xFF004D4D);
+  static const Color onTertiaryContainerDark = Color(0xFFB2DFDB);
+
+  // Surface Variant Family
+  static const Color surfaceVariantDark = Color(0xFF42474E);
+  static const Color onSurfaceVariantDark = Color(0xFFC1C7CE); // Could also be darkTextSecondary
+
+  // Outline Family
+  static const Color outlineDark = Color(0xFF8D9199);
+  static const Color outlineVariantDark = Color(0xFF43474E); // Can be same as surfaceVariantDark
 }
