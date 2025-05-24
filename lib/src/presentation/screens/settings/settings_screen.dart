@@ -44,7 +44,9 @@ extension ThemeProviderName on ThemeProvider {
       case ThemeMode.dark:
         return AppStrings.darkTheme; // Assuming AppStrings.darkTheme exists
       case ThemeMode.system:
-        return AppStrings.systemTheme; }
+      default: // Added default for safety, though ThemeMode has fixed values
+        return AppStrings.systemTheme; 
+    }
   }
 }
 
@@ -58,6 +60,40 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _appVersion = 'Loading...';
+
+  // Helper to get display name for ThemeSource
+  String _getThemeSourceName(ThemeSource source) {
+    switch (source) {
+      case ThemeSource.staticBaseline:
+        return "Default"; // Placeholder for AppStrings.staticThemeName or similar
+      case ThemeSource.dynamicSystem:
+        return "System Dynamic"; // Placeholder for AppStrings.dynamicThemeName
+      case ThemeSource.customSeed:
+        return "Custom Color"; // Placeholder for AppStrings.customThemeName
+      default:
+        return "Unknown";
+    }
+  }
+
+  // Placeholder for choosing custom color
+  void _handleChooseCustomColor(BuildContext parentContext, ThemeProvider themeProvider) {
+    // In a real app, you would use a color picker package here.
+    // Example: showDialog with a color picker, then on color selection:
+    // themeProvider.setCustomSeedColor(selectedColor);
+    // For this subtask, we'll just log and maybe set a test color.
+    logger.i("SettingsScreen: _handleChooseCustomColor called. Color picker UI to be implemented.");
+    
+    // Simulate choosing a color for testing purposes IF the dialog is still managing this.
+    // However, the themeProvider will be updated by the dialog's "Apply" button.
+    // So, direct update here might conflict with dialog's local state management.
+    // Better to let the dialog handle selection and then apply.
+    // For now, this method is a placeholder.
+    
+    // Example: If we wanted to show a sub-dialog for color picking from here:
+    // showDialog(...color picker...);
+    // then upon selection: themeProvider.setCustomSeedColor(newColor);
+    // But the main theme dialog should update its internal state for the custom color preview.
+  }
 
   bool _enableReminders = true;
   double _selectedIntervalHours = 1.0;
@@ -711,7 +747,7 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
             _buildSettingsTile(
               icon: Icons.color_lens_outlined,
               title: AppStrings.theme,
-              subtitle: themeProvider.currentThemeName,
+              subtitle: "${_getThemeSourceName(themeProvider.themeSource)} / ${themeProvider.currentThemeName}",
               onTap: () => _showThemeDialog(context, themeProvider),
             ),
             _buildSettingsTile(
