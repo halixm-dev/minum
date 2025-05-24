@@ -103,7 +103,7 @@ class AppTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      color: AppColors.darkSurface, // Corrected: Was AppColors.lightSurface
+      color: AppColors.lightSurface, // Corrected: Was AppColors.lightSurface
     ),
     iconTheme: const IconThemeData(
       color: AppColors.lightIcon,
@@ -208,7 +208,7 @@ class AppTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      color: AppColors.lightSurface,
+      color: AppColors.darkSurface,
     ),
     iconTheme: const IconThemeData(
       color: AppColors.darkIcon,

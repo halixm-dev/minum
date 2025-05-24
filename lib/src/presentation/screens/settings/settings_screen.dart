@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
 import 'package:minum/src/core/constants/app_strings.dart'; // Assuming AppStrings class exists
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/data/models/user_model.dart'; // MeasurementUnit is here
@@ -64,8 +63,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double _selectedIntervalHours = 1.0;
   TimeOfDay _selectedStartTime = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _selectedEndTime = const TimeOfDay(hour: 22, minute: 0);
-
-  final List<double> _reminderIntervals = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
 
   final TextEditingController _dailyGoalController = TextEditingController();
   MeasurementUnit _tempSelectedUnit = MeasurementUnit.ml;
@@ -143,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<void> _saveReminderSettings() async {
+  Future<void> _saveReminderSettings({bool showSuccessSnackBar = true}) async {
     final prefs = await SharedPreferences.getInstance();
     // Capture context before await if it's to be used after for UI operations
     final currentContext = context;
@@ -157,8 +154,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     logger.i("Reminder settings saved: Enabled: $_enableReminders, Interval: $_selectedIntervalHours hrs, Start: $_selectedStartTime, End: $_selectedEndTime");
 
     // Check mounted status of the captured context
-    if (!currentContext.mounted) return;
-    AppUtils.showSnackBar(currentContext, "Reminder settings saved!");
+    if (showSuccessSnackBar && currentContext.mounted) { // currentContext should be defined as before
+      AppUtils.showSnackBar(currentContext, "Reminder settings saved!");
+    }
 
     _rescheduleNotifications(); // This method also checks mounted status internally if needed for its own context uses
   }
@@ -611,52 +609,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
   }
 
-  void _showIntervalPicker(BuildContext context) {
-    logger.d("SettingsScreen: _showIntervalPicker called");
-    // context parameter is used to show modal bottom sheet
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext builderContext) { // builderContext is fresh
-        return SizedBox(
-          height: 250.h,
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(12.h),
-                child: Text("Select Reminder Interval", style: Theme.of(builderContext).textTheme.titleLarge),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _reminderIntervals.length,
-                  itemBuilder: (BuildContext listContext, int index) { // listContext is fresh
-                    final interval = _reminderIntervals[index];
-                    final theme = Theme.of(builderContext); // Get theme from builderContext
-                    return ListTile(
-                      title: Text("${interval.toStringAsFixed(interval.truncateToDouble() == interval ? 0 : 1)} hours"),
-                      onTap: () {
-                        // Check State's mounted status before setState
-                        if (!mounted) return;
-                        setState(() {
-                          _selectedIntervalHours = interval;
-                        });
-                        _saveReminderSettings(); // Uses this.context, fine after mounted check
+Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
+  logger.d("SettingsScreen: _showIntervalPicker called (TimePicker M3 version)");
 
-                        // builderContext is used to pop
-                        if (builderContext.mounted) Navigator.pop(builderContext);
-                      },
-                      selected: _selectedIntervalHours == interval,
-                      selectedTileColor: theme.colorScheme.primaryContainer.withOpacity(0.3), // Changed
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+  // Convert current interval to TimeOfDay for picker's initialTime
+  int currentTotalMinutes = (_selectedIntervalHours * 60).round();
+  int initialPickerHours = currentTotalMinutes ~/ 60;
+  int initialPickerMinutes = currentTotalMinutes % 60;
+
+  // Cap initial hours for display if they exceed a typical interval range (e.g., 12 hours)
+  // TimeOfDay itself supports 0-23. This is just for a more sensible initial display if desired.
+  if (initialPickerHours > 12) initialPickerHours = 12; 
+
+  final TimeOfDay? picked = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay(hour: initialPickerHours, minute: initialPickerMinutes),
+    helpText: "SELECT INTERVAL DURATION", // Crucial for user understanding
+    initialEntryMode: TimePickerEntryMode.input, // <-- ADD THIS LINE
+    builder: (BuildContext context, Widget? child) {
+        // Using 24-hour format can be more intuitive for duration.
+        return MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+            child: child!,
         );
-      },
-    );
+    },
+  );
+
+  // Check if the State is still mounted before using its context or calling setState
+  if (!mounted || picked == null) return;
+
+  double newIntervalHours = picked.hour + (picked.minute / 60.0);
+
+  bool adjustedToMinimum = false;
+  // Enforce minimum interval of 15 minutes (0.25 hours).
+  // Using a small epsilon for floating point comparison might be safer,
+  // but typically direct comparison is fine for this scenario.
+  // Let's ensure any value that would result in less than 15 minutes (e.g. 0h0m, 0h5m, 0h10m) triggers this.
+  // 0 hours 0 minutes is 0.0. 0 hours 14 minutes is 14/60 = 0.233.
+  // So newIntervalHours < 0.25 is the correct condition.
+  if (newIntervalHours < 0.25) {
+      newIntervalHours = 0.25;
+      adjustedToMinimum = true;
   }
 
+  // Update state and save settings
+  setState(() {
+    _selectedIntervalHours = newIntervalHours;
+  });
+  _saveReminderSettings(showSuccessSnackBar: !adjustedToMinimum); // New call
+
+  // Show SnackBar if the value was adjusted
+  // Ensure to use a context that is still valid and part of the main widget tree for SnackBar.
+  // 'context' passed to _showIntervalPicker should be fine if 'mounted' check passed.
+  if (adjustedToMinimum) {
+    if (context.mounted) { // Explicit check on the context parameter
+      AppUtils.showSnackBar(
+          context, 
+          "Minimum reminder interval is 15 minutes. Setting to 15m.", // Simplified message
+          isError: false // Or true, for emphasis
+      );
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -737,7 +751,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsTile(
                 icon: Icons.hourglass_empty_outlined,
                 title: "Reminder Interval",
-                subtitle: "${_selectedIntervalHours.toStringAsFixed(_selectedIntervalHours.truncateToDouble() == _selectedIntervalHours ? 0 : 1)} hours",
+                subtitle: () {
+                  if (_selectedIntervalHours <= 0) return "N/A"; // Should not happen with min interval logic
+                  int totalMinutes = (_selectedIntervalHours * 60).round();
+                  int hours = totalMinutes ~/ 60;
+                  int minutes = totalMinutes % 60;
+
+                  if (hours > 0 && minutes > 0) {
+                    return "${hours}h ${minutes}m";
+                  } else if (hours > 0 && minutes == 0) {
+                    return "${hours}h";
+                  } else if (hours == 0 && minutes > 0) {
+                    return "${minutes}m";
+                  } else {
+                    // Fallback, though minimum interval logic should prevent 0h 0m.
+                    // If _selectedIntervalHours is 0.25 (15 mins), this will be 15m.
+                    return "${minutes}m"; 
+                  }
+                }(),
                 onTap: () => _showIntervalPicker(context),
               ),
               _buildSettingsTile(
@@ -759,7 +790,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.logout_outlined,
                 title: AppStrings.logout,
                 onTap: _handleLogout,
-                tileColor: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3), // Changed
+                tileColor: Theme.of(context).colorScheme.errorContainer.withAlpha((255 * 0.3).round()), // Changed
                 textColor: Theme.of(context).colorScheme.error, // Changed
               )
             else
@@ -767,7 +798,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.login_outlined,
                 title: "Login / Sign Up",
                 onTap: _handleLogin,
-                tileColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3), // Changed
+                tileColor: Theme.of(context).colorScheme.primaryContainer.withAlpha((255 * 0.3).round()), // Changed
                 textColor: Theme.of(context).colorScheme.primary, // Changed
               ),
 
@@ -806,20 +837,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Color? tileColor,
     Color? textColor,
   }) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 4.h),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      child: ListTile(
-        leading: Icon(icon, color: textColor ?? Theme.of(context).iconTheme.color),
-        title: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
-        subtitle: subtitle != null
-            ? Text(subtitle, style: TextStyle(color: textColor?.withAlpha((255 * 0.7).round()))) // Corrected opacity
-            : null,
-        onTap: onTap,
-        tileColor: tileColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      ),
+    final Color iconColor = textColor ?? Theme.of(context).iconTheme.color ?? Colors.grey;
+    final TextStyle titleStyle = TextStyle(color: textColor, fontWeight: FontWeight.w500, fontSize: 16.sp);
+    final TextStyle? subtitleStyle = subtitle != null
+        ? TextStyle(
+            color: textColor != null ? textColor.withAlpha((0.7 * 255).round()) : Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.7 * 255).round()),
+            fontSize: 14.sp
+          )
+        : null;
+
+    return ListTile(
+      leading: Icon(icon, color: iconColor),
+      title: Text(title, style: titleStyle),
+      subtitle: subtitle != null ? Text(subtitle, style: subtitleStyle) : null,
+      onTap: onTap,
+      tileColor: tileColor,
     );
   }
 }
