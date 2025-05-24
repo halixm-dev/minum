@@ -343,60 +343,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showEditDailyGoalManualDialog(BuildContext context, UserProvider userProvider) {
-    final TextEditingController localGoalController = TextEditingController(
-        text: userProvider.userProfile?.dailyGoalMl.toInt().toString() ?? '2000'
-    );
     // screenContext is captured here (it's the 'context' parameter)
     final BuildContext screenContext = context;
 
-    showDialog(
-      context: screenContext, // Use captured screenContext to show dialog
-      builder: (BuildContext dialogContext) { // dialogContext is fresh
+    showDialog<bool>( // Return type is bool: true if saved, false/null otherwise
+      context: screenContext,
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text("Set Daily Goal Manually"),
-          content: CustomTextField(
-            controller: localGoalController,
-            labelText: "Goal (${AppStrings.ml})",
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            validator: (val) => AppUtils.validateNumber(val),
+          content: _EditDailyGoalDialogContent(
+            initialGoal: userProvider.userProfile?.dailyGoalMl.toInt().toString() ?? '2000',
+            userProvider: userProvider,
           ),
-          actions: <Widget>[
-            TextButton(
-                child: const Text(AppStrings.cancel),
-                onPressed: () {
-                  localGoalController.dispose();
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                }
-            ),
-            TextButton(
-              child: const Text(AppStrings.save),
-              onPressed: () async {
-                final newGoal = double.tryParse(localGoalController.text);
-                if (newGoal != null && newGoal > 0) {
-                  // No need to capture screenContext again, it's already available as 'screenContext'
-                  // dialogContext is also available from the builder.
-
-                  await userProvider.updateDailyGoal(newGoal);
-                  localGoalController.dispose();
-
-                  if (!dialogContext.mounted) return;
-                  Navigator.of(dialogContext).pop();
-
-                  // Check screenContext's mounted status before showing SnackBar on it
-                  if (!screenContext.mounted) return;
-                  AppUtils.showSnackBar(screenContext, "Daily goal updated!");
-                } else {
-                  // Show SnackBar on dialogContext
-                  if (!dialogContext.mounted) return;
-                  AppUtils.showSnackBar(dialogContext, "Please enter a valid goal.", isError: true);
-                }
-              },
-            ),
-          ],
+          // Actions are now part of _EditDailyGoalDialogContent or handled via Navigator.pop
         );
       },
-    );
+    ).then((saved) {
+      if (saved == true) {
+        if (screenContext.mounted) {
+          AppUtils.showSnackBar(screenContext, "Daily goal updated!");
+        }
+      }
+    });
   }
 
   Future<void> _handleCalculateSuggestion(BuildContext context, UserProvider userProvider, HydrationService hydrationService) async {
@@ -597,116 +565,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // screenContext is the 'context' parameter
     final BuildContext screenContext = context;
 
-    showDialog(
-        context: screenContext,
-        barrierDismissible: false,
-        builder: (BuildContext dialogContext) { // dialogContext is fresh
-          return StatefulBuilder(
-              builder: (stfContext, setDialogState) {
-                return AlertDialog(
-                  title: Text("Edit Favorite Volumes (${AppStrings.ml})"),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ...List.generate(dialogControllers.length, (index) {
-                          return Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4.h),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: CustomTextField(
-                                    controller: dialogControllers[index],
-                                    labelText: "Volume ${index + 1}",
-                                    hintText: "e.g., 250",
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.remove_circle_outline, color: Theme.of(stfContext).colorScheme.error),
-                                  onPressed: dialogControllers.length > 1 ? () {
-                                    setDialogState(() {
-                                      dialogControllers[index].dispose();
-                                      dialogControllers.removeAt(index);
-                                    });
-                                  } : null,
-                                )
-                              ],
-                            ),
-                          );
-                        }),
-                        if (dialogControllers.length < 5)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton.icon(
-                              icon: const Icon(Icons.add_circle_outline),
-                              label: const Text("Add Volume"),
-                              onPressed: () {
-                                setDialogState(() {
-                                  dialogControllers.add(TextEditingController());
-                                });
-                              },
-                            ),
-                          ),
-                        if (dialogControllers.isEmpty)
-                          Padding(
-                            padding: EdgeInsets.only(top:8.h),
-                            child: Text("Add at least one volume.", style: TextStyle(color: Theme.of(stfContext).colorScheme.error)),
-                          )
-                      ],
-                    ),
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                        child: const Text(AppStrings.cancel),
-                        onPressed: () {
-                          if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                        }
-                    ),
-                    TextButton(
-                      child: const Text(AppStrings.save),
-                      onPressed: () async {
-                        final List<String> newVolumes = dialogControllers
-                            .map((controller) => controller.text.trim())
-                            .where((text) {
-                          if (text.isEmpty) return false;
-                          final val = double.tryParse(text);
-                          return val != null && val > 0 && val < 5000;
-                        })
-                            .toList();
-
-                        final List<String> volumesToSave = newVolumes.isNotEmpty ? newVolumes : const ['250', '500', '750'];
-
-                        bool success = false;
-                        try {
-                          await userProvider.updateFavoriteIntakeVolumes(volumesToSave);
-                          success = true;
-                        } catch (e) {
-                          logger.e("Error saving favorite volumes: $e");
-                          if (dialogContext.mounted) { // Show error on dialog if still mounted
-                            AppUtils.showSnackBar(dialogContext, "Failed to save volumes. Please try again.", isError: true);
-                          }
-                        }
-
-                        if (!dialogContext.mounted) return;
-                        Navigator.of(dialogContext).pop();
-
-                        if (success) {
-                          if (!screenContext.mounted) return;
-                          AppUtils.showSnackBar(screenContext, "Favorite volumes updated!");
-                        }
-                      },
-                    ),
-                  ],
-                );
-              }
-          );
-        }).then((_) {
-      for (var controller in dialogControllers) {
-        controller.dispose();
+    showDialog<bool>( // Return type is bool: true if saved, false/null otherwise
+      context: screenContext,
+      barrierDismissible: false, // Usually good for multi-field dialogs
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text("Edit Favorite Volumes (${AppStrings.ml})"),
+          content: _EditFavoriteVolumesDialogContent(userProvider: userProvider),
+          // Actions are now part of _EditFavoriteVolumesDialogContent or handled via Navigator.pop
+        );
+      },
+    ).then((saved) {
+      if (saved == true) {
+        if (screenContext.mounted) {
+          AppUtils.showSnackBar(screenContext, "Favorite volumes updated!");
+        }
       }
-      logger.d("Favorite volume dialog controllers disposed after dialog closed.");
     });
   }
 
@@ -944,6 +818,267 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onTap: onTap,
         tileColor: tileColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      ),
+    );
+  }
+}
+
+// New StatefulWidget for the Favorite Volumes dialog content
+class _EditFavoriteVolumesDialogContent extends StatefulWidget {
+  final UserProvider userProvider;
+
+  const _EditFavoriteVolumesDialogContent({required this.userProvider});
+
+  @override
+  State<_EditFavoriteVolumesDialogContent> createState() => _EditFavoriteVolumesDialogContentState();
+}
+
+class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesDialogContent> {
+  final List<TextEditingController> _volumeControllers = [];
+  final List<FocusNode> _volumeFocusNodes = [];
+  final _formKey = GlobalKey<FormState>(); // For validation across all fields
+
+  @override
+  void initState() {
+    super.initState();
+    final initialVolumes = widget.userProvider.userProfile?.favoriteIntakeVolumes ?? ['250', '500', '750'];
+    if (initialVolumes.isEmpty) { // Ensure at least one field
+      _addVolumeField(text: '250');
+    } else {
+      for (var vol in initialVolumes) {
+        _addVolumeField(text: vol);
+      }
+    }
+     // Request focus for the last added field after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _volumeFocusNodes.isNotEmpty) {
+        _volumeFocusNodes.last.requestFocus();
+      }
+    });
+  }
+
+  void _addVolumeField({String? text}) {
+    if (_volumeControllers.length < 5) {
+      final controller = TextEditingController(text: text ?? '');
+      final focusNode = FocusNode();
+      setState(() {
+        _volumeControllers.add(controller);
+        _volumeFocusNodes.add(focusNode);
+      });
+      // Request focus for the new field after the frame renders
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          focusNode.requestFocus();
+        }
+      });
+    }
+  }
+
+  void _removeVolumeField(int index) {
+    if (_volumeControllers.length > 1) { // Ensure at least one field remains
+      _volumeFocusNodes[index].dispose();
+      _volumeControllers[index].dispose();
+      setState(() {
+        _volumeControllers.removeAt(index);
+        _volumeFocusNodes.removeAt(index);
+      });
+    } else {
+       AppUtils.showSnackBar(context, "At least one favorite volume is required.", isError: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _volumeControllers) {
+      controller.dispose();
+    }
+    for (var focusNode in _volumeFocusNodes) {
+      focusNode.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _saveFavoriteVolumes() async {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    final List<String> newVolumes = _volumeControllers
+        .map((controller) => controller.text.trim())
+        .where((text) {
+      if (text.isEmpty) return false;
+      final val = double.tryParse(text);
+      // Basic validation, more complex validation handled by CustomTextField's validator
+      return val != null && val > 0 && val < 5000;
+    }).toList();
+
+    // Ensure there's at least one volume, or use defaults if all are cleared/invalid
+    final List<String> volumesToSave = newVolumes.isNotEmpty ? newVolumes : const ['250', '500', '750'];
+
+    try {
+      await widget.userProvider.updateFavoriteIntakeVolumes(volumesToSave);
+      if (mounted) Navigator.of(context).pop(true); // Pop with true for success
+    } catch (e) {
+      logger.e("Error saving favorite volumes: $e");
+      if (mounted) {
+        AppUtils.showSnackBar(context, "Failed to save volumes. Please try again.", isError: true);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ...List.generate(_volumeControllers.length, (index) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 4.h),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _volumeControllers[index],
+                        focusNode: _volumeFocusNodes[index],
+                        labelText: "Volume ${index + 1}",
+                        hintText: "e.g., 250",
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        validator: (val) => AppUtils.validateNumber(val),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.remove_circle_outline, color: Theme.of(context).colorScheme.error),
+                      onPressed: _volumeControllers.length > 1 ? () => _removeVolumeField(index) : null,
+                    ),
+                  ],
+                ),
+              );
+            }),
+            if (_volumeControllers.length < 5)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => _addVolumeField(),
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: const Text("Add Volume"),
+                ),
+              ),
+            if (_volumeControllers.isEmpty) // Should not happen if logic is correct, but as a fallback UI
+              Padding(
+                padding: EdgeInsets.only(top: 8.h),
+                child: Text("Add at least one volume.", style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              ),
+            SizedBox(height: 20.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    if (mounted) Navigator.of(context).pop(false);
+                  },
+                  child: const Text(AppStrings.cancel),
+                ),
+                TextButton(
+                  onPressed: _saveFavoriteVolumes,
+                  child: const Text(AppStrings.save),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// New StatefulWidget for the dialog content
+class _EditDailyGoalDialogContent extends StatefulWidget {
+  final String initialGoal;
+  final UserProvider userProvider;
+
+  const _EditDailyGoalDialogContent({
+    required this.initialGoal,
+    required this.userProvider,
+  });
+
+  @override
+  State<_EditDailyGoalDialogContent> createState() => _EditDailyGoalDialogContentState();
+}
+
+class _EditDailyGoalDialogContentState extends State<_EditDailyGoalDialogContent> {
+  late TextEditingController _goalController;
+  late FocusNode _goalFocusNode;
+  final _formKey = GlobalKey<FormState>(); // For validation
+
+  @override
+  void initState() {
+    super.initState();
+    _goalController = TextEditingController(text: widget.initialGoal);
+    _goalFocusNode = FocusNode();
+    // Request focus after the first frame to ensure the field is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _goalFocusNode.requestFocus();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _goalController.dispose();
+    _goalFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveGoal() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      final newGoal = double.tryParse(_goalController.text);
+      if (newGoal != null && newGoal > 0) {
+        await widget.userProvider.updateDailyGoal(newGoal);
+        if (mounted) Navigator.of(context).pop(true); // Pop with true to indicate success
+      } else {
+        // This case should ideally be caught by the validator, but as a fallback:
+        if (mounted) AppUtils.showSnackBar(context, "Please enter a valid goal.", isError: true);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          CustomTextField(
+            controller: _goalController,
+            focusNode: _goalFocusNode,
+            labelText: "Goal (${AppStrings.ml})",
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            validator: (val) => AppUtils.validateNumber(val),
+            onFieldSubmitted: (_) => _saveGoal(), // Allow saving on submit
+          ),
+          SizedBox(height: 20.h), // Add some spacing before buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              TextButton(
+                onPressed: () {
+                  if (mounted) Navigator.of(context).pop(false); // Pop with false
+                },
+                  child: const Text(AppStrings.cancel),
+              ),
+              TextButton(
+                  onPressed: _saveGoal,
+                child: const Text(AppStrings.save),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

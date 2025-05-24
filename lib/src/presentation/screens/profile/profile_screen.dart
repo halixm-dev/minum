@@ -25,9 +25,17 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _displayNameController;
+  late TextEditingController _emailController; // Added for email field
   late TextEditingController _dailyGoalController;
   late TextEditingController _weightController;
   late TextEditingController _heightController;
+
+  // FocusNodes for CustomTextFields
+  late FocusNode _displayNameFocusNode;
+  late FocusNode _emailFocusNode;
+  late FocusNode _heightFocusNode;
+  late FocusNode _weightFocusNode;
+  late FocusNode _dailyGoalFocusNode;
 
   DateTime? _selectedDateOfBirth;
   Gender? _selectedGender;
@@ -82,9 +90,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _displayNameController = TextEditingController();
+    _emailController = TextEditingController(); // Initialize email controller
     _dailyGoalController = TextEditingController();
     _weightController = TextEditingController();
     _heightController = TextEditingController();
+
+    // Initialize FocusNodes
+    _displayNameFocusNode = FocusNode();
+    _emailFocusNode = FocusNode();
+    _heightFocusNode = FocusNode();
+    _weightFocusNode = FocusNode();
+    _dailyGoalFocusNode = FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -98,11 +114,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
 
     _displayNameController.removeListener(_setIsDirty);
+    // Email controller is read-only, no need for a listener to _setIsDirty
     _dailyGoalController.removeListener(_setIsDirty);
     _weightController.removeListener(_setIsDirty);
     _heightController.removeListener(_setIsDirty);
 
     _displayNameController.text = userProfile?.displayName ?? '';
+    _emailController.text = userProfile?.email ?? 'Not available'; // Set email text
     _dailyGoalController.text = userProfile?.dailyGoalMl.toInt().toString() ?? '2000';
     _weightController.text = userProfile?.weightKg?.toString() ?? '';
     _heightController.text = userProfile?.heightCm?.toString() ?? '';
@@ -143,9 +161,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _displayNameController.dispose();
+    _emailController.dispose(); // Dispose email controller
     _dailyGoalController.dispose();
     _weightController.dispose();
     _heightController.dispose();
+
+    // Dispose FocusNodes
+    _displayNameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _heightFocusNode.dispose();
+    _weightFocusNode.dispose();
+    _dailyGoalFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -396,9 +423,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 24.h),
 
               _buildSectionTitle('Personal Information'),
-              CustomTextField( controller: _displayNameController, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name")),
+              CustomTextField( controller: _displayNameController, focusNode: _displayNameFocusNode, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name")),
               SizedBox(height: 16.h),
-              CustomTextField( controller: TextEditingController(text: user.email ?? 'Not available'), labelText: AppStrings.email, prefixIcon: Icons.email_outlined, readOnly: true, enabled: false ),
+              CustomTextField( controller: _emailController, focusNode: _emailFocusNode, labelText: AppStrings.email, prefixIcon: Icons.email_outlined, readOnly: true, enabled: false ),
               SizedBox(height: 16.h),
               _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth,
                       (date) {
@@ -430,9 +457,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 prefixIcon: Icons.wc_outlined,
               ),
               SizedBox(height: 16.h),
-              CustomTextField( controller: _heightController, labelText: 'Height (cm)', prefixIcon: Icons.height_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true), onChanged: (_) => _setIsDirty() ),
+              CustomTextField( controller: _heightController, focusNode: _heightFocusNode, labelText: 'Height (cm)', prefixIcon: Icons.height_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true), onChanged: (_) => _setIsDirty() ),
               SizedBox(height: 16.h),
-              CustomTextField( controller: _weightController, labelText: '${AppStrings.weight} (${AppStrings.kg})', prefixIcon: Icons.monitor_weight_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], onChanged: (_) => _setIsDirty() ),
+              CustomTextField( controller: _weightController, focusNode: _weightFocusNode, labelText: '${AppStrings.weight} (${AppStrings.kg})', prefixIcon: Icons.monitor_weight_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], onChanged: (_) => _setIsDirty() ),
               SizedBox(height: 24.h),
 
               _buildSectionTitle('Lifestyle & Environment'),
@@ -476,7 +503,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 24.h),
 
               _buildSectionTitle('Hydration Goal'),
-              CustomTextField( controller: _dailyGoalController, labelText: 'Daily Goal (${user.preferredUnit.toString().split(".").last.toUpperCase()})', prefixIcon: Icons.flag_outlined, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], validator: (val) => AppUtils.validateNumber(val), onChanged: (_) => _setIsDirty() ),
+              CustomTextField( controller: _dailyGoalController, focusNode: _dailyGoalFocusNode, labelText: 'Daily Goal (${user.preferredUnit.toString().split(".").last.toUpperCase()})', prefixIcon: Icons.flag_outlined, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], validator: (val) => AppUtils.validateNumber(val), onChanged: (_) => _setIsDirty() ),
               SizedBox(height: 12.h),
               CustomButton( text: "Calculate Suggested Goal", onPressed: _calculateAndSuggestGoal, backgroundColor: Theme.of(context).colorScheme.secondary, textColor: Theme.of(context).colorScheme.onSecondary ),
               SizedBox(height: 40.h),
