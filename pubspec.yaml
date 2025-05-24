@@ -65,6 +65,9 @@ dependencies:
   # Connectivity
   connectivity_plus: ^6.1.4
 
+  # Dynamic Color
+  dynamic_color: ^1.8.0
+
 
   path: any
 dev_dependencies:
