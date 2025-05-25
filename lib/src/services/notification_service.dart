@@ -1,9 +1,9 @@
 // lib/src/services/notification_service.dart
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:flutter/material.dart'; // For Color, TimeOfDay
+import 'package:flutter/material.dart';
 import 'package:minum/src/core/constants/app_colors.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/main.dart';
 
 class NotificationService {
   static const String _basicChannelKey = "basic_channel";
@@ -16,28 +16,30 @@ class NotificationService {
 
   Future<void> init() async {
     await AwesomeNotifications().initialize(
-      null, // Using default app icon. Or 'resource://drawable/res_app_icon'
+      'resource://drawable/res_app_icon',
       [
         NotificationChannel(
+          icon: 'resource://drawable/res_app_icon',
           channelKey: _basicChannelKey,
           channelName: _basicChannelName,
           channelDescription: _basicChannelDescription,
           defaultColor: AppColors.primaryColor,
           ledColor: Colors.white,
           importance: NotificationImportance.Default,
+          soundSource: 'resource://raw/res_custom_sound',
+          playSound: true,
           channelShowBadge: true,
         ),
         NotificationChannel(
+          icon: 'resource://drawable/res_app_icon',
           channelKey: _scheduledChannelKey,
           channelName: _scheduledChannelName,
           channelDescription: _scheduledChannelDescription,
           defaultColor: AppColors.primaryColor,
           ledColor: Colors.white,
           importance: NotificationImportance.High,
-          // To use a custom sound, uncomment the line below and ensure the file
-          // 'res_custom_sound.mp3' (or .wav, etc.) exists in 'android/app/src/main/res/raw/'
-          // soundSource: 'resource://raw/res_custom_sound',
-          playSound: true, // Ensure sound is enabled for this channel
+          soundSource: 'resource://raw/res_custom_sound',
+          playSound: true,
           channelShowBadge: true,
         ),
       ],
@@ -88,16 +90,21 @@ class NotificationService {
 
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
-        id: effectiveId,
-        channelKey: _basicChannelKey,
+        id: id,
+        channelKey: _scheduledChannelKey,
         title: title,
         body: body,
         payload: payload,
         notificationLayout: NotificationLayout.Default,
         wakeUpScreen: true,
+        category: NotificationCategory.Reminder,
       ),
+        actionButtons: [
+          NotificationActionButton(key: 'MARK_AS_DONE', label: 'Mark as Done'),
+          NotificationActionButton(key: 'DISMISS', label: 'Dismiss', actionType: ActionType.DismissAction, isDangerousOption: true)
+        ]
     );
-    logger.i("Simple Notification shown: id=$effectiveId, title=$title");
+    logger.i("Hydration Reminder Test: id=$id, title=$title");
   }
 
   Future<void> scheduleHydrationReminder({
