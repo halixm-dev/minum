@@ -46,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isLoading = false;
   bool _isDirty = false;
+  String? _lastLoadedUserId; // Added state variable
 
   // Helper function for user-friendly enum display
   String _getGenderDisplayString(Gender? gender) {
@@ -134,23 +135,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedGender = userProfile.gender;
       
       List<HealthCondition> initialHealthConditions = List.from(userProfile.healthConditions ?? [HealthCondition.none]);
-      if (initialHealthConditions.isEmpty) {
-        initialHealthConditions = [HealthCondition.none];
-      }
-      if (_selectedGender != Gender.female) { // Use the potentially updated _selectedGender
+      if (initialHealthConditions.isEmpty) initialHealthConditions = [HealthCondition.none];
+      if (_selectedGender != Gender.female) {
         initialHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
-        if (initialHealthConditions.isEmpty) {
-          initialHealthConditions = [HealthCondition.none];
-        }
+        if (initialHealthConditions.isEmpty) initialHealthConditions = [HealthCondition.none];
       }
       _selectedHealthConditions = initialHealthConditions;
       _selectedWeatherCondition = userProfile.selectedWeatherCondition ?? WeatherCondition.temperate;
-
+      
+      _lastLoadedUserId = userProfile.id; // Set ID from actual profile
     } else {
       // Set default template data if no profile
       _displayNameController.text = '';
       _emailController.text = 'Not available';
-      _dailyGoalController.text = '2000'; // Defaulting to mL string
+      _dailyGoalController.text = '2000'; // Assuming default unit is mL
       _weightController.text = '';
       _heightController.text = '';
       _selectedActivityLevel = null;
@@ -158,13 +156,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedGender = null;
       _selectedHealthConditions = [HealthCondition.none];
       _selectedWeatherCondition = WeatherCondition.temperate;
+      _lastLoadedUserId = null; // No actual user profile loaded, so no ID or use a specific guest ID if applicable
     }
-    // Reset dirty flag after programmatic update
-    if (mounted) {
-      setState(() {
-        _isDirty = false;
-      });
-    }
+    _isDirty = false; 
   }
 
   void _setupControllerListeners() {
@@ -424,13 +418,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         }
 
-        // Call _initializeStateFromProvider now that user data is available.
-        // Using addPostFrameCallback to ensure it runs after the current build phase.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) { // Ensure widget is still in the tree
-            _loadInitialProfileData(); // NEW CALL
-          }
-        });
+        // Conditional call to _loadInitialProfileData
+        if (user != null && user.id != _lastLoadedUserId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _loadInitialProfileData();
+            }
+          });
+        } else if (user == null && _lastLoadedUserId != null) {
+          // Handles case where user logs out (user becomes null)
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _loadInitialProfileData(); // This will load default/guest data
+            }
+          });
+        }
         
         List<HealthCondition> availableHealthConditions = List.from(HealthCondition.values);
         if (_selectedGender != Gender.female) {

@@ -100,25 +100,44 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signInWithGoogle() async {
-    if (_isDisposed) return;
-    _setAuthStatus(AuthStatus.authenticating);
+  Future<bool> signInWithGoogle() async {
+    if (_isDisposed) return false;
+    _setAuthStatus(AuthStatus.authenticating); // Notify UI that authentication is in progress
     try {
-      _currentUser = await _authService.signInWithGoogle();
-      if (_isDisposed) return;
-      if (_currentUser != null) {
-        _setAuthStatus(AuthStatus.authenticated);
+      final UserModel? userFromService = await _authService.signInWithGoogle();
+      if (_isDisposed) return false; // Check after await
+
+      if (userFromService != null) {
+        _currentUser = userFromService; // Store user, but don't notify authenticated yet
+        // DO NOT call _setAuthStatus(AuthStatus.authenticated) here.
+        return true; // Signal success to caller
       } else {
-        _setAuthStatus(AuthStatus.unauthenticated);
-        _errorMessage = null;
-        _safeNotifyListeners(); // Explicitly notify for unauthenticated state if Google Sign In was cancelled
+        // User cancelled Google Sign In
+        _setAuthStatus(AuthStatus.unauthenticated); // Reset status from authenticating
+        _errorMessage = null; // Clear any previous error
+        _safeNotifyListeners(); // Notify to clear loading state on UI if needed
+        return false; // Signal cancellation/failure
       }
     } on fb_auth.FirebaseAuthException catch (e) {
-      if (_isDisposed) return;
+      if (_isDisposed) return false;
       _handleAuthError(e.message ?? "Google sign in failed.", e.code);
+      return false; // Signal error
     } catch (e) {
-      if (_isDisposed) return;
+      if (_isDisposed) return false;
       _handleAuthError(e.toString(), "unknown-error");
+      return false; // Signal error
+    }
+  }
+
+  void completeGoogleSignIn() {
+    if (_isDisposed) return;
+    if (_currentUser != null) {
+      _setAuthStatus(AuthStatus.authenticated); // Now set authenticated and notify
+    } else {
+      // This case should ideally not be hit if signInWithGoogle returned true
+      // but as a safeguard:
+      _setAuthStatus(AuthStatus.unauthenticated);
+      logger.w("AuthProvider: completeGoogleSignIn called but _currentUser was null.");
     }
   }
 

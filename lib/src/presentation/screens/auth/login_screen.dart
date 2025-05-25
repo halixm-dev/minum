@@ -26,37 +26,55 @@ class _LoginScreenState extends State<LoginScreen> {
     // Capture the context that is valid *before* the async operation.
     // This context will be used for showing and hiding the dialog.
     final BuildContext dialogContext = context; 
+    // Capture the ModalRoute before potential async gaps if possible, though settings.arguments should be stable.
+    final String? returnToRoute = ModalRoute.of(dialogContext)?.settings.arguments as String?;
     
     AppUtils.showLoadingDialog(dialogContext, message: "Connecting to Google...");
 
-    String? loginError; // To store potential error messages
+    bool signInSuccess = false;
+    String? loginError;
 
     try {
-      await authProvider.signInWithGoogle();
-      // After the await, check the auth status from the provider
-      if (authProvider.authStatus == AuthStatus.authError) {
+      signInSuccess = await authProvider.signInWithGoogle(); // Returns true on success, false on error/cancel
+
+      if (!signInSuccess && authProvider.authStatus == AuthStatus.authError) {
+        // Error message is already set by AuthProvider's _handleAuthError
         loginError = authProvider.errorMessage ?? "Google Sign-In failed. Please try again.";
+      } else if (!signInSuccess && authProvider.authStatus == AuthStatus.unauthenticated) {
+        // User cancelled, no error message needed unless you want to show one.
+        // loginError = "Google Sign-In cancelled."; // Optional
       }
-      // If successful, AuthGate will handle navigation based on provider state changes.
-      // No explicit navigation here.
+      // If signInSuccess is true, _currentUser is set in AuthProvider but AuthStatus is not yet 'authenticated'.
     } catch (e) {
-      // This catch block can handle unexpected errors from signInWithGoogle itself,
-      // though AuthProvider is designed to catch its own errors.
-      // This provides an additional safety net.
-      logger.e("LoginScreen: Unexpected error during signInWithGoogle: $e");
+      // Fallback for truly unexpected errors not caught by AuthProvider
+      logger.e("LoginScreen: Unexpected error during signInWithGoogle call: $e");
       loginError = "An unexpected error occurred. Please try again.";
+      // Ensure authProvider status is error if we hit here, though it should be set by provider.
+      // authProvider.forceErrorState("Unexpected error"); // Hypothetical method
     } finally {
-      // Ensure the dialog is hidden, using the initially captured context.
-      // Check if the context is still mounted before trying to pop.
-      // This is crucial because navigation might have already disposed the LoginScreen.
       if (dialogContext.mounted) {
         AppUtils.hideLoadingDialog(dialogContext);
       }
     }
 
-    // If there was an error during the process and the original screen context is still mounted, show a SnackBar.
-    // Note: If navigation due to successful login has occurred, 'mounted' here will be false.
-    if (loginError != null && mounted) {
+    if (signInSuccess && mounted) { // Check 'mounted' for the LoginScreen context
+      authProvider.completeGoogleSignIn(); // This will trigger AuthGate
+
+      // Now, handle navigation based on returnToRoute
+      // This happens *after* AuthProvider has notified AuthGate.
+      // If returnToRoute is null, AuthGate's navigation to home will proceed.
+      // If returnToRoute is not null, this will override AuthGate's default.
+      // This specific timing might need adjustment if AuthGate's navigation is too fast.
+      // A slight delay before this custom navigation might be needed, or AuthGate needs to be aware.
+      // For now, let's try direct navigation.
+      if (returnToRoute != null) {
+          // Ensure this context for navigation is still valid if there was a build in between
+          if (mounted) { 
+               Navigator.of(context).pushNamedAndRemoveUntil(returnToRoute, (route) => false);
+          }
+      }
+      // If returnToRoute is null, AuthGate will navigate to home.
+    } else if (loginError != null && mounted) {
       AppUtils.showSnackBar(context, loginError, isError: true);
     }
   }

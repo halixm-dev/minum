@@ -610,7 +610,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _handleLogin() {
     // screenContext is this.context
     if (!context.mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    // Pass the settings route as an argument so LoginScreen knows where to return.
+    Navigator.of(context).pushNamed(AppRoutes.login, arguments: AppRoutes.settings);
   }
 
 Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
