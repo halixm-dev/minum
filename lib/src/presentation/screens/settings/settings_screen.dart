@@ -703,14 +703,8 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
     final hydrationService = Provider.of<HydrationService>(context, listen: false);
     final userProfile = userProvider.userProfile;
 
-    if (userProfile != null && _dailyGoalController.text != userProfile.dailyGoalMl.toInt().toString()) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) { // Check State's mounted status
-          _dailyGoalController.text = userProfile.dailyGoalMl.toInt().toString();
-        }
-      });
-    }
-
+    // Removed problematic block that was resetting _dailyGoalController.text in build method.
+    // _updateControllersFromProvider in initState is now solely responsible for initial setup.
 
     return Scaffold(
       // appBar: AppBar(

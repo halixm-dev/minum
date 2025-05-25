@@ -23,18 +23,41 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginWithGoogle() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    AppUtils.showLoadingDialog(context, message: "Connecting to Google...");
+    // Capture the context that is valid *before* the async operation.
+    // This context will be used for showing and hiding the dialog.
+    final BuildContext dialogContext = context; 
+    
+    AppUtils.showLoadingDialog(dialogContext, message: "Connecting to Google...");
 
-    await authProvider.signInWithGoogle();
+    String? loginError; // To store potential error messages
 
-    if (mounted) AppUtils.hideLoadingDialog(context);
+    try {
+      await authProvider.signInWithGoogle();
+      // After the await, check the auth status from the provider
+      if (authProvider.authStatus == AuthStatus.authError) {
+        loginError = authProvider.errorMessage ?? "Google Sign-In failed. Please try again.";
+      }
+      // If successful, AuthGate will handle navigation based on provider state changes.
+      // No explicit navigation here.
+    } catch (e) {
+      // This catch block can handle unexpected errors from signInWithGoogle itself,
+      // though AuthProvider is designed to catch its own errors.
+      // This provides an additional safety net.
+      logger.e("LoginScreen: Unexpected error during signInWithGoogle: $e");
+      loginError = "An unexpected error occurred. Please try again.";
+    } finally {
+      // Ensure the dialog is hidden, using the initially captured context.
+      // Check if the context is still mounted before trying to pop.
+      // This is crucial because navigation might have already disposed the LoginScreen.
+      if (dialogContext.mounted) {
+        AppUtils.hideLoadingDialog(dialogContext);
+      }
+    }
 
-    // AuthGate will handle navigation if successful.
-    // If there's an error, AuthProvider's status will be authError,
-    // and AuthGate might keep showing LoginScreen or an error.
-    // We can show a snackbar here for immediate feedback on Google Sign-In failure.
-    if (authProvider.authStatus == AuthStatus.authError && mounted) {
-      AppUtils.showSnackBar(context, authProvider.errorMessage ?? "Google Sign-In failed. Please try again.", isError: true);
+    // If there was an error during the process and the original screen context is still mounted, show a SnackBar.
+    // Note: If navigation due to successful login has occurred, 'mounted' here will be false.
+    if (loginError != null && mounted) {
+      AppUtils.showSnackBar(context, loginError, isError: true);
     }
   }
 
