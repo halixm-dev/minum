@@ -63,26 +63,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // Placeholder for choosing custom color
-  void _handleChooseCustomColor(BuildContext parentContext, ThemeProvider themeProvider) {
-    // In a real app, you would use a color picker package here.
-    // Example: showDialog with a color picker, then on color selection:
-    // themeProvider.setCustomSeedColor(selectedColor);
-    // For this subtask, we'll just log and maybe set a test color.
-    logger.i("SettingsScreen: _handleChooseCustomColor called. Color picker UI to be implemented.");
-
-    // Simulate choosing a color for testing purposes IF the dialog is still managing this.
-    // However, the themeProvider will be updated by the dialog's "Apply" button.
-    // So, direct update here might conflict with dialog's local state management.
-    // Better to let the dialog handle selection and then apply.
-    // For now, this method is a placeholder.
-
-    // Example: If we wanted to show a sub-dialog for color picking from here:
-    // showDialog(...color picker...);
-    // then upon selection: themeProvider.setCustomSeedColor(newColor);
-    // But the main theme dialog should update its internal state for the custom color preview.
-  }
-
   bool _enableReminders = true;
   double _selectedIntervalHours = 1.0;
   TimeOfDay _selectedStartTime = const TimeOfDay(hour: 8, minute: 0);

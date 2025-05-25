@@ -103,59 +103,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _weightFocusNode = FocusNode();
     _dailyGoalFocusNode = FocusNode();
 
+    // Defer provider-dependent initialization
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _initializeStateFromProvider();
+        _loadInitialProfileData(); // This will get data from provider and set initial text
+        _setupControllerListeners(); // Setup listeners once after initial data load
       }
     });
   }
 
-  void _initializeStateFromProvider() {
+  void _loadInitialProfileData() {
     if (!mounted) return;
-    final userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProfile = userProvider.userProfile;
 
-    _displayNameController.removeListener(_setIsDirty);
-    // Email controller is read-only, no need for a listener to _setIsDirty
-    _dailyGoalController.removeListener(_setIsDirty);
-    _weightController.removeListener(_setIsDirty);
-    _heightController.removeListener(_setIsDirty);
-
-    _displayNameController.text = userProfile?.displayName ?? '';
-    _emailController.text = userProfile?.email ?? 'Not available'; // Set email text
     if (userProfile != null) {
+      _displayNameController.text = userProfile.displayName ?? '';
+      _emailController.text = userProfile.email ?? 'Not available';
+      
       if (userProfile.preferredUnit == MeasurementUnit.oz) {
         _dailyGoalController.text = unit_converter.convertMlToOz(userProfile.dailyGoalMl).toStringAsFixed(1);
       } else {
         _dailyGoalController.text = userProfile.dailyGoalMl.toInt().toString();
       }
-    } else {
-      _dailyGoalController.text = '2000'; // Default if no profile
-    }
-    _weightController.text = userProfile?.weightKg?.toString() ?? '';
-    _heightController.text = userProfile?.heightCm?.toString() ?? '';
+      _weightController.text = userProfile.weightKg?.toString() ?? '';
+      _heightController.text = userProfile.heightCm?.toString() ?? '';
 
-    _selectedActivityLevel = userProfile?.activityLevel;
-    _selectedDateOfBirth = userProfile?.dateOfBirth;
-    _selectedGender = userProfile?.gender;
-
-    List<HealthCondition> initialHealthConditions = List.from(userProfile?.healthConditions ?? [HealthCondition.none]);
-    if (initialHealthConditions.isEmpty) {
-      initialHealthConditions = [HealthCondition.none];
-    }
-    if (_selectedGender != Gender.female) {
-      initialHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+      _selectedActivityLevel = userProfile.activityLevel;
+      _selectedDateOfBirth = userProfile.dateOfBirth;
+      _selectedGender = userProfile.gender;
+      
+      List<HealthCondition> initialHealthConditions = List.from(userProfile.healthConditions ?? [HealthCondition.none]);
       if (initialHealthConditions.isEmpty) {
         initialHealthConditions = [HealthCondition.none];
       }
+      if (_selectedGender != Gender.female) { // Use the potentially updated _selectedGender
+        initialHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+        if (initialHealthConditions.isEmpty) {
+          initialHealthConditions = [HealthCondition.none];
+        }
+      }
+      _selectedHealthConditions = initialHealthConditions;
+      _selectedWeatherCondition = userProfile.selectedWeatherCondition ?? WeatherCondition.temperate;
+
+    } else {
+      // Set default template data if no profile
+      _displayNameController.text = '';
+      _emailController.text = 'Not available';
+      _dailyGoalController.text = '2000'; // Defaulting to mL string
+      _weightController.text = '';
+      _heightController.text = '';
+      _selectedActivityLevel = null;
+      _selectedDateOfBirth = null;
+      _selectedGender = null;
+      _selectedHealthConditions = [HealthCondition.none];
+      _selectedWeatherCondition = WeatherCondition.temperate;
     }
-    _selectedHealthConditions = initialHealthConditions;
+    // Reset dirty flag after programmatic update
+    if (mounted) {
+      setState(() {
+        _isDirty = false;
+      });
+    }
+  }
 
-    _selectedWeatherCondition = userProfile?.selectedWeatherCondition ?? WeatherCondition.temperate;
-
-    _displayNameController.addListener(() => _setIsDirty());
-    _dailyGoalController.addListener(() => _setIsDirty());
-    _weightController.addListener(() => _setIsDirty());
-    _heightController.addListener(() => _setIsDirty());
+  void _setupControllerListeners() {
+    _displayNameController.addListener(_setIsDirty);
+    _dailyGoalController.addListener(_setIsDirty);
+    _weightController.addListener(_setIsDirty);
+    _heightController.addListener(_setIsDirty);
+    // Email controller is read-only, no need for a listener to _setIsDirty
   }
 
   void _setIsDirty() {
@@ -411,7 +428,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Using addPostFrameCallback to ensure it runs after the current build phase.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) { // Ensure widget is still in the tree
-            _initializeStateFromProvider();
+            _loadInitialProfileData(); // NEW CALL
           }
         });
         

@@ -85,8 +85,6 @@ class NotificationService {
     String body = AppStrings.reminderBody,
     Map<String, String>? payload,
   }) async {
-    final int currentBadgeCount = await AwesomeNotifications().getGlobalBadgeCounter();
-    final effectiveId = (id == 0) ? currentBadgeCount + 1 : id;
 
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
