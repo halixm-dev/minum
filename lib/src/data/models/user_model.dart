@@ -26,6 +26,20 @@ enum WeatherCondition {
 // --- Existing Enums ---
 enum MeasurementUnit { ml, oz }
 
+// Add AppStrings import for the extension
+import 'package:minum/src/core/constants/app_strings.dart';
+
+extension MeasurementUnitDisplayName on MeasurementUnit {
+  String get displayName {
+    switch (this) {
+      case MeasurementUnit.ml:
+        return AppStrings.ml;
+      case MeasurementUnit.oz:
+        return AppStrings.oz;
+    }
+  }
+}
+
 enum ActivityLevel { sedentary, light, moderate, active, extraActive }
 
 class UserModel extends Equatable {
