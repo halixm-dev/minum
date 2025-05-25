@@ -79,13 +79,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // themeProvider.setCustomSeedColor(selectedColor);
     // For this subtask, we'll just log and maybe set a test color.
     logger.i("SettingsScreen: _handleChooseCustomColor called. Color picker UI to be implemented.");
-    
+
     // Simulate choosing a color for testing purposes IF the dialog is still managing this.
     // However, the themeProvider will be updated by the dialog's "Apply" button.
     // So, direct update here might conflict with dialog's local state management.
     // Better to let the dialog handle selection and then apply.
     // For now, this method is a placeholder.
-    
+
     // Example: If we wanted to show a sub-dialog for color picking from here:
     // showDialog(...color picker...);
     // then upon selection: themeProvider.setCustomSeedColor(newColor);
@@ -705,6 +705,25 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
   }
 }
 
+  void _sendTestNotification() {
+    if (!mounted) return; // Ensure the widget is still mounted
+
+    final notificationService = Provider.of<NotificationService>(context, listen: false);
+
+    // Schedule an immediate notification with a unique ID for testing
+    notificationService.showSimpleNotification(
+      id: 99, // A unique ID for the test notification
+      title: AppStrings.reminderTitle,
+      body: "Time for some water! Stay hydrated.",
+      payload: {'type': 'hydration_reminder'},
+    );
+
+    // Show a SnackBar to confirm the notification was sent
+    AppUtils.showSnackBar(context, "Test notification sent!");
+
+    logger.i("Test notification sent from settings screen.");
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -778,7 +797,7 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
                 _saveReminderSettings();
               },
               secondary: const Icon(Icons.notifications_active_outlined),
-              activeColor: Theme.of(context).colorScheme.primary, // Changed
+              activeColor: Theme.of(context).colorScheme.primary,
             ),
             if (_enableReminders) ...[
               _buildSettingsTile(
@@ -815,6 +834,12 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
                 title: "Reminder End Time",
                 subtitle: _selectedEndTime.format(context),
                 onTap: () => _selectTime(context, false),
+              ),
+              _buildSettingsTile(
+                icon: Icons.notifications_none,
+                title: "Send Test Notification",
+                subtitle: "Tap to send an immediate test notification to check if notifications are working.",
+                onTap: _sendTestNotification,
               ),
             ],
             Divider(height: 30.h),
