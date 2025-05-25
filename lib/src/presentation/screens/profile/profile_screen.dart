@@ -424,7 +424,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         TextInputType goalKeyboardType = isOz 
             ? const TextInputType.numberWithOptions(decimal: true) 
             : TextInputType.number;
-        List<FilteringTextInputFormatter> goalInputFormatters = isOz 
+        List<TextInputFormatter> goalInputFormatters = isOz 
             ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))] 
             : [FilteringTextInputFormatter.digitsOnly];
 

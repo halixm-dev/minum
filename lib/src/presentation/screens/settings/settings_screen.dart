@@ -12,6 +12,7 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
@@ -24,17 +25,6 @@ const String prefsReminderStartTimeHour = 'prefs_reminder_start_time_hour';
 const String prefsReminderStartTimeMinute = 'prefs_reminder_start_time_minute';
 const String prefsReminderEndTimeHour = 'prefs_reminder_end_time_hour';
 const String prefsReminderEndTimeMinute = 'prefs_reminder_end_time_minute';
-
-// Helper extension for MeasurementUnit to get a display name
-extension MeasurementUnitDisplayName on MeasurementUnit {
-  String get displayName {
-    switch (this) {
-      case MeasurementUnit.ml:
-        return AppStrings.ml; // Assuming AppStrings.ml exists and is "mL"
-      case MeasurementUnit.oz:
-        return AppStrings.oz; }
-  }
-}
 
 // Helper extension for ThemeProvider to get current theme name string
 extension ThemeProviderName on ThemeProvider {
@@ -198,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _rescheduleNotifications() {
     if (!mounted) return; // Checks current state's mounted status
     final notificationService = Provider.of<NotificationService>(context, listen: false);
-    notificationService.cancelAllSchedules();
+    AwesomeNotifications().cancelAllSchedules();
 
     if (_enableReminders) {
       logger.i("Rescheduling notifications: Interval: $_selectedIntervalHours hrs, Start: $_selectedStartTime, End: $_selectedEndTime");
