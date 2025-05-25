@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isLoading = false;
   bool _isDirty = false;
-  String? _lastLoadedUserId; // Added state variable
+  UserModel? _lastProcessedUserProfile; // New state variable
 
   // Helper function for user-friendly enum display
   String _getGenderDisplayString(Gender? gender) {
@@ -116,8 +116,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _loadInitialProfileData() {
     if (!mounted) return;
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final userProfile = userProvider.userProfile;
+    final UserModel? userProfile = userProvider.userProfile; // Get the current profile from provider
 
+    // Populate controllers and state variables from userProfile
     if (userProfile != null) {
       _displayNameController.text = userProfile.displayName ?? '';
       _emailController.text = userProfile.email ?? 'Not available';
@@ -142,8 +143,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       _selectedHealthConditions = initialHealthConditions;
       _selectedWeatherCondition = userProfile.selectedWeatherCondition ?? WeatherCondition.temperate;
-      
-      _lastLoadedUserId = userProfile.id; // Set ID from actual profile
     } else {
       // Set default template data if no profile
       _displayNameController.text = '';
@@ -156,8 +155,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedGender = null;
       _selectedHealthConditions = [HealthCondition.none];
       _selectedWeatherCondition = WeatherCondition.temperate;
-      _lastLoadedUserId = null; // No actual user profile loaded, so no ID or use a specific guest ID if applicable
     }
+
+    _lastProcessedUserProfile = userProfile; // Store the user profile instance that was just used to set the data
     _isDirty = false; 
   }
 
@@ -418,18 +418,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         }
 
-        // Conditional call to _loadInitialProfileData
-        if (user != null && user.id != _lastLoadedUserId) {
+        // Conditional call to _loadInitialProfileData based on object instance change
+        if (user != _lastProcessedUserProfile) {
+          // This condition is true if:
+          // 1. Initially _lastProcessedUserProfile is null and user is not (first load).
+          // 2. User logs out (user becomes null, _lastProcessedUserProfile was not).
+          // 3. User logs in (user is new user, _lastProcessedUserProfile was null or guest).
+          // 4. User data is updated in UserProvider, resulting in a new UserModel instance.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              _loadInitialProfileData();
-            }
-          });
-        } else if (user == null && _lastLoadedUserId != null) {
-          // Handles case where user logs out (user becomes null)
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              _loadInitialProfileData(); // This will load default/guest data
+              _loadInitialProfileData(); // This will set controllers and also update _lastProcessedUserProfile
             }
           });
         }
