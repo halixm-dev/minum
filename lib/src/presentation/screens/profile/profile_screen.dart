@@ -372,12 +372,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       await userProvider.updateUserProfile(updatedUser);
-      if (mounted) {
-        AppUtils.showSnackBar(context, "Profile updated successfully!");
+      // ... (inside the try block, after await userProvider.updateUserProfile(updatedUser);)
+    if (mounted) {
+      String messageToShow = "Profile updated successfully!"; // Default success message
+      bool isPresentationError = false; // Determines if the snackbar should be styled as an error
+
+      // Check provider status and potential message
+      if (userProvider.status == UserProfileStatus.loaded) {
+        if (userProvider.errorMessage != null && userProvider.errorMessage == "Profile saved locally. Will sync when online.") {
+          messageToShow = userProvider.errorMessage!;
+          // For this specific informational message, it's not an error presentation.
+          isPresentationError = false;
+        } else if (userProvider.errorMessage != null) {
+          // If status is loaded but there's an unexpected error message from the provider.
+          messageToShow = userProvider.errorMessage!;
+          isPresentationError = true;
+        }
+        // If errorMessage is null, messageToShow remains "Profile updated successfully!"
+      } else if (userProvider.status == UserProfileStatus.error) {
+        // This case handles if updateUserProfile resolves but ended in an error state internally.
+        messageToShow = userProvider.errorMessage ?? "Failed to update profile.";
+        isPresentationError = true;
+      }
+      // Default case: if status is neither loaded nor error (e.g. idle), it might imply an issue.
+      // However, updateUserProfile should ideally always transition to loaded or error.
+      // For simplicity, we'll rely on the above conditions.
+
+      AppUtils.showSnackBar(context, messageToShow, isError: isPresentationError);
+      
+      if (!isPresentationError) { 
         setState(() {
           _isDirty = false;
         });
       }
+    }
     } catch (e) {
       logger.e("Error updating profile: $e");
       if (mounted) AppUtils.showSnackBar(context, userProvider.errorMessage ?? "Failed to update profile.", isError: true);
