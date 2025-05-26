@@ -61,6 +61,14 @@ void main() async {
   await notificationService.init();
   logger.i("NotificationService initialized");
 
+  // Attempt to schedule daily reminders if needed (after notification service is ready)
+  try {
+    await notificationService.scheduleDailyRemindersIfNeeded();
+    logger.i("Attempted to schedule daily reminders on startup.");
+  } catch (e) {
+    logger.e("Error calling scheduleDailyRemindersIfNeeded on startup: $e");
+  }
+
   final UserRepository userRepository = FirebaseUserRepository();
   final AuthRepository authRepository = FirebaseAuthRepository(userRepository: userRepository);
 

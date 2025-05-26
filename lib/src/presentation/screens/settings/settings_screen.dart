@@ -12,7 +12,6 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
@@ -162,83 +161,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
       AppUtils.showSnackBar(currentContext, "Reminder settings saved!");
     }
 
-    _rescheduleNotifications(); // This method also checks mounted status internally if needed for its own context uses
-  }
-
-  void _rescheduleNotifications() {
-    if (!mounted) return; // Checks current state's mounted status
-    final notificationService = Provider.of<NotificationService>(context, listen: false);
-    AwesomeNotifications().cancelAllSchedules();
-
-    if (_enableReminders) {
-      logger.i("Rescheduling notifications: Interval: $_selectedIntervalHours hrs, Start: $_selectedStartTime, End: $_selectedEndTime");
-      DateTime currentTime = DateTime.now();
-      DateTime scheduleStart = DateTime(currentTime.year, currentTime.month, currentTime.day, _selectedStartTime.hour, _selectedStartTime.minute);
-      DateTime scheduleEnd = DateTime(currentTime.year, currentTime.month, currentTime.day, _selectedEndTime.hour, _selectedEndTime.minute);
-
-      if (scheduleEnd.isBefore(scheduleStart)) {
-        scheduleEnd = scheduleEnd.add(const Duration(days: 1));
-      }
-
-      int notificationId = 100;
-      DateTime nextReminderTime = scheduleStart;
-
-      if (currentTime.isAfter(scheduleStart)) {
-        int intervalInMinutes = (_selectedIntervalHours * 60).toInt();
-        nextReminderTime = scheduleStart;
-        while(nextReminderTime.isBefore(currentTime)){
-          nextReminderTime = nextReminderTime.add(Duration(minutes: intervalInMinutes));
-          if (nextReminderTime.day != scheduleStart.day && scheduleEnd.day == scheduleStart.day) {
-            scheduleStart = scheduleStart.add(const Duration(days:1));
-            scheduleEnd = scheduleEnd.add(const Duration(days:1));
-            nextReminderTime = scheduleStart;
-            break;
-          }
-        }
-      }
-
-      if(nextReminderTime.isBefore(scheduleStart)){
-        nextReminderTime = scheduleStart;
-      }
-
-      int scheduledCount = 0;
-      while (nextReminderTime.isBefore(scheduleEnd) || nextReminderTime.isAtSameMomentAs(scheduleEnd)) {
-        if (nextReminderTime.isAfter(DateTime.now())) {
-          notificationService.scheduleHydrationReminder(
-              id: notificationId++,
-              title: AppStrings.reminderTitle,
-              body: "Time for some water! Stay hydrated.",
-              scheduledTime: nextReminderTime,
-              payload: {'type': 'hydration_reminder'}
-          );
-          scheduledCount++;
-        }
-        int intervalMinutes = (_selectedIntervalHours * 60).toInt();
-        nextReminderTime = nextReminderTime.add(Duration(minutes: intervalMinutes));
-
-        if (nextReminderTime.isAfter(scheduleEnd)) {
-          scheduleStart = DateTime(nextReminderTime.year, nextReminderTime.month, nextReminderTime.day, _selectedStartTime.hour, _selectedStartTime.minute);
-          scheduleEnd = DateTime(nextReminderTime.year, nextReminderTime.month, nextReminderTime.day, _selectedEndTime.hour, _selectedEndTime.minute);
-          if (scheduleEnd.isBefore(scheduleStart)) {
-            scheduleEnd = scheduleEnd.add(const Duration(days: 1));
-          }
-          nextReminderTime = scheduleStart;
-
-          if (nextReminderTime.isBefore(DateTime.now().add(const Duration(days: -1)))){
-            logger.w("Breaking notification scheduling loop: nextReminderTime is in the past.");
-            break;
-          }
-        }
-        if (notificationId > 150) {
-          logger.w("Breaking notification scheduling loop: Exceeded max notification ID.");
-          break;
-        }
-      }
-      logger.i("Scheduled $scheduledCount reminders. Next check starts from $nextReminderTime");
-    } else {
-      logger.i("Reminders are disabled. All notifications cancelled.");
+    // _rescheduleNotifications(); // This will now be called by the service method triggered below.
+    // Instead, directly call the new service method to handle scheduling logic.
+    if (mounted) { // Ensure context is valid before using Provider
+      Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
+        logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed after saving settings.");
+      }).catchError((e) {
+        logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(): $e");
+      });
     }
   }
+
+  // _rescheduleNotifications is now effectively replaced by NotificationService.scheduleDailyRemindersIfNeeded
+  // However, if we want a direct way to trigger it from UI that might show a specific SnackBar,
+  // we can keep a simplified version or just rely on _saveReminderSettings.
+  // For now, let's assume direct calls to the service method are sufficient.
+  // If a manual "refresh schedule" button were added, it would call the service method.
+  // void _rescheduleNotifications() {
+  //   if (!mounted) return;
+  //   logger.i("SettingsScreen: Manual reschedule trigger initiated.");
+  //   Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
+  //     AppUtils.showSnackBar(context, "Attempted to refresh notification schedule for today.");
+  //     logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed from manual trigger.");
+  //   }).catchError((e) {
+  //     logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded() from manual trigger: $e");
+  //     AppUtils.showSnackBar(context, "Error refreshing schedule. Check logs.", isError: true);
+  //   });
+  // }
+
 
   Future<void> _selectTime(BuildContext context, bool isStartTime) async {
     final TimeOfDay initialTime = isStartTime ? _selectedStartTime : _selectedEndTime;
@@ -614,86 +564,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.of(context).pushNamed(AppRoutes.login, arguments: AppRoutes.settings);
   }
 
-Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
-  logger.d("SettingsScreen: _showIntervalPicker called (TimePicker M3 version)");
+  Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
+    logger.d("SettingsScreen: _showIntervalPicker called (TimePicker M3 version)");
 
-  // Convert current interval to TimeOfDay for picker's initialTime
-  int currentTotalMinutes = (_selectedIntervalHours * 60).round();
-  int initialPickerHours = currentTotalMinutes ~/ 60;
-  int initialPickerMinutes = currentTotalMinutes % 60;
+    // Convert current interval to TimeOfDay for picker's initialTime
+    int currentTotalMinutes = (_selectedIntervalHours * 60).round();
+    int initialPickerHours = currentTotalMinutes ~/ 60;
+    int initialPickerMinutes = currentTotalMinutes % 60;
 
-  // Cap initial hours for display if they exceed a typical interval range (e.g., 12 hours)
-  // TimeOfDay itself supports 0-23. This is just for a more sensible initial display if desired.
-  if (initialPickerHours > 12) initialPickerHours = 12; 
+    // Cap initial hours for display if they exceed a typical interval range (e.g., 12 hours)
+    // TimeOfDay itself supports 0-23. This is just for a more sensible initial display if desired.
+    if (initialPickerHours > 12) initialPickerHours = 12;
 
-  final TimeOfDay? picked = await showTimePicker(
-    context: context,
-    initialTime: TimeOfDay(hour: initialPickerHours, minute: initialPickerMinutes),
-    helpText: "SELECT INTERVAL DURATION", // Crucial for user understanding
-    initialEntryMode: TimePickerEntryMode.input, // <-- ADD THIS LINE
-    builder: (BuildContext context, Widget? child) {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initialPickerHours, minute: initialPickerMinutes),
+      helpText: "SELECT INTERVAL DURATION", // Crucial for user understanding
+      initialEntryMode: TimePickerEntryMode.input, // <-- ADD THIS LINE
+      builder: (BuildContext context, Widget? child) {
         // Using 24-hour format can be more intuitive for duration.
         return MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-            child: child!,
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
         );
-    },
-  );
+      },
+    );
 
-  // Check if the State is still mounted before using its context or calling setState
-  if (!mounted || picked == null) return;
+    // Check if the State is still mounted before using its context or calling setState
+    if (!mounted || picked == null) return;
 
-  double newIntervalHours = picked.hour + (picked.minute / 60.0);
+    double newIntervalHours = picked.hour + (picked.minute / 60.0);
 
-  bool adjustedToMinimum = false;
-  // Enforce minimum interval of 15 minutes (0.25 hours).
-  // Using a small epsilon for floating point comparison might be safer,
-  // but typically direct comparison is fine for this scenario.
-  // Let's ensure any value that would result in less than 15 minutes (e.g. 0h0m, 0h5m, 0h10m) triggers this.
-  // 0 hours 0 minutes is 0.0. 0 hours 14 minutes is 14/60 = 0.233.
-  // So newIntervalHours < 0.25 is the correct condition.
-  if (newIntervalHours < 0.25) {
+    bool adjustedToMinimum = false;
+    // Enforce minimum interval of 15 minutes (0.25 hours).
+    // Using a small epsilon for floating point comparison might be safer,
+    // but typically direct comparison is fine for this scenario.
+    // Let's ensure any value that would result in less than 15 minutes (e.g. 0h0m, 0h5m, 0h10m) triggers this.
+    // 0 hours 0 minutes is 0.0. 0 hours 14 minutes is 14/60 = 0.233.
+    // So newIntervalHours < 0.25 is the correct condition.
+    if (newIntervalHours < 0.25) {
       newIntervalHours = 0.25;
       adjustedToMinimum = true;
-  }
+    }
 
-  // Update state and save settings
-  setState(() {
-    _selectedIntervalHours = newIntervalHours;
-  });
-  _saveReminderSettings(showSuccessSnackBar: !adjustedToMinimum); // New call
+    // Update state and save settings
+    setState(() {
+      _selectedIntervalHours = newIntervalHours;
+    });
+    _saveReminderSettings(showSuccessSnackBar: !adjustedToMinimum); // New call
 
-  // Show SnackBar if the value was adjusted
-  // Ensure to use a context that is still valid and part of the main widget tree for SnackBar.
-  // 'context' passed to _showIntervalPicker should be fine if 'mounted' check passed.
-  if (adjustedToMinimum) {
-    if (context.mounted) { // Explicit check on the context parameter
-      AppUtils.showSnackBar(
-          context, 
-          "Minimum reminder interval is 15 minutes. Setting to 15m.", // Simplified message
-          isError: false // Or true, for emphasis
-      );
+    // Show SnackBar if the value was adjusted
+    // Ensure to use a context that is still valid and part of the main widget tree for SnackBar.
+    // 'context' passed to _showIntervalPicker should be fine if 'mounted' check passed.
+    if (adjustedToMinimum) {
+      if (context.mounted) { // Explicit check on the context parameter
+        AppUtils.showSnackBar(
+            context,
+            "Minimum reminder interval is 15 minutes. Setting to 15m.", // Simplified message
+            isError: false // Or true, for emphasis
+        );
+      }
     }
   }
-}
 
   void _sendTestNotification() {
     if (!mounted) return; // Ensure the widget is still mounted
 
     final notificationService = Provider.of<NotificationService>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProfile = userProvider.userProfile;
+
+    List<String> favoriteVolumes;
+    if (userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty) {
+      favoriteVolumes = userProfile.favoriteIntakeVolumes;
+    } else {
+      favoriteVolumes = ['100', '250', '500']; // Default values
+      logger.i("Test notification: Using default favorite volumes as user profile/volumes are not set.");
+    }
 
     // Schedule an immediate notification with a unique ID for testing
     notificationService.showSimpleNotification(
       id: 99, // A unique ID for the test notification
       title: AppStrings.reminderTitle,
       body: "Time for some water! Stay hydrated.",
-      payload: {'type': 'hydration_reminder'},
+      favoriteVolumesMl: favoriteVolumes, // Pass the favorite volumes
+      payload: {'type': 'hydration_reminder_test'}, // Updated payload
     );
 
     // Show a SnackBar to confirm the notification was sent
-    AppUtils.showSnackBar(context, "Test notification sent!");
+    AppUtils.showSnackBar(context, "Test notification sent with favorite volumes!");
 
-    logger.i("Test notification sent from settings screen.");
+    logger.i("Test notification sent from settings screen with volumes: $favoriteVolumes.");
   }
 
   @override
@@ -751,9 +712,9 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
               title: "Favorite Quick Add Volumes",
               subtitle: userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty
                   ? userProfile.favoriteIntakeVolumes.map((volStr) {
-                      double volMl = double.tryParse(volStr) ?? 0;
-                      return unit_converter.formatVolume(volMl, userProfile.preferredUnit, includeUnitString: false);
-                    }).join(', ') + ' ${userProfile.preferredUnit.displayName}'
+                double volMl = double.tryParse(volStr) ?? 0;
+                return unit_converter.formatVolume(volMl, userProfile.preferredUnit, includeUnitString: false);
+              }).join(', ') + ' ${userProfile.preferredUnit.displayName}'
                   : "N/A",
               onTap: () => _showEditFavoriteVolumesDialog(context, userProvider),
             ),
@@ -791,7 +752,7 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
                   } else {
                     // Fallback, though minimum interval logic should prevent 0h 0m.
                     // If _selectedIntervalHours is 0.25 (15 mins), this will be 15m.
-                    return "${minutes}m"; 
+                    return "${minutes}m";
                   }
                 }(),
                 onTap: () => _showIntervalPicker(context),
@@ -872,9 +833,9 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
     final TextStyle titleStyle = TextStyle(color: textColor, fontWeight: FontWeight.w500, fontSize: 16.sp);
     final TextStyle? subtitleStyle = subtitle != null
         ? TextStyle(
-            color: textColor != null ? textColor.withAlpha((0.7 * 255).round()) : Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.7 * 255).round()),
-            fontSize: 14.sp
-          )
+        color: textColor != null ? textColor.withAlpha((0.7 * 255).round()) : Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.7 * 255).round()),
+        fontSize: 14.sp
+    )
         : null;
 
     return ListTile(
@@ -910,7 +871,7 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
     final displayUnit = userProfile?.preferredUnit ?? MeasurementUnit.ml;
 
     if (initialVolumes.isEmpty) { // Ensure at least one field
-       _addVolumeField(text: displayUnit == MeasurementUnit.oz ? unit_converter.convertMlToOz(250).toStringAsFixed(1) : '250');
+      _addVolumeField(text: displayUnit == MeasurementUnit.oz ? unit_converter.convertMlToOz(250).toStringAsFixed(1) : '250');
     } else {
       for (var volStr in initialVolumes) {
         double volMl = double.tryParse(volStr) ?? 0;
@@ -923,7 +884,7 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
         _addVolumeField(text: displayText);
       }
     }
-     // Request focus for the last added field after the first frame
+    // Request focus for the last added field after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _volumeFocusNodes.isNotEmpty) {
         _volumeFocusNodes.last.requestFocus();
@@ -932,7 +893,7 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
   }
 
   void _addVolumeField({String? text}) {
-    if (_volumeControllers.length < 5) {
+    if (_volumeControllers.length < 3) { // Changed 5 to 3
       final controller = TextEditingController(text: text ?? '');
       final focusNode = FocusNode();
       setState(() {
@@ -957,7 +918,7 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
         _volumeFocusNodes.removeAt(index);
       });
     } else {
-       AppUtils.showSnackBar(context, "At least one favorite volume is required.", isError: true);
+      AppUtils.showSnackBar(context, "At least one favorite volume is required.", isError: true);
     }
   }
 
@@ -994,7 +955,7 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
       if (text.isEmpty) return false;
       final val = double.tryParse(text);
       // Basic validation for mL values
-      return val != null && val > 0 && val < 5000; 
+      return val != null && val > 0 && val < 5000;
     }).toList();
 
     // Ensure there's at least one volume, or use defaults if all are cleared/invalid
@@ -1045,7 +1006,7 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
                 ),
               );
             }),
-            if (_volumeControllers.length < 5)
+            if (_volumeControllers.length < 3) // Changed 5 to 3
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
@@ -1158,10 +1119,10 @@ class _EditDailyGoalDialogContentState extends State<_EditDailyGoalDialogContent
                 onPressed: () {
                   if (mounted) Navigator.of(context).pop(false); // Pop with false
                 },
-                  child: const Text(AppStrings.cancel),
+                child: const Text(AppStrings.cancel),
               ),
               TextButton(
-                  onPressed: _saveGoal,
+                onPressed: _saveGoal,
                 child: const Text(AppStrings.save),
               ),
             ],
