@@ -1,8 +1,10 @@
 // lib/src/presentation/providers/hydration_provider.dart
 import 'dart:async';
 import 'package:flutter/material.dart'; // For DateUtils
+import 'package:shared_preferences/shared_preferences.dart'; // For SharedPreferences
 import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/models/user_model.dart';
+import 'package:minum/src/services/notification_service.dart'; // For prefsPendingWaterAdditionMl
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/main.dart'; // For logger
@@ -307,5 +309,48 @@ class HydrationProvider with ChangeNotifier {
     _cancelEntriesSubscription();
     _authSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> processPendingWaterAddition() async {
+    if (_isDisposed) {
+      logger.w("HydrationProvider: processPendingWaterAddition called after dispose.");
+      return;
+    }
+    logger.d("HydrationProvider: Checking for pending water additions from notifications...");
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final double? pendingAmountMl = prefs.getDouble(prefsPendingWaterAdditionMl);
+
+      if (pendingAmountMl != null && pendingAmountMl > 0) {
+        logger.i("HydrationProvider: Found pending water addition of $pendingAmountMl ml.");
+        // Ensure _currentUserId is available, might need a slight delay or check.
+        // For simplicity, assuming addHydrationEntry can handle if _currentUserId is briefly null
+        // or that this method is called after _currentUserId is likely set.
+        if (_currentUserId == null) {
+          logger.w("HydrationProvider: User ID not yet available. Waiting a moment to process pending water.");
+          // This is a simple delay. A more robust solution might involve listening to user ID availability.
+          await Future.delayed(const Duration(seconds: 2));
+          if (_currentUserId == null) {
+            logger.e("HydrationProvider: User ID still not available after delay. Cannot process pending water addition.");
+            // Optionally, do not remove the pref yet, so it can be retried.
+            // However, this could lead to repeated processing if not handled carefully.
+            // For now, we'll log and not process to avoid adding to a null user.
+            return;
+          }
+        }
+
+        await addHydrationEntry(pendingAmountMl, source: 'notification_action');
+        await prefs.remove(prefsPendingWaterAdditionMl);
+        logger.i("HydrationProvider: Successfully processed and cleared pending water addition of $pendingAmountMl ml.");
+      } else {
+        logger.d("HydrationProvider: No pending water additions found.");
+      }
+    } catch (e) {
+      logger.e("HydrationProvider: Error processing pending water addition: $e");
+      // Decide if to remove the preference key on error or leave for retry
+      // final prefs = await SharedPreferences.getInstance();
+      // await prefs.remove(prefsPendingWaterAdditionMl);
+      // logger.w("HydrationProvider: Removed pending water addition key due to error to prevent loop, but error was: $e");
+    }
   }
 }
