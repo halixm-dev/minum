@@ -11,6 +11,8 @@ import 'package:minum/src/presentation/providers/theme_provider.dart'; // ThemeP
 import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/services/notification_service.dart';
+import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
@@ -23,17 +25,6 @@ const String prefsReminderStartTimeHour = 'prefs_reminder_start_time_hour';
 const String prefsReminderStartTimeMinute = 'prefs_reminder_start_time_minute';
 const String prefsReminderEndTimeHour = 'prefs_reminder_end_time_hour';
 const String prefsReminderEndTimeMinute = 'prefs_reminder_end_time_minute';
-
-// Helper extension for MeasurementUnit to get a display name
-extension MeasurementUnitDisplayName on MeasurementUnit {
-  String get displayName {
-    switch (this) {
-      case MeasurementUnit.ml:
-        return AppStrings.ml; // Assuming AppStrings.ml exists and is "mL"
-      case MeasurementUnit.oz:
-        return AppStrings.oz; }
-  }
-}
 
 // Helper extension for ThemeProvider to get current theme name string
 extension ThemeProviderName on ThemeProvider {
@@ -70,26 +61,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case ThemeSource.customSeed:
         return "Custom Color"; // Placeholder for AppStrings.customThemeName
     }
-  }
-
-  // Placeholder for choosing custom color
-  void _handleChooseCustomColor(BuildContext parentContext, ThemeProvider themeProvider) {
-    // In a real app, you would use a color picker package here.
-    // Example: showDialog with a color picker, then on color selection:
-    // themeProvider.setCustomSeedColor(selectedColor);
-    // For this subtask, we'll just log and maybe set a test color.
-    logger.i("SettingsScreen: _handleChooseCustomColor called. Color picker UI to be implemented.");
-
-    // Simulate choosing a color for testing purposes IF the dialog is still managing this.
-    // However, the themeProvider will be updated by the dialog's "Apply" button.
-    // So, direct update here might conflict with dialog's local state management.
-    // Better to let the dialog handle selection and then apply.
-    // For now, this method is a placeholder.
-
-    // Example: If we wanted to show a sub-dialog for color picking from here:
-    // showDialog(...color picker...);
-    // then upon selection: themeProvider.setCustomSeedColor(newColor);
-    // But the main theme dialog should update its internal state for the custom color preview.
   }
 
   bool _enableReminders = true;
@@ -197,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _rescheduleNotifications() {
     if (!mounted) return; // Checks current state's mounted status
     final notificationService = Provider.of<NotificationService>(context, listen: false);
-    notificationService.cancelAllNotifications();
+    AwesomeNotifications().cancelAllSchedules();
 
     if (_enableReminders) {
       logger.i("Rescheduling notifications: Interval: $_selectedIntervalHours hrs, Start: $_selectedStartTime, End: $_selectedEndTime");
@@ -601,7 +572,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       barrierDismissible: false, // Usually good for multi-field dialogs
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text("Edit Favorite Volumes (${AppStrings.ml})"),
+          title: Text("Edit Favorite Volumes (${userProvider.userProfile?.preferredUnit.displayName ?? AppStrings.ml})"),
           content: _EditFavoriteVolumesDialogContent(userProvider: userProvider),
           // Actions are now part of _EditFavoriteVolumesDialogContent or handled via Navigator.pop
         );
@@ -639,7 +610,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _handleLogin() {
     // screenContext is this.context
     if (!context.mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    // Pass the settings route as an argument so LoginScreen knows where to return.
+    Navigator.of(context).pushNamed(AppRoutes.login, arguments: AppRoutes.settings);
   }
 
 Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
@@ -732,14 +704,8 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
     final hydrationService = Provider.of<HydrationService>(context, listen: false);
     final userProfile = userProvider.userProfile;
 
-    if (userProfile != null && _dailyGoalController.text != userProfile.dailyGoalMl.toInt().toString()) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) { // Check State's mounted status
-          _dailyGoalController.text = userProfile.dailyGoalMl.toInt().toString();
-        }
-      });
-    }
-
+    // Removed problematic block that was resetting _dailyGoalController.text in build method.
+    // _updateControllersFromProvider in initState is now solely responsible for initial setup.
 
     return Scaffold(
       // appBar: AppBar(
@@ -769,7 +735,9 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
             _buildSettingsTile(
               icon: Icons.water_drop_outlined,
               title: AppStrings.dailyWaterGoal,
-              subtitle: "${userProfile?.dailyGoalMl.toInt() ?? 'N/A'} ${AppStrings.ml}",
+              subtitle: userProfile != null
+                  ? unit_converter.formatVolume(userProfile.dailyGoalMl, userProfile.preferredUnit)
+                  : 'N/A',
               onTap: () => _showDailyGoalOptionsDialog(context, userProvider, hydrationService),
             ),
             _buildSettingsTile(
@@ -781,7 +749,12 @@ Future<void> _showIntervalPicker(BuildContext context) async { // Make it async
             _buildSettingsTile(
               icon: Icons.format_list_numbered_outlined,
               title: "Favorite Quick Add Volumes",
-              subtitle: "${userProfile?.favoriteIntakeVolumes.join(', ') ?? "250, 500, 750"} ${AppStrings.ml}",
+              subtitle: userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty
+                  ? userProfile.favoriteIntakeVolumes.map((volStr) {
+                      double volMl = double.tryParse(volStr) ?? 0;
+                      return unit_converter.formatVolume(volMl, userProfile.preferredUnit, includeUnitString: false);
+                    }).join(', ') + ' ${userProfile.preferredUnit.displayName}'
+                  : "N/A",
               onTap: () => _showEditFavoriteVolumesDialog(context, userProvider),
             ),
 
@@ -932,12 +905,22 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
   @override
   void initState() {
     super.initState();
-    final initialVolumes = widget.userProvider.userProfile?.favoriteIntakeVolumes ?? ['250', '500', '750'];
+    final userProfile = widget.userProvider.userProfile;
+    final initialVolumes = userProfile?.favoriteIntakeVolumes ?? ['250', '500', '750'];
+    final displayUnit = userProfile?.preferredUnit ?? MeasurementUnit.ml;
+
     if (initialVolumes.isEmpty) { // Ensure at least one field
-      _addVolumeField(text: '250');
+       _addVolumeField(text: displayUnit == MeasurementUnit.oz ? unit_converter.convertMlToOz(250).toStringAsFixed(1) : '250');
     } else {
-      for (var vol in initialVolumes) {
-        _addVolumeField(text: vol);
+      for (var volStr in initialVolumes) {
+        double volMl = double.tryParse(volStr) ?? 0;
+        String displayText;
+        if (displayUnit == MeasurementUnit.oz) {
+          displayText = unit_converter.convertMlToOz(volMl).toStringAsFixed(1);
+        } else {
+          displayText = volMl.toInt().toString();
+        }
+        _addVolumeField(text: displayText);
       }
     }
      // Request focus for the last added field after the first frame
@@ -993,17 +976,29 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
-    final List<String> newVolumes = _volumeControllers
-        .map((controller) => controller.text.trim())
-        .where((text) {
+    final displayUnit = widget.userProvider.userProfile?.preferredUnit ?? MeasurementUnit.ml;
+    final List<String> newVolumesInMl = _volumeControllers.map((controller) {
+      String text = controller.text.trim();
+      if (text.isEmpty) return ''; // Handle empty strings
+      double? val = double.tryParse(text);
+      if (val == null) return ''; // Handle unparseable strings
+
+      if (displayUnit == MeasurementUnit.oz) {
+        // Convert oz to mL and round to nearest whole number, then to string
+        return unit_converter.convertOzToMl(val).round().toString();
+      } else {
+        // Ensure it's a whole number string for mL
+        return val.round().toString();
+      }
+    }).where((text) {
       if (text.isEmpty) return false;
       final val = double.tryParse(text);
-      // Basic validation, more complex validation handled by CustomTextField's validator
-      return val != null && val > 0 && val < 5000;
+      // Basic validation for mL values
+      return val != null && val > 0 && val < 5000; 
     }).toList();
 
     // Ensure there's at least one volume, or use defaults if all are cleared/invalid
-    final List<String> volumesToSave = newVolumes.isNotEmpty ? newVolumes : const ['250', '500', '750'];
+    final List<String> volumesToSave = newVolumesInMl.isNotEmpty ? newVolumesInMl : const ['250', '500', '750'];
 
     try {
       await widget.userProvider.updateFavoriteIntakeVolumes(volumesToSave);
@@ -1034,10 +1029,12 @@ class _EditFavoriteVolumesDialogContentState extends State<_EditFavoriteVolumesD
                         controller: _volumeControllers[index],
                         focusNode: _volumeFocusNodes[index],
                         labelText: "Volume ${index + 1}",
-                        hintText: "e.g., 250",
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        validator: (val) => AppUtils.validateNumber(val),
+                        hintText: "e.g., ${widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz ? unit_converter.convertMlToOz(250).toStringAsFixed(1) : '250'}",
+                        keyboardType: TextInputType.numberWithOptions(decimal: widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz ? r'^\d*\.?\d*$' : r'^\d*'))
+                        ],
+                        validator: (val) => AppUtils.validateNumber(val, allowDecimal: widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz),
                       ),
                     ),
                     IconButton(

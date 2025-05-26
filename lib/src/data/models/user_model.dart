@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:minum/main.dart'; // For logger, ensure this is appropriate for your project structure.
+import 'package:minum/src/core/constants/app_strings.dart'; // Moved import
 
 enum Gender {
   male,
@@ -25,6 +26,17 @@ enum WeatherCondition {
 
 // --- Existing Enums ---
 enum MeasurementUnit { ml, oz }
+
+extension MeasurementUnitDisplayName on MeasurementUnit {
+  String get displayName {
+    switch (this) {
+      case MeasurementUnit.ml:
+        return AppStrings.ml;
+      case MeasurementUnit.oz:
+        return AppStrings.oz;
+    }
+  }
+}
 
 enum ActivityLevel { sedentary, light, moderate, active, extraActive }
 

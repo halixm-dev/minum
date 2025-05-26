@@ -23,18 +23,59 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginWithGoogle() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    AppUtils.showLoadingDialog(context, message: "Connecting to Google...");
+    // Capture the context that is valid *before* the async operation.
+    // This context will be used for showing and hiding the dialog.
+    final BuildContext dialogContext = context; 
+    // Capture the ModalRoute before potential async gaps if possible, though settings.arguments should be stable.
+    final String? returnToRoute = ModalRoute.of(dialogContext)?.settings.arguments as String?;
+    
+    AppUtils.showLoadingDialog(dialogContext, message: "Connecting to Google...");
 
-    await authProvider.signInWithGoogle();
+    bool signInSuccess = false;
+    String? loginError;
 
-    if (mounted) AppUtils.hideLoadingDialog(context);
+    try {
+      signInSuccess = await authProvider.signInWithGoogle(); // Returns true on success, false on error/cancel
 
-    // AuthGate will handle navigation if successful.
-    // If there's an error, AuthProvider's status will be authError,
-    // and AuthGate might keep showing LoginScreen or an error.
-    // We can show a snackbar here for immediate feedback on Google Sign-In failure.
-    if (authProvider.authStatus == AuthStatus.authError && mounted) {
-      AppUtils.showSnackBar(context, authProvider.errorMessage ?? "Google Sign-In failed. Please try again.", isError: true);
+      if (!signInSuccess && authProvider.authStatus == AuthStatus.authError) {
+        // Error message is already set by AuthProvider's _handleAuthError
+        loginError = authProvider.errorMessage ?? "Google Sign-In failed. Please try again.";
+      } else if (!signInSuccess && authProvider.authStatus == AuthStatus.unauthenticated) {
+        // User cancelled, no error message needed unless you want to show one.
+        // loginError = "Google Sign-In cancelled."; // Optional
+      }
+      // If signInSuccess is true, _currentUser is set in AuthProvider but AuthStatus is not yet 'authenticated'.
+    } catch (e) {
+      // Fallback for truly unexpected errors not caught by AuthProvider
+      logger.e("LoginScreen: Unexpected error during signInWithGoogle call: $e");
+      loginError = "An unexpected error occurred. Please try again.";
+      // Ensure authProvider status is error if we hit here, though it should be set by provider.
+      // authProvider.forceErrorState("Unexpected error"); // Hypothetical method
+    } finally {
+      if (dialogContext.mounted) {
+        AppUtils.hideLoadingDialog(dialogContext);
+      }
+    }
+
+    if (signInSuccess && mounted) { // Check 'mounted' for the LoginScreen context
+      authProvider.completeGoogleSignIn(); // This will trigger AuthGate
+
+      // Now, handle navigation based on returnToRoute
+      // This happens *after* AuthProvider has notified AuthGate.
+      // If returnToRoute is null, AuthGate's navigation to home will proceed.
+      // If returnToRoute is not null, this will override AuthGate's default.
+      // This specific timing might need adjustment if AuthGate's navigation is too fast.
+      // A slight delay before this custom navigation might be needed, or AuthGate needs to be aware.
+      // For now, let's try direct navigation.
+      if (returnToRoute != null) {
+          // Ensure this context for navigation is still valid if there was a build in between
+          if (mounted) { 
+               Navigator.of(context).pushNamedAndRemoveUntil(returnToRoute, (route) => false);
+          }
+      }
+      // If returnToRoute is null, AuthGate will navigate to home.
+    } else if (loginError != null && mounted) {
+      AppUtils.showSnackBar(context, loginError, isError: true);
     }
   }
 

@@ -13,6 +13,7 @@ import 'package:minum/src/presentation/widgets/common/custom_button.dart';
 import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
 import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
 
 class ProfileScreen extends StatefulWidget {
@@ -45,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isLoading = false;
   bool _isDirty = false;
+  UserModel? _lastProcessedUserProfile; // New state variable
 
   // Helper function for user-friendly enum display
   String _getGenderDisplayString(Gender? gender) {
@@ -102,51 +104,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _weightFocusNode = FocusNode();
     _dailyGoalFocusNode = FocusNode();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _initializeStateFromProvider();
-      }
-    });
+    _setupControllerListeners(); // Moved here
   }
 
-  void _initializeStateFromProvider() {
+  void _loadInitialProfileData() {
     if (!mounted) return;
-    final userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final UserModel? userProfile = userProvider.userProfile; // Get the current profile from provider
 
-    _displayNameController.removeListener(_setIsDirty);
-    // Email controller is read-only, no need for a listener to _setIsDirty
-    _dailyGoalController.removeListener(_setIsDirty);
-    _weightController.removeListener(_setIsDirty);
-    _heightController.removeListener(_setIsDirty);
-
-    _displayNameController.text = userProfile?.displayName ?? '';
-    _emailController.text = userProfile?.email ?? 'Not available'; // Set email text
-    _dailyGoalController.text = userProfile?.dailyGoalMl.toInt().toString() ?? '2000';
-    _weightController.text = userProfile?.weightKg?.toString() ?? '';
-    _heightController.text = userProfile?.heightCm?.toString() ?? '';
-
-    _selectedActivityLevel = userProfile?.activityLevel;
-    _selectedDateOfBirth = userProfile?.dateOfBirth;
-    _selectedGender = userProfile?.gender;
-
-    List<HealthCondition> initialHealthConditions = List.from(userProfile?.healthConditions ?? [HealthCondition.none]);
-    if (initialHealthConditions.isEmpty) {
-      initialHealthConditions = [HealthCondition.none];
-    }
-    if (_selectedGender != Gender.female) {
-      initialHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
-      if (initialHealthConditions.isEmpty) {
-        initialHealthConditions = [HealthCondition.none];
+    // Populate controllers and state variables from userProfile
+    if (userProfile != null) {
+      _displayNameController.text = userProfile.displayName ?? '';
+      _emailController.text = userProfile.email ?? 'Not available';
+      
+      if (userProfile.preferredUnit == MeasurementUnit.oz) {
+        _dailyGoalController.text = unit_converter.convertMlToOz(userProfile.dailyGoalMl).toStringAsFixed(1);
+      } else {
+        _dailyGoalController.text = userProfile.dailyGoalMl.toInt().toString();
       }
+      _weightController.text = userProfile.weightKg?.toString() ?? '';
+      _heightController.text = userProfile.heightCm?.toString() ?? '';
+
+      _selectedActivityLevel = userProfile.activityLevel;
+      _selectedDateOfBirth = userProfile.dateOfBirth;
+      _selectedGender = userProfile.gender;
+      
+      List<HealthCondition> initialHealthConditions = List.from(userProfile.healthConditions ?? [HealthCondition.none]);
+      if (initialHealthConditions.isEmpty) initialHealthConditions = [HealthCondition.none];
+      if (_selectedGender != Gender.female) {
+        initialHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+        if (initialHealthConditions.isEmpty) initialHealthConditions = [HealthCondition.none];
+      }
+      _selectedHealthConditions = initialHealthConditions;
+      _selectedWeatherCondition = userProfile.selectedWeatherCondition ?? WeatherCondition.temperate;
+    } else {
+      // Set default template data if no profile
+      _displayNameController.text = '';
+      _emailController.text = 'Not available';
+      _dailyGoalController.text = '2000'; // Assuming default unit is mL
+      _weightController.text = '';
+      _heightController.text = '';
+      _selectedActivityLevel = null;
+      _selectedDateOfBirth = null;
+      _selectedGender = null;
+      _selectedHealthConditions = [HealthCondition.none];
+      _selectedWeatherCondition = WeatherCondition.temperate;
     }
-    _selectedHealthConditions = initialHealthConditions;
 
-    _selectedWeatherCondition = userProfile?.selectedWeatherCondition ?? WeatherCondition.temperate;
+    _lastProcessedUserProfile = userProfile; // Store the user profile instance that was just used to set the data
+    _isDirty = false; 
+  }
 
-    _displayNameController.addListener(() => _setIsDirty());
-    _dailyGoalController.addListener(() => _setIsDirty());
-    _weightController.addListener(() => _setIsDirty());
-    _heightController.addListener(() => _setIsDirty());
+  void _setupControllerListeners() {
+    _displayNameController.addListener(_setIsDirty);
+    _dailyGoalController.addListener(_setIsDirty);
+    _weightController.addListener(_setIsDirty);
+    _heightController.addListener(_setIsDirty);
+    // Email controller is read-only, no need for a listener to _setIsDirty
   }
 
   void _setIsDirty() {
@@ -306,7 +320,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final String newDisplayName = _displayNameController.text.trim();
-    final double newDailyGoal = double.tryParse(_dailyGoalController.text.trim()) ?? currentUser.dailyGoalMl;
+    // final double newDailyGoal = double.tryParse(_dailyGoalController.text.trim()) ?? currentUser.dailyGoalMl;
+    double newDailyGoal;
+    final String goalText = _dailyGoalController.text.trim();
+    double? enteredGoal = double.tryParse(goalText);
+
+    if (enteredGoal != null) {
+      if (currentUser.preferredUnit == MeasurementUnit.oz) {
+        newDailyGoal = unit_converter.convertOzToMl(enteredGoal);
+      } else {
+        newDailyGoal = enteredGoal;
+      }
+    } else {
+      newDailyGoal = currentUser.dailyGoalMl; // Fallback to current if input is invalid
+    }
     final double? newWeight = _weightController.text.trim().isEmpty ? null : double.tryParse(_weightController.text.trim());
     final double? newHeight = _heightController.text.trim().isEmpty ? null : double.tryParse(_heightController.text.trim());
 
@@ -345,12 +372,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       await userProvider.updateUserProfile(updatedUser);
-      if (mounted) {
-        AppUtils.showSnackBar(context, "Profile updated successfully!");
+      // ... (inside the try block, after await userProvider.updateUserProfile(updatedUser);)
+    if (mounted) {
+      String messageToShow = "Profile updated successfully!"; // Default success message
+      bool isPresentationError = false; // Determines if the snackbar should be styled as an error
+
+      // Check provider status and potential message
+      if (userProvider.status == UserProfileStatus.loaded) {
+        if (userProvider.errorMessage != null && userProvider.errorMessage == "Profile saved locally. Will sync when online.") {
+          messageToShow = userProvider.errorMessage!;
+          // For this specific informational message, it's not an error presentation.
+          isPresentationError = false;
+        } else if (userProvider.errorMessage != null) {
+          // If status is loaded but there's an unexpected error message from the provider.
+          messageToShow = userProvider.errorMessage!;
+          isPresentationError = true;
+        }
+        // If errorMessage is null, messageToShow remains "Profile updated successfully!"
+      } else if (userProvider.status == UserProfileStatus.error) {
+        // This case handles if updateUserProfile resolves but ended in an error state internally.
+        messageToShow = userProvider.errorMessage ?? "Failed to update profile.";
+        isPresentationError = true;
+      }
+      // Default case: if status is neither loaded nor error (e.g. idle), it might imply an issue.
+      // However, updateUserProfile should ideally always transition to loaded or error.
+      // For simplicity, we'll rely on the above conditions.
+
+      AppUtils.showSnackBar(context, messageToShow, isError: isPresentationError);
+      
+      if (!isPresentationError) { 
         setState(() {
           _isDirty = false;
         });
       }
+    }
     } catch (e) {
       logger.e("Error updating profile: $e");
       if (mounted) AppUtils.showSnackBar(context, userProvider.errorMessage ?? "Failed to update profile.", isError: true);
@@ -361,159 +416,181 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final UserModel? user = userProvider.userProfile;
+    // final userProvider = Provider.of<UserProvider>(context); // Will be obtained from Consumer
+    // final UserModel? user = userProvider.userProfile; // Will be obtained from Consumer
 
-    if (user == null && (userProvider.status == UserProfileStatus.loading || userProvider.status == UserProfileStatus.idle)) {
-      return Scaffold(appBar: AppBar(title: const Text(AppStrings.profile)), body: const Center(child: CircularProgressIndicator()));
-    }
-    if (user == null && userProvider.status == UserProfileStatus.error) {
-      return Scaffold(appBar: AppBar(title: const Text(AppStrings.profile)), body: Center(child: Text(userProvider.errorMessage ?? "Could not load user data.")));
-    }
-    if (user == null) {
-      return Scaffold(appBar: AppBar(title: const Text(AppStrings.profile)), body: const Center(child: Text("User data unavailable.")));
-    }
+    // Removed initial null checks as Consumer will handle loading/error states.
 
-    List<HealthCondition> availableHealthConditions = List.from(HealthCondition.values);
-    if (_selectedGender != Gender.female) {
-      availableHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
-    }
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final UserModel? user = userProvider.userProfile;
+        final UserProfileStatus status = userProvider.status;
 
+        if (status == UserProfileStatus.loading || (status == UserProfileStatus.idle && user == null)) {
+          return Scaffold(
+            appBar: AppBar(title: const Text(AppStrings.profile)),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.profile),
-        centerTitle: true,
-        actions: [
-          if (_isDirty)
-            Padding(
-              padding: EdgeInsets.only(right: 8.w),
-              child: TextButton(
-                onPressed: _isLoading ? null : _saveProfile,
-                child: _isLoading
-                    ? SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary)) // Ensure progress indicator contrasts
-                    : Text("SAVE", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)), // Changed color
-              ),
-            )
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // Center(
-              //   child: Stack(
-              //     children: [
-              //       CircleAvatar(
-              //         radius: 50.r,
-              //         backgroundColor: AppColors.primaryColor.withAlpha(50),
-              //         backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
-              //             ? NetworkImage(user.photoUrl!)
-              //             : null,
-              //         child: (user.photoUrl == null || user.photoUrl!.isEmpty)
-              //             ? Text(
-              //           user.displayName?.isNotEmpty == true ? user.displayName![0].toUpperCase() : "?",
-              //           style: TextStyle(fontSize: 40.sp, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
-              //         )
-              //             : null,
-              //       ),
-              //     ],
-              //   ),
-              // ),
-              // SizedBox(height: 24.h), // Removed profile photo display section
+        if (user == null) { // Handles error or unexpected null user after loading attempt
+          return Scaffold(
+            appBar: AppBar(title: const Text(AppStrings.profile)),
+            body: Center(child: Text(userProvider.errorMessage ?? "User data unavailable.")),
+          );
+        }
 
-              _buildSectionTitle('Personal Information'),
-              CustomTextField( controller: _displayNameController, focusNode: _displayNameFocusNode, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name")),
-              SizedBox(height: 16.h),
-              CustomTextField( controller: _emailController, focusNode: _emailFocusNode, labelText: AppStrings.email, prefixIcon: Icons.email_outlined, readOnly: true, enabled: false ),
-              SizedBox(height: 16.h),
-              _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth,
-                      (date) {
-                    if (mounted) {
-                      setState(() { _selectedDateOfBirth = date; _isDirty = true;});
-                    }
-                  }
-              ),
-              SizedBox(height: 16.h),
-              _buildDropdown<Gender?>(
-                label: "Gender",
-                value: _selectedGender,
-                items: [null, Gender.male, Gender.female],
-                onChanged: (Gender? newValue) {
-                  if (mounted) {
-                    setState(() {
-                      _selectedGender = newValue;
-                      _isDirty = true;
-                      if (newValue != Gender.female) {
-                        _selectedHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
-                        if (_selectedHealthConditions.isEmpty) {
-                          _selectedHealthConditions = [HealthCondition.none];
-                        }
-                      }
-                    });
-                  }
-                },
-                itemAsString: _getGenderDisplayString,
-                prefixIcon: Icons.wc_outlined,
-              ),
-              SizedBox(height: 16.h),
-              CustomTextField( controller: _heightController, focusNode: _heightFocusNode, labelText: 'Height (cm)', prefixIcon: Icons.height_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true), onChanged: (_) => _setIsDirty() ),
-              SizedBox(height: 16.h),
-              CustomTextField( controller: _weightController, focusNode: _weightFocusNode, labelText: '${AppStrings.weight} (${AppStrings.kg})', prefixIcon: Icons.monitor_weight_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], onChanged: (_) => _setIsDirty() ),
-              SizedBox(height: 24.h),
+        // Conditional call to _loadInitialProfileData based on object instance change
+        if (userProvider.status == UserProfileStatus.loaded && user != _lastProcessedUserProfile) {
+          // This condition is true if:
+          // 1. Initially _lastProcessedUserProfile is null and user is not (first load).
+          // 2. User logs out (user becomes null, _lastProcessedUserProfile was not).
+          // 3. User logs in (user is new user, _lastProcessedUserProfile was null or guest).
+          // 4. User data is updated in UserProvider, resulting in a new UserModel instance.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _loadInitialProfileData(); // This will set controllers and also update _lastProcessedUserProfile
+            }
+          });
+        }
+        
+        List<HealthCondition> availableHealthConditions = List.from(HealthCondition.values);
+        if (_selectedGender != Gender.female) {
+          availableHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+        }
 
-              _buildSectionTitle('Lifestyle & Environment'),
-              _buildDropdown<ActivityLevel?>(
-                label: AppStrings.activityLevel,
-                value: _selectedActivityLevel,
-                items: [null, ...ActivityLevel.values],
-                onChanged: (ActivityLevel? newValue) {
-                  if (mounted) {
-                    setState(() { _selectedActivityLevel = newValue; _isDirty = true; });
-                  }
-                },
-                itemAsString: _getActivityLevelDisplayString,
-                prefixIcon: Icons.directions_run_outlined,
-              ),
-              SizedBox(height: 16.h),
-              _buildMultiSelectChipGroup<HealthCondition>(
-                label: "Health Conditions (Optional)",
-                allOptions: availableHealthConditions,
-                selectedOptions: _selectedHealthConditions,
-                optionAsString: _getHealthConditionDisplayString,
-                onSelectionChanged: (selected) {
-                  if (mounted) {
-                    setState(() { _selectedHealthConditions = selected; _isDirty = true; });
-                  }
-                },
-              ),
-              SizedBox(height: 16.h),
-              _buildDropdown<WeatherCondition>(
-                label: "Typical Weather",
-                value: _selectedWeatherCondition,
-                items: WeatherCondition.values,
-                onChanged: (WeatherCondition? newValue) {
-                  if (newValue != null && mounted) {
-                    setState(() { _selectedWeatherCondition = newValue; _isDirty = true; });
-                  }
-                },
-                itemAsString: _getWeatherConditionDisplayString,
-                prefixIcon: Icons.thermostat_outlined,
-              ),
-              SizedBox(height: 24.h),
+        bool isOz = user.preferredUnit == MeasurementUnit.oz;
+        TextInputType goalKeyboardType = isOz 
+            ? const TextInputType.numberWithOptions(decimal: true) 
+            : TextInputType.number;
+        List<TextInputFormatter> goalInputFormatters = isOz 
+            ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))] 
+            : [FilteringTextInputFormatter.digitsOnly];
 
-              _buildSectionTitle('Hydration Goal'),
-              CustomTextField( controller: _dailyGoalController, focusNode: _dailyGoalFocusNode, labelText: 'Daily Goal (${user.preferredUnit.toString().split(".").last.toUpperCase()})', prefixIcon: Icons.flag_outlined, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], validator: (val) => AppUtils.validateNumber(val), onChanged: (_) => _setIsDirty() ),
-              SizedBox(height: 12.h),
-              CustomButton( text: "Calculate Suggested Goal", onPressed: _calculateAndSuggestGoal, backgroundColor: Theme.of(context).colorScheme.secondary, textColor: Theme.of(context).colorScheme.onSecondary ),
-              SizedBox(height: 40.h),
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(AppStrings.profile),
+            centerTitle: true,
+            actions: [
+              if (_isDirty)
+                Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _saveProfile,
+                    child: _isLoading
+                        ? SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary))
+                        : Text("SAVE", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                  ),
+                )
             ],
           ),
-        ),
-      ),
+          body: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _buildSectionTitle('Personal Information'),
+                  CustomTextField( controller: _displayNameController, focusNode: _displayNameFocusNode, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name")),
+                  SizedBox(height: 16.h),
+                  CustomTextField( controller: _emailController, focusNode: _emailFocusNode, labelText: AppStrings.email, prefixIcon: Icons.email_outlined, readOnly: true, enabled: false ),
+                  SizedBox(height: 16.h),
+                  _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth,
+                          (date) {
+                        if (mounted) {
+                          setState(() { _selectedDateOfBirth = date; _isDirty = true;});
+                        }
+                      }
+                  ),
+                  SizedBox(height: 16.h),
+                  _buildDropdown<Gender?>(
+                    label: "Gender",
+                    value: _selectedGender,
+                    items: [null, Gender.male, Gender.female],
+                    onChanged: (Gender? newValue) {
+                      if (mounted) {
+                        setState(() {
+                          _selectedGender = newValue;
+                          _isDirty = true;
+                          if (newValue != Gender.female) {
+                            _selectedHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+                            if (_selectedHealthConditions.isEmpty) {
+                              _selectedHealthConditions = [HealthCondition.none];
+                            }
+                          }
+                        });
+                      }
+                    },
+                    itemAsString: _getGenderDisplayString,
+                    prefixIcon: Icons.wc_outlined,
+                  ),
+                  SizedBox(height: 16.h),
+                  CustomTextField( controller: _heightController, focusNode: _heightFocusNode, labelText: 'Height (cm)', prefixIcon: Icons.height_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true), onChanged: (_) => _setIsDirty() ),
+                  SizedBox(height: 16.h),
+                  CustomTextField( controller: _weightController, focusNode: _weightFocusNode, labelText: '${AppStrings.weight} (${AppStrings.kg})', prefixIcon: Icons.monitor_weight_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], onChanged: (_) => _setIsDirty() ),
+                  SizedBox(height: 24.h),
+
+                  _buildSectionTitle('Lifestyle & Environment'),
+                  _buildDropdown<ActivityLevel?>(
+                    label: AppStrings.activityLevel,
+                    value: _selectedActivityLevel,
+                    items: [null, ...ActivityLevel.values],
+                    onChanged: (ActivityLevel? newValue) {
+                      if (mounted) {
+                        setState(() { _selectedActivityLevel = newValue; _isDirty = true; });
+                      }
+                    },
+                    itemAsString: _getActivityLevelDisplayString,
+                    prefixIcon: Icons.directions_run_outlined,
+                  ),
+                  SizedBox(height: 16.h),
+                  _buildMultiSelectChipGroup<HealthCondition>(
+                    label: "Health Conditions (Optional)",
+                    allOptions: availableHealthConditions, // Uses the correctly filtered list
+                    selectedOptions: _selectedHealthConditions,
+                    optionAsString: _getHealthConditionDisplayString,
+                    onSelectionChanged: (selected) {
+                      if (mounted) {
+                        setState(() { _selectedHealthConditions = selected; _isDirty = true; });
+                      }
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  _buildDropdown<WeatherCondition>(
+                    label: "Typical Weather",
+                    value: _selectedWeatherCondition,
+                    items: WeatherCondition.values,
+                    onChanged: (WeatherCondition? newValue) {
+                      if (newValue != null && mounted) {
+                        setState(() { _selectedWeatherCondition = newValue; _isDirty = true; });
+                      }
+                    },
+                    itemAsString: _getWeatherConditionDisplayString,
+                    prefixIcon: Icons.thermostat_outlined,
+                  ),
+                  SizedBox(height: 24.h),
+
+                  _buildSectionTitle('Hydration Goal'),
+                  CustomTextField( 
+                    controller: _dailyGoalController, 
+                    focusNode: _dailyGoalFocusNode, 
+                    labelText: 'Daily Goal (${user.preferredUnit.displayName})', 
+                    prefixIcon: Icons.flag_outlined, 
+                    keyboardType: goalKeyboardType, 
+                    inputFormatters: goalInputFormatters, 
+                    validator: (val) => AppUtils.validateNumber(val, allowDecimal: isOz), 
+                    onChanged: (_) => _setIsDirty() 
+                  ),
+                  SizedBox(height: 12.h),
+                  CustomButton( text: "Calculate Suggested Goal", onPressed: _calculateAndSuggestGoal, backgroundColor: Theme.of(context).colorScheme.secondary, textColor: Theme.of(context).colorScheme.onSecondary ),
+                  SizedBox(height: 40.h),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

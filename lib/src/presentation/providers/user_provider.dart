@@ -305,12 +305,24 @@ class UserProvider with ChangeNotifier {
           _errorMessage = "Cannot update profile: No user or mismatched ID.";
           _status = UserProfileStatus.error;
         } else {
-          await _userRepository.updateUser(updatedProfile);
-          if (_isDisposed) { _status = UserProfileStatus.idle; /* Or previous status */ return; }
-          _userProfile = updatedProfile;
-          _status = UserProfileStatus.loaded;
-          _errorMessage = null;
-          logger.i("UserProvider: Profile updated for user ${updatedProfile.id}");
+          try {
+            await _userRepository.updateUser(updatedProfile).timeout(const Duration(seconds: 5));
+            if (!_isDisposed) {
+              _userProfile = updatedProfile;
+              _status = UserProfileStatus.loaded;
+              _errorMessage = null; // Clear any previous error/message
+              logger.i("UserProvider: Profile updated successfully for user ${updatedProfile.id}");
+            }
+          } on TimeoutException {
+            if (!_isDisposed) {
+              logger.w("UserProvider: Timeout waiting for user profile update for ${updatedProfile.id}. Assuming offline and data queued.");
+              _userProfile = updatedProfile; // Optimistic update
+              _status = UserProfileStatus.loaded; // Treat as loaded for UI purposes
+              // Use _errorMessage to carry a success/info message in this specific case
+              _errorMessage = "Profile saved locally. Will sync when online."; 
+            }
+          }
+          // Other exceptions will be caught by the general catch block below
         }
       }
     } catch (e) {
