@@ -104,13 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _weightFocusNode = FocusNode();
     _dailyGoalFocusNode = FocusNode();
 
-    // Defer provider-dependent initialization
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadInitialProfileData(); // This will get data from provider and set initial text
-        _setupControllerListeners(); // Setup listeners once after initial data load
-      }
-    });
+    _setupControllerListeners(); // Moved here
   }
 
   void _loadInitialProfileData() {
@@ -419,7 +413,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         // Conditional call to _loadInitialProfileData based on object instance change
-        if (user != _lastProcessedUserProfile) {
+        if (userProvider.status == UserProfileStatus.loaded && user != _lastProcessedUserProfile) {
           // This condition is true if:
           // 1. Initially _lastProcessedUserProfile is null and user is not (first load).
           // 2. User logs out (user becomes null, _lastProcessedUserProfile was not).
