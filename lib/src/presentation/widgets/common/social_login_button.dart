@@ -9,7 +9,8 @@ class SocialLoginButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
-  final double? height; // Note: M3 button height is controlled by theme padding & text style.
+  final double?
+      height; // Note: M3 button height is controlled by theme padding & text style.
   final ButtonStyle? style; // Allow full style override if needed
 
   const SocialLoginButton({
@@ -37,12 +38,12 @@ class SocialLoginButton extends StatelessWidget {
 
     // Determine color for progress indicator and fallback icon
     // This should ideally come from the resolved foregroundColor of the button style
-    Color progressIndicatorColor = effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ??
-                                  theme.colorScheme.onSurface.withValues(alpha: 0.38);
+    Color progressIndicatorColor =
+        effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ??
+            theme.colorScheme.onSurface.withValues(alpha: 0.38);
     if (effectiveStyle.foregroundColor?.resolve({}) != null) {
-        progressIndicatorColor = effectiveStyle.foregroundColor!.resolve({})!;
+      progressIndicatorColor = effectiveStyle.foregroundColor!.resolve({})!;
     }
-
 
     Widget buttonChild;
     if (isLoading) {
@@ -57,7 +58,8 @@ class SocialLoginButton extends StatelessWidget {
     } else {
       buttonChild = Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min, // Ensure button doesn't stretch unnecessarily
+        mainAxisSize:
+            MainAxisSize.min, // Ensure button doesn't stretch unnecessarily
         children: [
           Image.asset(
             assetName,
@@ -65,10 +67,13 @@ class SocialLoginButton extends StatelessWidget {
             width: 20.w,
             // color: progressIndicatorColor, // This will only work for SVGs or template images
             errorBuilder: (context, error, stackTrace) {
-              return Icon(Icons.login, size: 20.sp, color: progressIndicatorColor);
+              return Icon(Icons.login,
+                  size: 20.sp, color: progressIndicatorColor);
             },
           ),
-          SizedBox(width: 12.w), // M3 recommended spacing between icon and label is 8dp, but 12 can be fine.
+          SizedBox(
+              width: 12
+                  .w), // M3 recommended spacing between icon and label is 8dp, but 12 can be fine.
           Text(text),
         ],
       );

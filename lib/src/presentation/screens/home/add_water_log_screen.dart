@@ -35,7 +35,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   void initState() {
     super.initState();
     _isEditMode = widget.entryToEdit != null;
-    final userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
+    final userProfile =
+        Provider.of<UserProvider>(context, listen: false).userProfile;
 
     if (userProfile != null) {
       _currentUnit = userProfile.preferredUnit;
@@ -45,9 +46,11 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       final entry = widget.entryToEdit!;
       double displayAmount = entry.amountMl;
       if (_currentUnit == MeasurementUnit.oz) {
-        displayAmount = AppUtils.convertToPreferredUnit(entry.amountMl, MeasurementUnit.oz);
+        displayAmount =
+            AppUtils.convertToPreferredUnit(entry.amountMl, MeasurementUnit.oz);
       }
-      _amountController.text = AppUtils.formatAmount(displayAmount, decimalDigits: _currentUnit == MeasurementUnit.oz ? 1 : 0);
+      _amountController.text = AppUtils.formatAmount(displayAmount,
+          decimalDigits: _currentUnit == MeasurementUnit.oz ? 1 : 0);
       _notesController.text = entry.notes ?? '';
       _selectedDateTime = entry.timestamp;
     }
@@ -94,10 +97,12 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       return;
     }
 
-    final hydrationProvider = Provider.of<HydrationProvider>(context, listen: false);
+    final hydrationProvider =
+        Provider.of<HydrationProvider>(context, listen: false);
 
     double amountMl;
-    final double enteredAmount = double.tryParse(_amountController.text.trim()) ?? 0.0;
+    final double enteredAmount =
+        double.tryParse(_amountController.text.trim()) ?? 0.0;
 
     if (_currentUnit == MeasurementUnit.oz) {
       amountMl = enteredAmount * 29.5735;
@@ -107,13 +112,15 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
     if (amountMl <= 0) {
       if (mounted) {
-        AppUtils.showSnackBar(context, "Please enter a valid amount.", isError: true);
+        AppUtils.showSnackBar(context, "Please enter a valid amount.",
+            isError: true);
       }
       return;
     }
 
     if (mounted) {
-      AppUtils.showLoadingDialog(context, message: _isEditMode ? "Updating log..." : "Logging water...");
+      AppUtils.showLoadingDialog(context,
+          message: _isEditMode ? "Updating log..." : "Logging water...");
     }
 
     try {
@@ -122,8 +129,9 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
             amountMl: amountMl,
             timestamp: _selectedDateTime,
             notes: _notesController.text.trim(),
-            source: widget.entryToEdit!.source?.contains("manual") ?? true ? (widget.entryToEdit!.source ?? "manual_edit") : "manual_edit"
-        );
+            source: widget.entryToEdit!.source?.contains("manual") ?? true
+                ? (widget.entryToEdit!.source ?? "manual_edit")
+                : "manual_edit");
         await hydrationProvider.updateHydrationEntry(updatedEntry);
       } else {
         await hydrationProvider.addHydrationEntry(
@@ -138,7 +146,6 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       AppUtils.hideLoadingDialog(context);
       if (!mounted) return;
       Navigator.of(context).pop();
-
     } catch (e) {
       logger.e("Error saving/updating water log: $e");
       if (!mounted) return;
@@ -151,11 +158,12 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   @override
   Widget build(BuildContext context) {
     final hydrationProvider = Provider.of<HydrationProvider>(context);
-    final userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
+    final userProfile =
+        Provider.of<UserProvider>(context, listen: false).userProfile;
 
     if (userProfile != null && _currentUnit != userProfile.preferredUnit) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if(mounted) {
+        if (mounted) {
           setState(() {
             _currentUnit = userProfile.preferredUnit;
           });
@@ -164,9 +172,13 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && (hydrationProvider.actionStatus == HydrationActionStatus.success || hydrationProvider.actionStatus == HydrationActionStatus.error)) {
-        if (hydrationProvider.actionStatus == HydrationActionStatus.error && hydrationProvider.errorMessage != null) {
-          AppUtils.showSnackBar(context, hydrationProvider.errorMessage!, isError: true);
+      if (mounted &&
+          (hydrationProvider.actionStatus == HydrationActionStatus.success ||
+              hydrationProvider.actionStatus == HydrationActionStatus.error)) {
+        if (hydrationProvider.actionStatus == HydrationActionStatus.error &&
+            hydrationProvider.errorMessage != null) {
+          AppUtils.showSnackBar(context, hydrationProvider.errorMessage!,
+              isError: true);
         }
         // Success snackbar can be shown by the calling screen if needed, or here.
         // For now, pop on success is handled in _saveOrUpdateLog.
@@ -183,7 +195,9 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
         actions: [
           if (_isEditMode)
             IconButton(
-              icon: Icon(Icons.delete, color: theme.colorScheme.error), // Changed to filled delete icon
+              icon: Icon(Icons.delete,
+                  color:
+                      theme.colorScheme.error), // Changed to filled delete icon
               tooltip: "Delete Log",
               onPressed: () async {
                 if (!mounted) return;
@@ -221,68 +235,86 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Amount ($_unitString)', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              Text('Amount ($_unitString)',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
               CustomTextField(
                 controller: _amountController,
-                labelText: AppStrings.enterAmount, // labelText is used as actual label by CustomTextField
+                labelText: AppStrings
+                    .enterAmount, // labelText is used as actual label by CustomTextField
                 hintText: 'e.g., 250 or 8',
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 prefixIcon: Icons.local_drink_outlined,
-                validator: (value) => AppUtils.validateNumber(value, allowDecimal: true),
-                inputFormatters: [ FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')), ],
+                validator: (value) =>
+                    AppUtils.validateNumber(value, allowDecimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
                 textInputAction: TextInputAction.next,
               ),
               SizedBox(height: 20.h),
-
-              Text('Date & Time', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              Text('Date & Time',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
-              Builder( // Use Builder to get a new context if needed, though theme access is fine
-                builder: (context) {
-                  final BorderRadius defaultRadius = BorderRadius.circular(4.r);
-                  BorderRadius inkWellRadius = defaultRadius;
-                  BorderRadius containerRadius = defaultRadius;
+              Builder(
+                  // Use Builder to get a new context if needed, though theme access is fine
+                  builder: (context) {
+                final BorderRadius defaultRadius = BorderRadius.circular(4.r);
+                BorderRadius inkWellRadius = defaultRadius;
+                BorderRadius containerRadius = defaultRadius;
 
-                  if (inputTheme.border is OutlineInputBorder) {
-                    final outlineBorder = inputTheme.border as OutlineInputBorder;
-                    inkWellRadius = outlineBorder.borderRadius;
-                    containerRadius = outlineBorder.borderRadius;
-                  } else if (inputTheme.enabledBorder is OutlineInputBorder) {
-                    // Fallback to enabledBorder if the main border isn't OutlineInputBorder
-                    final outlineEnabledBorder = inputTheme.enabledBorder as OutlineInputBorder;
-                    inkWellRadius = outlineEnabledBorder.borderRadius;
-                    containerRadius = outlineEnabledBorder.borderRadius;
-                  }
-                  // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
-                  // In that case, defaultRadius (4.r) is used.
-
-                  return InkWell(
-                    onTap: () => _selectDateTime(context),
-                    borderRadius: inkWellRadius,
-                    child: Container(
-                      padding: inputTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
-                      decoration: BoxDecoration(
-                        color: inputTheme.fillColor ?? theme.colorScheme.surfaceContainerHighest,
-                        border: Border.all(color: inputTheme.enabledBorder?.borderSide.color ?? theme.colorScheme.outline),
-                        borderRadius: containerRadius,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime),
-                            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface),
-                          ),
-                          Icon(Icons.calendar_today_outlined, size: 20.sp, color: theme.colorScheme.onSurfaceVariant),
-                        ],
-                      ),
-                    ),
-                  );
+                if (inputTheme.border is OutlineInputBorder) {
+                  final outlineBorder = inputTheme.border as OutlineInputBorder;
+                  inkWellRadius = outlineBorder.borderRadius;
+                  containerRadius = outlineBorder.borderRadius;
+                } else if (inputTheme.enabledBorder is OutlineInputBorder) {
+                  // Fallback to enabledBorder if the main border isn't OutlineInputBorder
+                  final outlineEnabledBorder =
+                      inputTheme.enabledBorder as OutlineInputBorder;
+                  inkWellRadius = outlineEnabledBorder.borderRadius;
+                  containerRadius = outlineEnabledBorder.borderRadius;
                 }
-              ),
-              SizedBox(height: 20.h),
+                // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
+                // In that case, defaultRadius (4.r) is used.
 
-              Text('Notes (Optional)', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                return InkWell(
+                  onTap: () => _selectDateTime(context),
+                  borderRadius: inkWellRadius,
+                  child: Container(
+                    padding: inputTheme.contentPadding ??
+                        EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+                    decoration: BoxDecoration(
+                      color: inputTheme.fillColor ??
+                          theme.colorScheme.surfaceContainerHighest,
+                      border: Border.all(
+                          color: inputTheme.enabledBorder?.borderSide.color ??
+                              theme.colorScheme.outline),
+                      borderRadius: containerRadius,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          DateFormat('EEE, MMM d, hh:mm a')
+                              .format(_selectedDateTime),
+                          style: theme.textTheme.bodyLarge
+                              ?.copyWith(color: theme.colorScheme.onSurface),
+                        ),
+                        Icon(Icons.calendar_today_outlined,
+                            size: 20.sp,
+                            color: theme.colorScheme.onSurfaceVariant),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              SizedBox(height: 20.h),
+              Text('Notes (Optional)',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
               CustomTextField(
                 controller: _notesController,
@@ -294,14 +326,21 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 onFieldSubmitted: (_) => _saveOrUpdateLog(),
               ),
               SizedBox(height: 32.h),
-
-              FilledButton( // Replaced CustomButton
-                onPressed: hydrationProvider.actionStatus == HydrationActionStatus.processing ? null : _saveOrUpdateLog,
-                child: hydrationProvider.actionStatus == HydrationActionStatus.processing
+              FilledButton(
+                onPressed: hydrationProvider.actionStatus ==
+                        HydrationActionStatus.processing
+                    ? null
+                    : _saveOrUpdateLog,
+                child: hydrationProvider.actionStatus ==
+                        HydrationActionStatus.processing
                     ? SizedBox(
-                        width: 20.r, height: 20.r,
-                        child: CircularProgressIndicator(strokeWidth: 2.5, color: theme.colorScheme.onPrimary))
-                    : Text(_isEditMode ? "Update Log" : AppStrings.logWaterTitle),
+                        width: 20.r,
+                        height: 20.r,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: theme.colorScheme.onPrimary))
+                    : Text(
+                        _isEditMode ? "Update Log" : AppStrings.logWaterTitle),
               ),
             ],
           ),
