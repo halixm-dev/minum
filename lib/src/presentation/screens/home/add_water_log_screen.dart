@@ -9,7 +9,6 @@ import 'package:minum/src/data/models/hydration_entry_model.dart'; // For Hydrat
 import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
-import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 
@@ -239,14 +238,15 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
-              CustomTextField(
+              TextFormField(
                 controller: _amountController,
-                labelText: AppStrings
-                    .enterAmount, // labelText is used as actual label by CustomTextField
-                hintText: 'e.g., 250 or 8',
+                decoration: const InputDecoration(
+                  labelText: AppStrings.enterAmount,
+                  hintText: 'e.g., 250 or 8',
+                  prefixIcon: Icon(Icons.local_drink_outlined),
+                ),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                prefixIcon: Icons.local_drink_outlined,
                 validator: (value) =>
                     AppUtils.validateNumber(value, allowDecimal: true),
                 inputFormatters: [
@@ -316,10 +316,12 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
-              CustomTextField(
+              TextFormField(
                 controller: _notesController,
-                labelText: 'Add a note', // labelText is used as actual label
-                hintText: 'e.g., After workout',
+                decoration: const InputDecoration(
+                  labelText: 'Add a note',
+                  hintText: 'e.g., After workout',
+                ),
                 maxLines: 3,
                 minLines: 1,
                 textInputAction: TextInputAction.done,

@@ -8,7 +8,6 @@ import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
@@ -574,22 +573,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   _buildSectionTitle('Personal Information'),
-                  CustomTextField(
-                      controller: _displayNameController,
-                      focusNode: _displayNameFocusNode,
+                  TextFormField(
+                    controller: _displayNameController,
+                    focusNode: _displayNameFocusNode,
+                    decoration: const InputDecoration(
                       labelText: 'Display Name',
-                      prefixIcon: Icons.person_outline,
-                      validator: (value) => AppUtils.validateNotEmpty(value,
-                          fieldName: "Display name"),
-                      textInputAction: TextInputAction.next),
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
+                    validator: (value) => AppUtils.validateNotEmpty(value,
+                        fieldName: "Display name"),
+                    textInputAction: TextInputAction.next,
+                  ),
                   SizedBox(height: 16.h),
-                  CustomTextField(
-                      controller: _emailController,
-                      focusNode: _emailFocusNode,
+                  TextFormField(
+                    controller: _emailController,
+                    focusNode: _emailFocusNode,
+                    decoration: const InputDecoration(
                       labelText: AppStrings.email,
-                      prefixIcon: Icons.email_outlined,
-                      readOnly: true,
-                      enabled: false), // Email is not editable
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                    readOnly: true,
+                    enabled: false,
+                  ), // Email is not editable
                   SizedBox(height: 16.h),
                   _buildDatePickerField(
                       context, "Date of Birth", _selectedDateOfBirth, (date) {
@@ -626,37 +631,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     prefixIcon: Icons.wc, // Changed from Icons.wc_outlined
                   ),
                   SizedBox(height: 16.h),
-                  CustomTextField(
-                      controller: _heightController,
-                      focusNode: _heightFocusNode,
+                  TextFormField(
+                    controller: _heightController,
+                    focusNode: _heightFocusNode,
+                    decoration: const InputDecoration(
                       labelText: 'Height (cm)',
-                      prefixIcon: Icons.height_outlined,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
-                      ],
-                      validator: (val) => (val == null || val.isEmpty)
-                          ? null
-                          : AppUtils.validateNumber(val, allowDecimal: true),
-                      onChanged: (_) => _setIsDirty(),
-                      textInputAction: TextInputAction.next),
+                      prefixIcon: Icon(Icons.height_outlined),
+                    ),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                    ],
+                    validator: (val) => (val == null || val.isEmpty)
+                        ? null
+                        : AppUtils.validateNumber(val, allowDecimal: true),
+                    onChanged: (_) => _setIsDirty(),
+                    textInputAction: TextInputAction.next,
+                  ),
                   SizedBox(height: 16.h),
-                  CustomTextField(
-                      controller: _weightController,
-                      focusNode: _weightFocusNode,
+                  TextFormField(
+                    controller: _weightController,
+                    focusNode: _weightFocusNode,
+                    decoration: const InputDecoration(
                       labelText: '${AppStrings.weight} (${AppStrings.kg})',
-                      prefixIcon: Icons.monitor_weight_outlined,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) => (value == null || value.isEmpty)
-                          ? null
-                          : AppUtils.validateNumber(value, allowDecimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
-                      ],
-                      onChanged: (_) => _setIsDirty(),
-                      textInputAction: TextInputAction.next),
+                      prefixIcon: Icon(Icons.monitor_weight_outlined),
+                    ),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? null
+                        : AppUtils.validateNumber(value, allowDecimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                    ],
+                    onChanged: (_) => _setIsDirty(),
+                    textInputAction: TextInputAction.next,
+                  ),
                   SizedBox(height: 24.h),
 
                   _buildSectionTitle('Lifestyle & Environment'),
@@ -706,19 +717,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(height: 24.h),
 
                   _buildSectionTitle('Hydration Goal'),
-                  CustomTextField(
-                      controller: _dailyGoalController,
-                      focusNode: _dailyGoalFocusNode,
+                  TextFormField(
+                    controller: _dailyGoalController,
+                    focusNode: _dailyGoalFocusNode,
+                    decoration: InputDecoration(
                       labelText:
                           'Daily Goal (${user.preferredUnit.displayName})',
-                      prefixIcon: Icons.flag_outlined,
-                      keyboardType: goalKeyboardType,
-                      inputFormatters: goalInputFormatters,
-                      validator: (val) =>
-                          AppUtils.validateNumber(val, allowDecimal: isOz),
-                      onChanged: (_) => _setIsDirty(),
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _saveProfile()),
+                      prefixIcon: const Icon(Icons.flag_outlined),
+                    ),
+                    keyboardType: goalKeyboardType,
+                    inputFormatters: goalInputFormatters,
+                    validator: (val) =>
+                        AppUtils.validateNumber(val, allowDecimal: isOz),
+                    onChanged: (_) => _setIsDirty(),
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _saveProfile(),
+                  ),
                   SizedBox(height: 12.h),
                   FilledButton.tonal(
                     onPressed: _calculateAndSuggestGoal,

@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
-import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 // For logger
 
@@ -97,12 +96,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   SizedBox(height: 32.h),
 
-                  CustomTextField(
+                  TextFormField(
                     controller: _emailController,
-                    labelText: AppStrings.email,
-                    hintText: 'you@example.com',
+                    decoration: const InputDecoration(
+                      labelText: AppStrings.email,
+                      hintText: 'you@example.com',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
                     validator: AppUtils.validateEmail,
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _sendResetEmail(),
