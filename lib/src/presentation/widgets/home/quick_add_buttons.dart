@@ -30,45 +30,59 @@ class QuickAddButtons extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(bottom: 10.h, left: 4.w),
+          padding: EdgeInsets.only(bottom: 8.h, left: 4.w), // M3 typical spacing
           child: Text(
             'Quick Add',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium, // fontWeight removed
           ),
         ),
         SizedBox(
-          height: 50.h, // Fixed height for the horizontal list
+          height: 48.h, // Adjusted height to better fit M3 chip sizing
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: favoriteVolumes.length,
-            separatorBuilder: (context, index) => SizedBox(width: 10.w),
+            padding: EdgeInsets.symmetric(horizontal: 4.w), // Padding for the list itself
+            separatorBuilder: (context, index) => SizedBox(width: 8.w), // M3 standard spacing
             itemBuilder: (context, index) {
               final volumeMlString = favoriteVolumes[index];
               final double volumeMl = double.tryParse(volumeMlString) ?? 0.0;
-              if (volumeMl <= 0) return const SizedBox.shrink(); // Skip invalid volumes
+              if (volumeMl <= 0) return const SizedBox.shrink();
 
               final double displayVolume = AppUtils.convertToPreferredUnit(volumeMl, unit);
               final String displayAmount = AppUtils.formatAmount(displayVolume, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0);
 
+              // Using the global chipTheme as a base, which is M3 Assist Chip (Outlined)
+              // To make these "Filled" ActionChips:
+              // 1. Set backgroundColor to colorScheme.secondaryContainer (or another fill color)
+              // 2. Set labelStyle color to colorScheme.onSecondaryContainer
+              // 3. Set side to BorderSide.none
+              // 4. Avatar icon color should also be colorScheme.onSecondaryContainer
+              
+              final chipTheme = theme.chipTheme;
+              final filledChipStyle = chipTheme.copyWith(
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                labelStyle: chipTheme.labelStyle?.copyWith(color: theme.colorScheme.onSecondaryContainer),
+                side: BorderSide.none, // Ensure no border for a filled look
+                // Padding is part of chipTheme, use it or override if necessary
+              );
+
               return ActionChip(
-                avatar: Icon(Icons.add_circle_outline, size: 20.sp, color: theme.colorScheme.onSecondaryContainer), // Changed
+                avatar: Icon(
+                  Icons.add_circle_outline, 
+                  size: chipTheme.iconTheme?.size ?? 18.sp, // Use theme's icon size
+                  color: theme.colorScheme.onSecondaryContainer, // Explicitly for this filled style
+                ),
                 label: Text('$displayAmount $_unitString'),
-                labelStyle: TextStyle(
-                  color: theme.colorScheme.onSecondaryContainer, // Changed
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14.sp,
-                ),
-                backgroundColor: theme.colorScheme.secondaryContainer, // Changed
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25.r),
-                  side: BorderSide(color: theme.colorScheme.outline, width: 1.w), // Changed
-                ),
+                labelStyle: filledChipStyle.labelStyle,
+                backgroundColor: filledChipStyle.backgroundColor,
+                shape: filledChipStyle.shape, // This will be M3 default (8.r)
+                side: filledChipStyle.side, // Should be BorderSide.none
                 onPressed: () {
                   onQuickAdd(volumeMl);
                 },
-                elevation: 0,
-                pressElevation: 1, // Slight press elevation
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                elevation: 0, // M3 filled chips often have 0 elevation
+                pressElevation: 0, // M3 filled chips often have 0 pressElevation
+                padding: chipTheme.padding, // Use themed padding
               );
             },
           ),

@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
-import 'package:minum/src/presentation/widgets/common/custom_button.dart';
+// CustomButton import removed
 import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 // For logger
@@ -55,11 +55,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Get theme for easy access
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reset Password'),
-        elevation: 0,
-        centerTitle: true,
+        // elevation and centerTitle will be handled by appBarTheme from AppTheme
       ),
       body: SafeArea(
         child: Center(
@@ -71,24 +72,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Icon(Icons.lock_reset_outlined, size: 70.h, color: Theme.of(context).colorScheme.primary), // Changed
+                  Icon(Icons.lock_reset_outlined, size: 64.h, color: theme.colorScheme.primary), // Adjusted size slightly
                   SizedBox(height: 20.h),
                   Text(
                     'Forgot Your Password?',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: theme.colorScheme.onSurface, // Ensure text color is appropriate
+                      // fontWeight removed, use M3 theme's definition
                     ),
                   ),
                   SizedBox(height: 12.h),
                   Text(
                     'Enter your email address below and we\'ll send you a link to reset your password.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: theme.textTheme.bodyMedium?.copyWith( // Changed to bodyMedium for less emphasis
+                        color: theme.colorScheme.onSurfaceVariant
+                    ),
                   ),
                   SizedBox(height: 32.h),
 
-                  // Email Field
                   CustomTextField(
                     controller: _emailController,
                     labelText: AppStrings.email,
@@ -96,21 +99,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email_outlined,
                     validator: AppUtils.validateEmail,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _sendResetEmail(),
                   ),
                   SizedBox(height: 24.h),
 
-                  // Send Reset Link Button
-                  CustomButton(
-                    text: 'Send Reset Link',
-                    isLoading: _isLoading,
-                    onPressed: _sendResetEmail,
+                  FilledButton( // Replaced CustomButton
+                    onPressed: _isLoading ? null : _sendResetEmail,
+                    child: _isLoading
+                        ? SizedBox(
+                            width: 20.r, height: 20.r,
+                            child: CircularProgressIndicator(strokeWidth: 2.5, color: theme.colorScheme.onPrimary))
+                        : const Text('Send Reset Link'),
                   ),
                   SizedBox(height: 20.h),
 
                   TextButton(
-                    onPressed: () {
-                      if (!_isLoading) Navigator.of(context).pop(); // Go back to Login
-                    },
+                    onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
                     child: const Text('Back to Login'),
                   )
                 ],
