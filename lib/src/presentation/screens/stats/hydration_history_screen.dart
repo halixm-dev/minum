@@ -11,7 +11,6 @@ import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart'; // Import BottomNavProvider
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
-import 'package:minum/src/presentation/widgets/common/custom_button.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:minum/main.dart';
@@ -311,7 +310,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
 
   Widget _buildLoginToSyncPrompt(BuildContext context, ThemeData theme) { // Added theme parameter
     return Container(
-      color: theme.colorScheme.tertiaryContainer.withOpacity(0.5), // Use tertiaryContainer for info
+      color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.5), // Use tertiaryContainer for info
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         children: [
@@ -498,7 +497,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               show: true,
               drawVerticalLine: false,
               horizontalInterval: (maxY / 4).ceilToDouble() > 0 ? (maxY / 4).ceilToDouble() : 1, // Adjusted interval
-              getDrawingHorizontalLine: (value) => FlLine(color: theme.colorScheme.outlineVariant.withOpacity(0.5), strokeWidth: 1),
+              getDrawingHorizontalLine: (value) => FlLine(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), strokeWidth: 1),
             ),
           ),
         ),

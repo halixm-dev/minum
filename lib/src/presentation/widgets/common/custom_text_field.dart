@@ -79,7 +79,7 @@ class CustomTextField extends StatelessWidget {
         fillColor: inputDecorationTheme.fillColor, // Should be defined in M3 theme
         contentPadding: inputDecorationTheme.contentPadding, // Should be defined in M3 theme
         // Ensure floatingLabelBehavior is consistent with M3, usually 'auto' or 'always'
-        floatingLabelBehavior: inputDecorationTheme.floatingLabelBehavior ?? FloatingLabelBehavior.auto,
+        floatingLabelBehavior: inputDecorationTheme.floatingLabelBehavior,
         errorStyle: inputDecorationTheme.errorStyle, // Ensure this is also themed
       ),
       obscureText: obscureText,

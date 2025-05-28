@@ -25,8 +25,8 @@ class WelcomeScreen extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.6), // Adjusted opacity for M3 feel
-                colorScheme.secondary.withOpacity(0.4), // Adjusted opacity for M3 feel
+                colorScheme.primary.withValues(alpha: 0.6), // Adjusted opacity for M3 feel
+                colorScheme.secondary.withValues(alpha: 0.4), // Adjusted opacity for M3 feel
                 colorScheme.surface, // End with the surface color
               ],
               begin: Alignment.topCenter,

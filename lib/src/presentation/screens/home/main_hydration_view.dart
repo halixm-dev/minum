@@ -273,7 +273,7 @@ class _MainHydrationViewState extends State<MainHydrationView> with WidgetsBindi
               IconButton(
                 icon: Icon(Icons.chevron_right, size: 28.sp),
                 color: DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())
-                    ? Theme.of(context).colorScheme.onSurface.withOpacity(0.38) // M3 disabled color
+                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38) // M3 disabled color
                     : Theme.of(context).iconTheme.color, // Use default icon theme color
                 onPressed: DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())
                     ? null // Disabled

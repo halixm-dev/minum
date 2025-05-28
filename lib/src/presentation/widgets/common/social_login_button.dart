@@ -38,7 +38,7 @@ class SocialLoginButton extends StatelessWidget {
     // Determine color for progress indicator and fallback icon
     // This should ideally come from the resolved foregroundColor of the button style
     Color progressIndicatorColor = effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ??
-                                  theme.colorScheme.onSurface.withOpacity(0.38);
+                                  theme.colorScheme.onSurface.withValues(alpha: 0.38);
     if (effectiveStyle.foregroundColor?.resolve({}) != null) {
         progressIndicatorColor = effectiveStyle.foregroundColor!.resolve({})!;
     }

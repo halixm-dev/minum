@@ -587,28 +587,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text(label, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
         SizedBox(height: 8.h),
-        InkWell(
-          onTap: () => _selectDateOfBirth(context),
-          borderRadius: inputTheme.border?.borderRadius ?? BorderRadius.circular(4.r), // Use theme border radius
-          child: Container(
-            width: double.infinity,
-            padding: inputTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
-            decoration: BoxDecoration(
-              color: inputTheme.fillColor ?? theme.colorScheme.surfaceContainerHighest, // Use theme fill color
-              border: Border.all(color: inputTheme.enabledBorder?.borderSide.color ?? theme.colorScheme.outline),
-              borderRadius: inputTheme.border?.borderRadius ?? BorderRadius.circular(4.r), // Use theme border radius
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  selectedDate != null ? DateFormat.yMMMd().format(selectedDate) : 'Select Date',
-                  style: theme.textTheme.bodyLarge, // Use M3 text style
+        Builder( // Use Builder to get a new context if needed, though theme access is fine
+          builder: (context) {
+            final BorderRadius defaultRadius = BorderRadius.circular(4.r);
+            BorderRadius inkWellRadius = defaultRadius;
+            BorderRadius containerRadius = defaultRadius;
+
+            if (inputTheme.border is OutlineInputBorder) {
+              final outlineBorder = inputTheme.border as OutlineInputBorder;
+              inkWellRadius = outlineBorder.borderRadius;
+              containerRadius = outlineBorder.borderRadius;
+            } else if (inputTheme.enabledBorder is OutlineInputBorder) {
+              // Fallback to enabledBorder if the main border isn't OutlineInputBorder
+              final outlineEnabledBorder = inputTheme.enabledBorder as OutlineInputBorder;
+              inkWellRadius = outlineEnabledBorder.borderRadius;
+              containerRadius = outlineEnabledBorder.borderRadius;
+            }
+            // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
+            // In that case, defaultRadius (4.r) is used.
+
+            return InkWell(
+              onTap: () => _selectDateOfBirth(context),
+              borderRadius: inkWellRadius,
+              child: Container(
+                width: double.infinity,
+                padding: inputTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
+                decoration: BoxDecoration(
+                  color: inputTheme.fillColor ?? theme.colorScheme.surfaceContainerHighest,
+                  border: Border.all(color: inputTheme.enabledBorder?.borderSide.color ?? theme.colorScheme.outline),
+                  borderRadius: containerRadius,
                 ),
-                Icon(Icons.calendar_today_outlined, size: 20.sp, color: theme.colorScheme.onSurfaceVariant), // Use onSurfaceVariant
-              ],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                  Text(
+                    selectedDate != null ? DateFormat.yMMMd().format(selectedDate) : 'Select Date',
+                    style: theme.textTheme.bodyLarge, // Use M3 text style
+                  ),
+                  Icon(Icons.calendar_today_outlined, size: 20.sp, color: theme.colorScheme.onSurfaceVariant), // Use onSurfaceVariant
+                ],
+              ),
             ),
-          ),
+          );
+          }
         ),
       ],
     );
@@ -648,7 +669,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required Function(List<T> selected) onSelectionChanged,
   }) {
     final theme = Theme.of(context);
-    final chipTheme = theme.chipTheme;
+    // final chipTheme = theme.chipTheme; // Unused local variable removed
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
