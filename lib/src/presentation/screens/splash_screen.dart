@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
@@ -109,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
               'Stay Hydrated, Stay Healthy',
               style: theme.textTheme.titleMedium?.copyWith( // M3 text style
                 color: theme.brightness == Brightness.light
-                    ? colorScheme.onPrimary.withOpacity(0.8)
+                    ? colorScheme.onPrimary.withValues(alpha: 0.8)
                     : colorScheme.onSurfaceVariant,
               ),
             ),

@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: BoxDecoration( 
             gradient: LinearGradient(
               colors: [
-                colorScheme.primaryContainer.withOpacity(0.3), // Adjusted opacity
+                colorScheme.primaryContainer.withValues(alpha: 0.3), // Adjusted opacity
                 colorScheme.surface,
                 colorScheme.surface,
               ],

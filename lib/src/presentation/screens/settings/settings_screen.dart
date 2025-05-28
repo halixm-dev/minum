@@ -718,10 +718,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.format_list_numbered_outlined,
               title: "Favorite Quick Add Volumes",
               subtitle: userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty
-                  ? userProfile.favoriteIntakeVolumes.map((volStr) {
-                double volMl = double.tryParse(volStr) ?? 0;
-                return unit_converter.formatVolume(volMl, userProfile.preferredUnit, includeUnitString: false);
-              }).join(', ') + ' ${userProfile.preferredUnit.displayName}'
+                  ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
+                      double volMl = double.tryParse(volStr) ?? 0;
+                      return unit_converter.formatVolume(volMl, userProfile.preferredUnit, includeUnitString: false);
+                    }).join(', ')} ${userProfile.preferredUnit.displayName}'
                   : "N/A",
               onTap: () => _showEditFavoriteVolumesDialog(context, userProvider),
             ),
@@ -778,7 +778,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: AppStrings.logout,
                 onTap: _handleLogout,
                 // For special tiles like logout/login, consider a slightly different background or distinct icon color
-                // tileColor: theme.colorScheme.errorContainer.withOpacity(0.3), // Use opacity for subtle fill
+                // tileColor: theme.colorScheme.errorContainer.withValues(alpha: 0.3), // Use opacity for subtle fill
                 textColor: theme.colorScheme.error,
                 iconColor: theme.colorScheme.error,
               )
@@ -788,7 +788,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.login_outlined,
                 title: "Login / Sign Up",
                 onTap: _handleLogin,
-                // tileColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                // tileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                 textColor: theme.colorScheme.primary,
                 iconColor: theme.colorScheme.primary,
               ),
@@ -836,7 +836,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Icon(icon, color: iconColor ?? textColor ?? theme.colorScheme.onSurfaceVariant), // M3 icon color
       title: Text(title, style: theme.textTheme.titleMedium?.copyWith(color: textColor)), // M3 titleMedium
       subtitle: subtitle != null 
-          ? Text(subtitle, style: theme.textTheme.bodyMedium?.copyWith(color: textColor?.withOpacity(0.7) ?? theme.colorScheme.onSurfaceVariant)) // M3 bodyMedium
+          ? Text(subtitle, style: theme.textTheme.bodyMedium?.copyWith(color: textColor?.withValues(alpha: 0.7) ?? theme.colorScheme.onSurfaceVariant)) // M3 bodyMedium
           : null,
       onTap: onTap,
       tileColor: tileColor, // Use with caution, prefer surface colors from theme

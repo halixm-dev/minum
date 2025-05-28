@@ -167,7 +167,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               logger.e("Onboarding image error: $error for path $imagePath");
               return Container(
                 height: 280.h,
-                color: colorScheme.surfaceVariant.withOpacity(0.3), // Use M3 color
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3), // Use M3 color
                 child: Center(child: Icon(Icons.image_not_supported_outlined, size: 100.sp, color: colorScheme.onSurfaceVariant)), // Use M3 color
               );
             },
@@ -202,7 +202,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: 10.h,
       width: _currentPage == index ? 24.w : 10.w,
       decoration: BoxDecoration(
-        color: _currentPage == index ? colorScheme.primary : colorScheme.surfaceVariant, // Use M3 colors
+        color: _currentPage == index ? colorScheme.primary : colorScheme.surfaceContainerHighest, // Use M3 colors
         borderRadius: BorderRadius.circular(5.r),
       ),
     );

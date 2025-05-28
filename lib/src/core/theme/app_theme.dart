@@ -34,16 +34,19 @@ class AppTheme {
       surfaceContainerLow: AppColors.surfaceContainerLowLight,     // Existing lightScaffoldBackground
       surfaceContainer: AppColors.surfaceContainerLight,       // Existing lightSurface (for cards)
       surfaceContainerHigh: AppColors.surfaceContainerHighLight,
-      surfaceContainerHighest: AppColors.surfaceContainerHighestLight, // Existing lightBackground (for app bars)
-      surfaceVariant: AppColors.surfaceVariantLight,
-      onSurfaceVariant: AppColors.onSurfaceVariantLight,
+      // Assigning the color previously used for 'surfaceVariant' (AppColors.surfaceVariantLight)
+      // to 'surfaceContainerHighest' as per the deprecation message's suggestion.
+      surfaceContainerHighest: AppColors.surfaceVariantLight, 
+      // The 'surfaceVariant' parameter itself is removed from this constructor call.
+      // The ColorScheme will still have a 'surfaceVariant' property, but it will be Flutter's default.
+      onSurfaceVariant: AppColors.onSurfaceVariantLight, // This will pair with Flutter's default surfaceVariant.
       outline: AppColors.outlineLight,
       outlineVariant: AppColors.outlineVariantLight, // M3 Outline Variant
       inverseSurface: AppColors.darkScaffoldBackground, // M3 Inverse Surface
       onInverseSurface: AppColors.darkText, // M3 On Inverse Surface
       inversePrimary: AppColors.primaryColorDark, // M3 Inverse Primary
       shadow: AppColors.shadowColor, // M3 Shadow
-      scrim: Colors.black.withOpacity(0.32), // M3 Scrim (standard opacity)
+      scrim: Colors.black.withAlpha(82), // Replaced withValues(alpha: 0.32)
       surfaceTint: AppColors.primaryColor, // M3 Surface Tint (usually primary)
     ),
     Brightness.light
@@ -76,8 +79,7 @@ class AppTheme {
       surfaceContainerLow: AppColors.surfaceContainerLowDark,       // Existing darkBackground
       surfaceContainer: AppColors.surfaceContainerDark,         // Existing darkSurface (for cards)
       surfaceContainerHigh: AppColors.surfaceContainerHighDark,
-      surfaceContainerHighest: AppColors.surfaceContainerHighestDark, // For app bars
-      surfaceVariant: AppColors.surfaceVariantDark,
+      surfaceContainerHighest: AppColors.surfaceContainerHighestDark,
       onSurfaceVariant: AppColors.onSurfaceVariantDark,
       outline: AppColors.outlineDark,
       outlineVariant: AppColors.outlineVariantDark,
@@ -85,7 +87,7 @@ class AppTheme {
       onInverseSurface: AppColors.lightText, // M3 On Inverse Surface (using light theme's text)
       inversePrimary: AppColors.primaryColor, // M3 Inverse Primary
       shadow: AppColors.shadowColor, // M3 Shadow (might need adjustment for dark theme)
-      scrim: Colors.black.withOpacity(0.4), // M3 Scrim (standard opacity for dark)
+      scrim: Colors.black.withAlpha(102), // Replaced withValues(alpha: 0.4)
       surfaceTint: AppColors.primaryColorDark, // M3 Surface Tint (usually primary for dark)
     ),
     Brightness.dark
@@ -156,8 +158,8 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          disabledBackgroundColor: colorScheme.onSurface.withOpacity(0.12),
-          disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+          disabledBackgroundColor: colorScheme.onSurface.withValues(alpha: 0.12),
+          disabledForegroundColor: colorScheme.onSurface.withValues(alpha: 0.38),
           textStyle: m3BaseTextTheme.labelLarge,
           padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
@@ -177,7 +179,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
           backgroundColor: Colors.transparent,
-          disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+          disabledForegroundColor: colorScheme.onSurface.withValues(alpha: 0.38),
           textStyle: m3BaseTextTheme.labelLarge?.copyWith(color: colorScheme.primary),
           padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w),
           side: BorderSide(color: colorScheme.outline),
@@ -187,7 +189,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+          disabledForegroundColor: colorScheme.onSurface.withValues(alpha: 0.38),
           textStyle: m3BaseTextTheme.labelLarge?.copyWith(color: colorScheme.primary),
           padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w), // M3 text buttons have less horizontal padding
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
@@ -261,9 +263,12 @@ class AppTheme {
         backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onPrimaryContainer,
         elevation: 3.0, // M3 FABs standard elevation
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)), // M3 "Medium" shape for regular FAB
-        smallFabShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)), // M3 "Small" shape
-        largeFabShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28.r)), // M3 "Large" shape
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)), // M3 "Medium" shape category for standard FAB
+        // smallFabShape and largeFabShape are not direct properties of FloatingActionButtonThemeData.
+        // Different FAB sizes (small, large) are handled by using different constructors like
+        // FloatingActionButton.small() or FloatingActionButton.large() which then might
+        // consult theme extensions or have their own default shapes if not overridden by 'shape'.
+        // The 'shape' here applies to the default FAB.
         extendedTextStyle: m3BaseTextTheme.labelLarge?.copyWith(color: colorScheme.onPrimaryContainer),
       ),
 
@@ -304,15 +309,15 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surfaceContainer,
         indicatorColor: colorScheme.secondaryContainer, // Indicator for selected item
-        iconTheme: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        iconTheme: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
             return IconThemeData(color: colorScheme.onSecondaryContainer); // Icon color for selected
           }
           return IconThemeData(color: colorScheme.onSurfaceVariant); // Icon color for unselected
         }),
-        labelTextStyle: MaterialStateProperty.resolveWith((states) {
+        labelTextStyle: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
           final style = m3BaseTextTheme.labelMedium!; // M3 uses labelMedium
-          if (states.contains(MaterialState.selected)) {
+          if (states.contains(WidgetState.selected)) {
             return style.copyWith(color: colorScheme.onSurface); // Text color for selected
           }
           return style.copyWith(color: colorScheme.onSurfaceVariant); // Text color for unselected

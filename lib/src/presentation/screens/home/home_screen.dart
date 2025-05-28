@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bottomNavProvider = Provider.of<BottomNavProvider>(context);
     final currentIndex = bottomNavProvider.currentIndex;
-    final theme = Theme.of(context); // Store theme for easier access
+    // final theme = Theme.of(context); // Unused local variable removed
 
     return Scaffold(
       appBar: AppBar(

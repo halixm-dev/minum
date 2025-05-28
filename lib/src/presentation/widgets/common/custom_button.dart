@@ -40,7 +40,7 @@ class CustomButton extends StatelessWidget {
     
     // Override text style color if loading, to ensure progress indicator visibility
     // M3 themes should handle disabled state opacity for text and background.
-    final progressIndicatorColor = effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ?? theme.colorScheme.onSurface.withOpacity(0.38);
+    final progressIndicatorColor = effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ?? theme.colorScheme.onSurface.withValues(alpha: 0.38);
 
 
     Widget buttonChild;
