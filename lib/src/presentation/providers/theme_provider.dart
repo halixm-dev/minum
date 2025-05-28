@@ -8,14 +8,15 @@ import 'package:minum/src/core/theme/app_theme.dart';
 enum ThemeSource { staticBaseline, dynamicSystem, customSeed }
 
 class ThemeProvider with ChangeNotifier {
-  static const String _themePrefKey = 'themePreference'; // For ThemeMode (light/dark/system)
+  static const String _themePrefKey =
+      'themePreference'; // For ThemeMode (light/dark/system)
   static const String _themeSourceKey = 'themeSource';
   static const String _customSeedColorKey = 'customSeedColor';
 
   ThemeMode _themeMode = ThemeMode.system;
   ThemeSource _themeSource = ThemeSource.staticBaseline;
   ColorScheme? _lightDynamicScheme; // Changed from CorePalette
-  ColorScheme? _darkDynamicScheme;  // Changed from CorePalette
+  ColorScheme? _darkDynamicScheme; // Changed from CorePalette
   Color? _customSeedColor; // Store the user's custom seed color
 
   bool _isDisposed = false; // Flag to track disposal
@@ -29,16 +30,21 @@ class ThemeProvider with ChangeNotifier {
       case ThemeSource.dynamicSystem:
         if (_lightDynamicScheme != null) {
           logger.i("Using dynamic system scheme for light theme.");
-          return AppTheme.buildThemeDataFromScheme(_lightDynamicScheme!, Brightness.light);
+          return AppTheme.buildThemeDataFromScheme(
+              _lightDynamicScheme!, Brightness.light);
         }
-        logger.w("Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to static baseline.");
-        return AppTheme.lightTheme; 
+        logger.w(
+            "Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to static baseline.");
+        return AppTheme.lightTheme;
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
-          logger.i("Using custom seed color for light theme: $_customSeedColor");
-          return AppTheme.themeFromSeed(seedColor: _customSeedColor!, brightness: Brightness.light);
+          logger
+              .i("Using custom seed color for light theme: $_customSeedColor");
+          return AppTheme.themeFromSeed(
+              seedColor: _customSeedColor!, brightness: Brightness.light);
         }
-        logger.w("Custom seed source selected for light theme, but customSeedColor is null. Falling back to static baseline.");
+        logger.w(
+            "Custom seed source selected for light theme, but customSeedColor is null. Falling back to static baseline.");
         return AppTheme.lightTheme;
       case ThemeSource.staticBaseline:
         logger.i("Using static baseline light theme.");
@@ -51,16 +57,20 @@ class ThemeProvider with ChangeNotifier {
       case ThemeSource.dynamicSystem:
         if (_darkDynamicScheme != null) {
           logger.i("Using dynamic system scheme for dark theme.");
-          return AppTheme.buildThemeDataFromScheme(_darkDynamicScheme!, Brightness.dark);
+          return AppTheme.buildThemeDataFromScheme(
+              _darkDynamicScheme!, Brightness.dark);
         }
-        logger.w("Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to static baseline.");
+        logger.w(
+            "Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to static baseline.");
         return AppTheme.darkTheme;
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger.i("Using custom seed color for dark theme: $_customSeedColor");
-          return AppTheme.themeFromSeed(seedColor: _customSeedColor!, brightness: Brightness.dark);
+          return AppTheme.themeFromSeed(
+              seedColor: _customSeedColor!, brightness: Brightness.dark);
         }
-        logger.w("Custom seed source selected for dark theme, but customSeedColor is null. Falling back to static baseline.");
+        logger.w(
+            "Custom seed source selected for dark theme, but customSeedColor is null. Falling back to static baseline.");
         return AppTheme.darkTheme;
       case ThemeSource.staticBaseline:
         logger.i("Using static baseline dark theme.");
@@ -76,7 +86,8 @@ class ThemeProvider with ChangeNotifier {
     if (!_isDisposed) {
       notifyListeners();
     } else {
-      logger.w("ThemeProvider: Attempted to call notifyListeners() after dispose.");
+      logger.w(
+          "ThemeProvider: Attempted to call notifyListeners() after dispose.");
     }
   }
 
@@ -114,7 +125,6 @@ class ThemeProvider with ChangeNotifier {
         _customSeedColor = null; // Ensure it's null if not found
         logger.i("CustomSeedColor not found, set to null.");
       }
-
     } catch (e) {
       logger.e("Error loading theme preferences: $e");
       // Defaults are already set at declaration
@@ -127,16 +137,18 @@ class ThemeProvider with ChangeNotifier {
     _lightDynamicScheme = light;
     _darkDynamicScheme = dark;
     if (_themeSource == ThemeSource.dynamicSystem) {
-      logger.i("Dynamic ColorSchemes updated. Notifying listeners as current source is dynamic.");
+      logger.i(
+          "Dynamic ColorSchemes updated. Notifying listeners as current source is dynamic.");
       _safeNotifyListeners();
     } else {
-      logger.i("Dynamic ColorSchemes updated. Current source is not dynamic, no immediate notification.");
+      logger.i(
+          "Dynamic ColorSchemes updated. Current source is not dynamic, no immediate notification.");
     }
   }
 
   Future<void> setThemeSource(ThemeSource source) async {
     if (_themeSource == source || _isDisposed) return;
-    
+
     _themeSource = source;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -156,20 +168,22 @@ class ThemeProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_isDisposed) return;
-      await prefs.setInt(_customSeedColorKey, color.toARGB32()); // Changed from color.value
+      await prefs.setInt(_customSeedColorKey, color.toARGB32());
       logger.i("CustomSeedColor preference saved: $_customSeedColor");
       if (_themeSource == ThemeSource.customSeed) {
-        logger.i("Current source is custom. Notifying listeners for seed color change.");
+        logger.i(
+            "Current source is custom. Notifying listeners for seed color change.");
         _safeNotifyListeners();
       } else {
-        logger.i("Current source is not custom. Seed color saved, no immediate notification.");
+        logger.i(
+            "Current source is not custom. Seed color saved, no immediate notification.");
       }
     } catch (e) {
       logger.e("Error saving CustomSeedColor preference: $e");
     }
     // No notifyListeners here if not custom, as it's a preference for future use
   }
-  
+
   Future<void> setThemeMode(ThemeMode mode) async {
     if (_themeMode == mode || _isDisposed) return;
 
@@ -187,7 +201,7 @@ class ThemeProvider with ChangeNotifier {
           themeString = 'dark';
           break;
         case ThemeMode.system:
-        themeString = 'system';
+          themeString = 'system';
           break;
       }
       await prefs.setString(_themePrefKey, themeString);

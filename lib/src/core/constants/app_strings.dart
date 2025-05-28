@@ -8,7 +8,8 @@ class AppStrings {
   static const String loading = "Loading...";
   static const String error = "Error";
   static const String success = "Success";
-  static const String anErrorOccurred = "An unexpected error occurred. Please try again.";
+  static const String anErrorOccurred =
+      "An unexpected error occurred. Please try again.";
   static const String tryAgain = "Try Again";
   static const String ok = "OK";
   static const String cancel = "Cancel";
@@ -37,7 +38,8 @@ class AppStrings {
   static const String signInHere = "Sign in here";
   static const String loginWithGoogle = "Sign in with Google";
   static const String registerWithGoogle = "Sign up with Google";
-  static const String passwordResetEmailSent = "Password reset email sent. Check your inbox.";
+  static const String passwordResetEmailSent =
+      "Password reset email sent. Check your inbox.";
   static const String weakPassword = "Password is too weak.";
   static const String emailAlreadyInUse = "This email is already in use.";
   static const String invalidEmail = "Invalid email address.";
@@ -53,7 +55,8 @@ class AppStrings {
   static const String addWater = "Add Water";
   static const String ml = "mL";
   static const String oz = "oz"; // If you support ounces
-  static const String motivationalQuote = "Drink water, stay refreshed!"; // Example
+  static const String motivationalQuote =
+      "Drink water, stay refreshed!"; // Example
 
   // --- Hydration Log ---
   static const String logWaterTitle = "Log Water Intake";
@@ -100,22 +103,28 @@ class AppStrings {
 
   // --- Notifications ---
   static const String reminderTitle = "Stay Hydrated!";
-  static const String reminderBody = "Time to drink some water. Your body will thank you!";
-  static const String smartReminderBody = "It's a good time for {amount}ml of water!";
+  static const String reminderBody =
+      "Time to drink some water. Your body will thank you!";
+  static const String smartReminderBody =
+      "It's a good time for {amount}ml of water!";
 
   // --- Validation ---
   static const String fieldRequired = "This field is required.";
   static const String invalidNumber = "Please enter a valid number.";
-  static const String positiveNumberRequired = "Please enter a positive number.";
+  static const String positiveNumberRequired =
+      "Please enter a positive number.";
 
   // --- Onboarding ---
   static const String welcomeToMinum = "Welcome to Minum!";
   static const String onboarding1Title = "Track Your Hydration";
-  static const String onboarding1Desc = "Easily log your water intake and monitor your daily progress towards your hydration goals.";
+  static const String onboarding1Desc =
+      "Easily log your water intake and monitor your daily progress towards your hydration goals.";
   static const String onboarding2Title = "Smart Reminders";
-  static const String onboarding2Desc = "Get personalized reminders to drink water throughout the day, keeping you on track.";
+  static const String onboarding2Desc =
+      "Get personalized reminders to drink water throughout the day, keeping you on track.";
   static const String onboarding3Title = "Sync & Analyze";
-  static const String onboarding3Desc = "Connect with health apps and see your hydration trends over time. Let's get started!";
+  static const String onboarding3Desc =
+      "Connect with health apps and see your hydration trends over time. Let's get started!";
   static const String getStarted = "Get Started";
 
   // --- Health Data ---

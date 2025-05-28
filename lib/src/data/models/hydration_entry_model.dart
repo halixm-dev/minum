@@ -9,10 +9,12 @@ class HydrationEntry extends Equatable {
   final double amountMl; // Amount consumed, always in mL for consistency
   final DateTime timestamp; // When the water was consumed
   final String? notes; // Optional notes
-  final String? source; // e.g., "manual", "quick_add_250ml", "synced_google_fit"
-  final bool isSynced; // True if synced with Firestore (not part of Firestore doc)
-  final bool isLocallyDeleted; // True if marked for deletion locally (not part of Firestore doc)
-
+  final String?
+      source; // e.g., "manual", "quick_add_250ml", "synced_google_fit"
+  final bool
+      isSynced; // True if synced with Firestore (not part of Firestore doc)
+  final bool
+      isLocallyDeleted; // True if marked for deletion locally (not part of Firestore doc)
 
   const HydrationEntry({
     this.id,
@@ -22,26 +24,32 @@ class HydrationEntry extends Equatable {
     required this.timestamp,
     this.notes,
     this.source,
-    this.isSynced = false, // Default to false when creating new entries programmatically
+    this.isSynced =
+        false, // Default to false when creating new entries programmatically
     this.isLocallyDeleted = false,
   });
 
   // Factory constructor from Firestore document
-  factory HydrationEntry.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc, {int? localDbId, bool isSynced = true}) {
+  factory HydrationEntry.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc,
+      {int? localDbId,
+      bool isSynced = true}) {
     final data = doc.data();
     if (data == null) {
       throw Exception("Hydration entry data is null in Firestore document!");
     }
     return HydrationEntry(
       id: doc.id,
-      localDbId: localDbId, // Can be passed if known when creating from Firestore snapshot
+      localDbId:
+          localDbId, // Can be passed if known when creating from Firestore snapshot
       userId: data['userId'] as String,
       amountMl: (data['amountMl'] as num).toDouble(),
       timestamp: (data['timestamp'] as Timestamp).toDate(),
       notes: data['notes'] as String?,
       source: data['source'] as String?,
       isSynced: isSynced, // Typically true when coming from Firestore
-      isLocallyDeleted: false, // Should not be locally deleted if fetched from Firestore
+      isLocallyDeleted:
+          false, // Should not be locally deleted if fetched from Firestore
     );
   }
 
@@ -59,7 +67,6 @@ class HydrationEntry extends Equatable {
       isLocallyDeleted: (map['is_deleted'] as int? ?? 0) == 1,
     );
   }
-
 
   // Method to convert to Map for Firestore (excludes local-only fields)
   Map<String, dynamic> toFirestore() {
@@ -89,7 +96,6 @@ class HydrationEntry extends Equatable {
     };
   }
 
-
   // CopyWith method
   HydrationEntry copyWith({
     String? id, // Nullable if clearing Firestore ID
@@ -116,5 +122,15 @@ class HydrationEntry extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, localDbId, userId, amountMl, timestamp, notes, source, isSynced, isLocallyDeleted];
+  List<Object?> get props => [
+        id,
+        localDbId,
+        userId,
+        amountMl,
+        timestamp,
+        notes,
+        source,
+        isSynced,
+        isLocallyDeleted
+      ];
 }

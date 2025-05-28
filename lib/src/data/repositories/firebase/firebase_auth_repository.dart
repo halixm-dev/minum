@@ -34,8 +34,10 @@ class FirebaseAuthRepository implements AuthRepository {
         // or if it's a new sign-up (e.g. Google) and the doc hasn't been created yet.
         // For Google Sign-In, we might create a basic user profile here.
         // For email/password, user creation is typically handled after registration.
-        logger.w("authStateChanges: No UserModel found for uid ${fbUser.uid}, creating a basic one if it's a new social sign-in.");
-        if (fbUser.providerData.any((userInfo) => userInfo.providerId == 'google.com')) {
+        logger.w(
+            "authStateChanges: No UserModel found for uid ${fbUser.uid}, creating a basic one if it's a new social sign-in.");
+        if (fbUser.providerData
+            .any((userInfo) => userInfo.providerId == 'google.com')) {
           final newUser = UserModel(
             id: fbUser.uid,
             email: fbUser.email,
@@ -48,14 +50,16 @@ class FirebaseAuthRepository implements AuthRepository {
             await _userRepository.createUser(newUser);
             return newUser;
           } catch (e) {
-            logger.e("Error creating user document during authStateChanges for Google user: $e");
+            logger.e(
+                "Error creating user document during authStateChanges for Google user: $e");
             return null; // Or a default UserModel indicating an issue
           }
         }
         // If not a new social sign-in and no user doc, this might be an inconsistent state.
         return null;
       }
-      return appUser.copyWith(lastLoginAt: DateTime.now()); // Update last login time conceptually
+      return appUser.copyWith(
+          lastLoginAt: DateTime.now()); // Update last login time conceptually
     });
   }
 
@@ -73,36 +77,41 @@ class FirebaseAuthRepository implements AuthRepository {
         email: fbUser.email,
         displayName: fbUser.displayName,
         photoUrl: fbUser.photoURL,
-        createdAt: fbUser.metadata.creationTime ?? DateTime.now()
-    );
+        createdAt: fbUser.metadata.creationTime ?? DateTime.now());
   }
 
   @override
-  Future<UserModel> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserModel> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
-      final fb_auth.UserCredential userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+      final fb_auth.UserCredential userCredential =
+          await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       final fbUser = userCredential.user;
       if (fbUser == null) {
-        throw fb_auth.FirebaseAuthException(code: 'user-not-found', message: 'User not found after sign in.');
+        throw fb_auth.FirebaseAuthException(
+            code: 'user-not-found', message: 'User not found after sign in.');
       }
       // Fetch or create user document
       UserModel? appUser = await _userRepository.getUser(fbUser.uid);
       if (appUser == null) {
         // This shouldn't typically happen if registration creates the user doc.
         // However, as a fallback:
-        logger.w("User document not found for ${fbUser.uid} after email/password sign in. This might indicate an issue.");
+        logger.w(
+            "User document not found for ${fbUser.uid} after email/password sign in. This might indicate an issue.");
         // Potentially create a basic user document here or throw a more specific error.
         // For now, we'll assume the user document should exist.
         throw Exception('User profile not found in database.');
       }
       // Update last login time in Firestore (UserRepository should handle this ideally)
-      await _userRepository.updateUser(appUser.copyWith(lastLoginAt: DateTime.now()));
+      await _userRepository
+          .updateUser(appUser.copyWith(lastLoginAt: DateTime.now()));
       return appUser.copyWith(lastLoginAt: DateTime.now());
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("FirebaseAuthException on signInWithEmailAndPassword: ${e.code} - ${e.message}");
+      logger.e(
+          "FirebaseAuthException on signInWithEmailAndPassword: ${e.code} - ${e.message}");
       throw _mapFirebaseAuthException(e);
     } catch (e) {
       logger.e("Unknown error on signInWithEmailAndPassword: $e");
@@ -111,15 +120,19 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<UserModel> createUserWithEmailAndPassword(String email, String password, {String? displayName}) async {
+  Future<UserModel> createUserWithEmailAndPassword(
+      String email, String password,
+      {String? displayName}) async {
     try {
-      final fb_auth.UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+      final fb_auth.UserCredential userCredential =
+          await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
       final fbUser = userCredential.user;
       if (fbUser == null) {
-        throw fb_auth.FirebaseAuthException(code: 'user-creation-failed', message: 'User not created.');
+        throw fb_auth.FirebaseAuthException(
+            code: 'user-creation-failed', message: 'User not created.');
       }
       if (displayName != null && displayName.isNotEmpty) {
         await fbUser.updateDisplayName(displayName);
@@ -136,7 +149,8 @@ class FirebaseAuthRepository implements AuthRepository {
       await _userRepository.createUser(newUser);
       return newUser;
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("FirebaseAuthException on createUserWithEmailAndPassword: ${e.code} - ${e.message}");
+      logger.e(
+          "FirebaseAuthException on createUserWithEmailAndPassword: ${e.code} - ${e.message}");
       throw _mapFirebaseAuthException(e);
     } catch (e) {
       logger.e("Unknown error on createUserWithEmailAndPassword: $e");
@@ -152,16 +166,21 @@ class FirebaseAuthRepository implements AuthRepository {
         // User cancelled the sign-in
         return null;
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final fb_auth.AuthCredential credential = fb_auth.GoogleAuthProvider.credential(
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final fb_auth.AuthCredential credential =
+          fb_auth.GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final fb_auth.UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final fb_auth.UserCredential userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
       final fbUser = userCredential.user;
 
       if (fbUser == null) {
-        throw fb_auth.FirebaseAuthException(code: 'user-not-found', message: 'User not found after Google sign in.');
+        throw fb_auth.FirebaseAuthException(
+            code: 'user-not-found',
+            message: 'User not found after Google sign in.');
       }
 
       // Check if user exists in Firestore, if not, create them
@@ -179,11 +198,18 @@ class FirebaseAuthRepository implements AuthRepository {
         return newUser;
       } else {
         // User exists, update last login time
-        await _userRepository.updateUser(appUser.copyWith(lastLoginAt: DateTime.now(), photoUrl: fbUser.photoURL, displayName: fbUser.displayName));
-        return appUser.copyWith(lastLoginAt: DateTime.now(), photoUrl: fbUser.photoURL, displayName: fbUser.displayName);
+        await _userRepository.updateUser(appUser.copyWith(
+            lastLoginAt: DateTime.now(),
+            photoUrl: fbUser.photoURL,
+            displayName: fbUser.displayName));
+        return appUser.copyWith(
+            lastLoginAt: DateTime.now(),
+            photoUrl: fbUser.photoURL,
+            displayName: fbUser.displayName);
       }
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("FirebaseAuthException on signInWithGoogle: ${e.code} - ${e.message}");
+      logger.e(
+          "FirebaseAuthException on signInWithGoogle: ${e.code} - ${e.message}");
       throw _mapFirebaseAuthException(e);
     } catch (e) {
       logger.e("Unknown error on signInWithGoogle: $e");
@@ -196,7 +222,8 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("FirebaseAuthException on sendPasswordResetEmail: ${e.code} - ${e.message}");
+      logger.e(
+          "FirebaseAuthException on sendPasswordResetEmail: ${e.code} - ${e.message}");
       throw _mapFirebaseAuthException(e);
     } catch (e) {
       logger.e("Unknown error on sendPasswordResetEmail: $e");

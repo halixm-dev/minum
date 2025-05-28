@@ -2,11 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
-// AppColors import removed
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
-// CustomButton import will be replaced by direct M3 buttons
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/main.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -25,8 +23,10 @@ class WelcomeScreen extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withValues(alpha: 0.6), // Adjusted opacity for M3 feel
-                colorScheme.secondary.withValues(alpha: 0.4), // Adjusted opacity for M3 feel
+                colorScheme.primary
+                    .withValues(alpha: 0.6), // Adjusted opacity for M3 feel
+                colorScheme.secondary
+                    .withValues(alpha: 0.4), // Adjusted opacity for M3 feel
                 colorScheme.surface, // End with the surface color
               ],
               begin: Alignment.topCenter,
@@ -44,10 +44,12 @@ class WelcomeScreen extends StatelessWidget {
                 Image.asset(
                   AppAssets.appLogo,
                   height: 120.h,
-                  color: colorScheme.primary, // Optionally tint logo with primary color if it's a template image
+                  color: colorScheme
+                      .primary, // Optionally tint logo with primary color if it's a template image
                   errorBuilder: (context, error, stackTrace) {
                     logger.e("WelcomeScreen: Error loading app logo: $error");
-                    return Icon(Icons.water_drop_rounded, size: 120.h, color: colorScheme.primary);
+                    return Icon(Icons.water_drop_rounded,
+                        size: 120.h, color: colorScheme.primary);
                   },
                 ),
                 SizedBox(height: 16.h),
@@ -64,23 +66,25 @@ class WelcomeScreen extends StatelessWidget {
                   'Your personal hydration companion.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant, // Use onSurfaceVariant for less emphasis
+                    color: colorScheme
+                        .onSurfaceVariant, // Use onSurfaceVariant for less emphasis
                   ),
                 ),
                 const Spacer(flex: 3),
-                FilledButton( // Replaced CustomButton
-                  // Style will come from FilledButtonThemeData in AppTheme
+                FilledButton(
                   onPressed: () {
-                    logger.i("WelcomeScreen: 'Start Now' pressed. Navigating to HomeScreen.");
-                    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+                    logger.i(
+                        "WelcomeScreen: 'Start Now' pressed. Navigating to HomeScreen.");
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.home, (route) => false);
                   },
                   child: const Text('Start Now'),
                 ),
                 SizedBox(height: 16.h),
-                OutlinedButton( // Replaced CustomButton
-                  // Style will come from OutlinedButtonThemeData in AppTheme
+                OutlinedButton(
                   onPressed: () {
-                    logger.i("WelcomeScreen: 'Login' pressed. Navigating to LoginScreen.");
+                    logger.i(
+                        "WelcomeScreen: 'Login' pressed. Navigating to LoginScreen.");
                     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
                   },
                   child: const Text(AppStrings.login),

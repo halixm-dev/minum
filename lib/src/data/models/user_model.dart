@@ -4,10 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:minum/main.dart'; // For logger, ensure this is appropriate for your project structure.
 import 'package:minum/src/core/constants/app_strings.dart'; // Moved import
 
-enum Gender {
-  male,
-  female
-}
+enum Gender { male, female }
 
 enum HealthCondition {
   none,
@@ -85,7 +82,8 @@ class UserModel extends Equatable {
     if (dateOfBirth == null) return null;
     final now = DateTime.now();
     int age = now.year - dateOfBirth!.year;
-    if (now.month < dateOfBirth!.month || (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)) {
+    if (now.month < dateOfBirth!.month ||
+        (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)) {
       age--;
     }
     return age < 0 ? 0 : age;
@@ -101,9 +99,11 @@ class UserModel extends Equatable {
     final String? activityLevelString = data['activityLevel'] as String?;
     if (activityLevelString != null && activityLevelString.isNotEmpty) {
       try {
-        parsedActivityLevel = ActivityLevel.values.firstWhere((e) => e.toString() == activityLevelString);
+        parsedActivityLevel = ActivityLevel.values
+            .firstWhere((e) => e.toString() == activityLevelString);
       } catch (e) {
-        logger.w("Invalid activity level string from Firestore: '$activityLevelString'. Defaulting to null.");
+        logger.w(
+            "Invalid activity level string from Firestore: '$activityLevelString'. Defaulting to null.");
         parsedActivityLevel = null;
       }
     }
@@ -113,40 +113,53 @@ class UserModel extends Equatable {
     if (genderString != null && genderString.isNotEmpty) {
       try {
         // Only try to parse if it's 'Gender.male' or 'Gender.female'
-        if (genderString == Gender.male.toString() || genderString == Gender.female.toString()) {
-          parsedGender = Gender.values.firstWhere((e) => e.toString() == genderString);
+        if (genderString == Gender.male.toString() ||
+            genderString == Gender.female.toString()) {
+          parsedGender =
+              Gender.values.firstWhere((e) => e.toString() == genderString);
         } else {
-          logger.w("Invalid or unsupported gender string from Firestore: '$genderString'. Defaulting to null.");
-          parsedGender = null; // If it's 'Gender.other' or something else, treat as null
+          logger.w(
+              "Invalid or unsupported gender string from Firestore: '$genderString'. Defaulting to null.");
+          parsedGender =
+              null; // If it's 'Gender.other' or something else, treat as null
         }
-      } catch (e) { // Should not happen if check above is done, but as a safeguard
-        logger.w("Error parsing gender string from Firestore: '$genderString'. Defaulting to null.");
+      } catch (e) {
+        // Should not happen if check above is done, but as a safeguard
+        logger.w(
+            "Error parsing gender string from Firestore: '$genderString'. Defaulting to null.");
         parsedGender = null;
       }
     }
 
     List<HealthCondition> parsedHealthConditions = [HealthCondition.none];
-    final List<dynamic>? healthConditionsDynamic = data['healthConditions'] as List<dynamic>?;
+    final List<dynamic>? healthConditionsDynamic =
+        data['healthConditions'] as List<dynamic>?;
     if (healthConditionsDynamic != null) {
-      List<HealthCondition> conditions = healthConditionsDynamic.map((s) {
-        try {
-          return HealthCondition.values.firstWhere((e) => e.toString() == s.toString());
-        } catch (e) {
-          logger.w("Invalid health condition string from Firestore: '$s'. Skipping.");
-          return null;
-        }
-      }).whereType<HealthCondition>().toList();
+      List<HealthCondition> conditions = healthConditionsDynamic
+          .map((s) {
+            try {
+              return HealthCondition.values
+                  .firstWhere((e) => e.toString() == s.toString());
+            } catch (e) {
+              logger.w(
+                  "Invalid health condition string from Firestore: '$s'. Skipping.");
+              return null;
+            }
+          })
+          .whereType<HealthCondition>()
+          .toList();
       if (conditions.isNotEmpty) parsedHealthConditions = conditions;
     }
-
 
     WeatherCondition parsedWeatherCondition = WeatherCondition.temperate;
     final String? weatherString = data['selectedWeatherCondition'] as String?;
     if (weatherString != null && weatherString.isNotEmpty) {
       try {
-        parsedWeatherCondition = WeatherCondition.values.firstWhere((e) => e.toString() == weatherString);
+        parsedWeatherCondition = WeatherCondition.values
+            .firstWhere((e) => e.toString() == weatherString);
       } catch (e) {
-        logger.w("Invalid weather condition string from Firestore: '$weatherString'. Defaulting to temperate.");
+        logger.w(
+            "Invalid weather condition string from Firestore: '$weatherString'. Defaulting to temperate.");
       }
     }
 
@@ -154,9 +167,11 @@ class UserModel extends Equatable {
     final String? preferredUnitString = data['preferredUnit'] as String?;
     if (preferredUnitString != null && preferredUnitString.isNotEmpty) {
       try {
-        parsedPreferredUnit = MeasurementUnit.values.firstWhere((e) => e.toString() == preferredUnitString);
+        parsedPreferredUnit = MeasurementUnit.values
+            .firstWhere((e) => e.toString() == preferredUnitString);
       } catch (e) {
-        logger.w("Invalid preferred unit string: '$preferredUnitString'. Defaulting to mL.");
+        logger.w(
+            "Invalid preferred unit string: '$preferredUnitString'. Defaulting to mL.");
       }
     }
 
@@ -170,8 +185,8 @@ class UserModel extends Equatable {
       dailyGoalMl: (data['dailyGoalMl'] as num?)?.toDouble() ?? 2000.0,
       preferredUnit: parsedPreferredUnit,
       favoriteIntakeVolumes: (data['favoriteIntakeVolumes'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ??
+              ?.map((e) => e.toString())
+              .toList() ??
           const ['250', '500', '750'],
       dateOfBirth: (data['dateOfBirth'] as Timestamp?)?.toDate(),
       gender: parsedGender,
@@ -189,17 +204,21 @@ class UserModel extends Equatable {
       'displayName': displayName,
       'photoUrl': photoUrl,
       'createdAt': Timestamp.fromDate(createdAt),
-      'lastLoginAt': lastLoginAt != null ? Timestamp.fromDate(lastLoginAt!) : null,
+      'lastLoginAt':
+          lastLoginAt != null ? Timestamp.fromDate(lastLoginAt!) : null,
       'dailyGoalMl': dailyGoalMl,
       'preferredUnit': preferredUnit.toString(),
       'favoriteIntakeVolumes': favoriteIntakeVolumes,
-      'dateOfBirth': dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
+      'dateOfBirth':
+          dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
       'gender': gender?.toString(), // Will store null if gender is null
       'weightKg': weightKg,
       'heightCm': heightCm,
       'activityLevel': activityLevel?.toString(),
-      'healthConditions': healthConditions?.map((e) => e.toString()).toList() ?? [HealthCondition.none.toString()],
-      'selectedWeatherCondition': selectedWeatherCondition?.toString() ?? WeatherCondition.temperate.toString(),
+      'healthConditions': healthConditions?.map((e) => e.toString()).toList() ??
+          [HealthCondition.none.toString()],
+      'selectedWeatherCondition': selectedWeatherCondition?.toString() ??
+          WeatherCondition.temperate.toString(),
     };
   }
 
@@ -235,24 +254,40 @@ class UserModel extends Equatable {
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       dailyGoalMl: dailyGoalMl ?? this.dailyGoalMl,
       preferredUnit: preferredUnit ?? this.preferredUnit,
-      favoriteIntakeVolumes: favoriteIntakeVolumes ?? this.favoriteIntakeVolumes,
+      favoriteIntakeVolumes:
+          favoriteIntakeVolumes ?? this.favoriteIntakeVolumes,
       dateOfBirth: clearDateOfBirth ? null : dateOfBirth ?? this.dateOfBirth,
       gender: clearGender ? null : gender ?? this.gender,
       weightKg: clearWeightKg ? null : weightKg ?? this.weightKg,
       heightCm: clearHeightCm ? null : heightCm ?? this.heightCm,
-      activityLevel: clearActivityLevel ? null : activityLevel ?? this.activityLevel,
+      activityLevel:
+          clearActivityLevel ? null : activityLevel ?? this.activityLevel,
       healthConditions: healthConditions ?? this.healthConditions,
-      selectedWeatherCondition: selectedWeatherCondition ?? this.selectedWeatherCondition,
+      selectedWeatherCondition:
+          selectedWeatherCondition ?? this.selectedWeatherCondition,
     );
   }
 
   @override
   List<Object?> get props => [
-    id, email, displayName, photoUrl, createdAt, lastLoginAt,
-    dailyGoalMl, preferredUnit, favoriteIntakeVolumes,
-    dateOfBirth, gender, weightKg, heightCm, activityLevel,
-    healthConditions, selectedWeatherCondition
-  ];
+        id,
+        email,
+        displayName,
+        photoUrl,
+        createdAt,
+        lastLoginAt,
+        dailyGoalMl,
+        preferredUnit,
+        favoriteIntakeVolumes,
+        dateOfBirth,
+        gender,
+        weightKg,
+        heightCm,
+        activityLevel,
+        healthConditions,
+        selectedWeatherCondition
+      ];
 
-  String get preferredUnitString => preferredUnit == MeasurementUnit.ml ? 'mL' : 'oz';
+  String get preferredUnitString =>
+      preferredUnit == MeasurementUnit.ml ? 'mL' : 'oz';
 }

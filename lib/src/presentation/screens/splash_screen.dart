@@ -28,39 +28,51 @@ class _SplashScreenState extends State<SplashScreen> {
     logger.i("SplashScreen: Delay completed.");
 
     if (!mounted) {
-      logger.w("SplashScreen: Widget not mounted after delay, aborting navigation.");
+      logger.w(
+          "SplashScreen: Widget not mounted after delay, aborting navigation.");
       return;
     }
 
     try {
       logger.i("SplashScreen: Attempting to access SharedPreferences.");
       final prefs = await SharedPreferences.getInstance();
-      final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-      logger.i("SplashScreen: Onboarding completed status from SharedPreferences: $onboardingCompleted");
+      final bool onboardingCompleted =
+          prefs.getBool('onboarding_completed') ?? false;
+      logger.i(
+          "SplashScreen: Onboarding completed status from SharedPreferences: $onboardingCompleted");
 
       if (!onboardingCompleted) {
-        logger.i("SplashScreen: Navigating to OnboardingScreen (AppRoutes.onboarding).");
+        logger.i(
+            "SplashScreen: Navigating to OnboardingScreen (AppRoutes.onboarding).");
         if (mounted) {
           Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
         } else {
-          logger.w("SplashScreen: Context not available for onboarding navigation.");
+          logger.w(
+              "SplashScreen: Context not available for onboarding navigation.");
         }
       } else {
         // If onboarding IS completed, navigate to the simplified LoginScreen
-        logger.i("SplashScreen: Onboarding complete. Navigating to LoginScreen (AppRoutes.login).");
+        logger.i(
+            "SplashScreen: Onboarding complete. Navigating to LoginScreen (AppRoutes.login).");
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Changed from AppRoutes.welcome
+          Navigator.of(context).pushReplacementNamed(
+              AppRoutes.login); // Changed from AppRoutes.welcome
         } else {
-          logger.w("SplashScreen: Context not available for login screen navigation.");
+          logger.w(
+              "SplashScreen: Context not available for login screen navigation.");
         }
       }
     } catch (e, stackTrace) {
-      logger.e("SplashScreen: Error in _navigateToNextScreen: $e", error: e, stackTrace: stackTrace);
+      logger.e("SplashScreen: Error in _navigateToNextScreen: $e",
+          error: e, stackTrace: stackTrace);
       if (mounted) {
-        logger.w("SplashScreen: Fallback navigation to LoginScreen due to error.");
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
+        logger.w(
+            "SplashScreen: Fallback navigation to LoginScreen due to error.");
+        Navigator.of(context)
+            .pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
       } else {
-        logger.e("SplashScreen: Context not available for fallback navigation.");
+        logger
+            .e("SplashScreen: Context not available for fallback navigation.");
       }
     }
   }
@@ -84,20 +96,23 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 150.w,
               height: 150.h,
               // For M3, if the logo is simple, consider tinting with onPrimary or onSurface
-              color: theme.brightness == Brightness.light ? colorScheme.onPrimary : colorScheme.primary,
+              color: theme.brightness == Brightness.light
+                  ? colorScheme.onPrimary
+                  : colorScheme.primary,
               errorBuilder: (context, error, stackTrace) {
                 logger.e("SplashScreen: Error loading app logo: $error");
-                return Icon(
-                  Icons.water_drop_outlined, 
-                  size: 100.sp, 
-                  color: theme.brightness == Brightness.light ? colorScheme.onPrimary : colorScheme.primary
-                );
+                return Icon(Icons.water_drop_outlined,
+                    size: 100.sp,
+                    color: theme.brightness == Brightness.light
+                        ? colorScheme.onPrimary
+                        : colorScheme.primary);
               },
             ),
             SizedBox(height: 20.h),
             Text(
               'Minum',
-              style: theme.textTheme.displaySmall?.copyWith( // M3 text style
+              style: theme.textTheme.displaySmall?.copyWith(
+                // M3 text style
                 color: theme.brightness == Brightness.light
                     ? colorScheme.onPrimary
                     : colorScheme.primary,
@@ -106,7 +121,8 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(height: 8.h), // Changed from 10.h to 8.h
             Text(
               'Stay Hydrated, Stay Healthy',
-              style: theme.textTheme.titleMedium?.copyWith( // M3 text style
+              style: theme.textTheme.titleMedium?.copyWith(
+                // M3 text style
                 color: theme.brightness == Brightness.light
                     ? colorScheme.onPrimary.withValues(alpha: 0.8)
                     : colorScheme.onSurfaceVariant,

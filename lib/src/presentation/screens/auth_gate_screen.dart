@@ -63,7 +63,8 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
     switch (authProvider.authStatus) {
       case AuthStatus.uninitialized:
       case AuthStatus.authenticating:
-        logger.i("AuthGate: Auth status is ${authProvider.authStatus}. Showing loading indicator.");
+        logger.i(
+            "AuthGate: Auth status is ${authProvider.authStatus}. Showing loading indicator.");
         return const Scaffold(
           body: Center(child: CircularProgressIndicator()),
         );
@@ -74,7 +75,8 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
         return const HomeScreen(); // To be created
       case AuthStatus.unauthenticated:
       case AuthStatus.authError:
-      logger.i("AuthGate: User unauthenticated or error. Navigating to LoginScreen.");
+        logger.i(
+            "AuthGate: User unauthenticated or error. Navigating to LoginScreen.");
         // User is not authenticated, or an error occurred, show the LoginScreen
         return const LoginScreen(); // To be created
     }

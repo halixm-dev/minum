@@ -8,7 +8,8 @@ class AppUtils {
   AppUtils._(); // Private constructor
 
   // --- Formatters ---
-  static String formatDate(DateTime date, {String format = 'yyyy-MM-dd'}) { // Standard format
+  static String formatDate(DateTime date, {String format = 'yyyy-MM-dd'}) {
+    // Standard format
     return DateFormat(format).format(date);
   }
 
@@ -16,7 +17,9 @@ class AppUtils {
     return DateFormat(format).format(time);
   }
 
-  static String formatDateTime(DateTime dateTime, {String format = 'yyyy-MM-dd, hh:mm a'}) { // Standard format
+  static String formatDateTime(DateTime dateTime,
+      {String format = 'yyyy-MM-dd, hh:mm a'}) {
+    // Standard format
     return DateFormat(format).format(dateTime);
   }
 
@@ -29,7 +32,8 @@ class AppUtils {
     if (value == null || value.isEmpty) {
       return AppStrings.fieldRequired;
     }
-    final emailRegex = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    final emailRegex = RegExp(
+        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
     if (!emailRegex.hasMatch(value)) {
       return AppStrings.invalidEmail;
     }
@@ -46,7 +50,8 @@ class AppUtils {
     return null;
   }
 
-  static String? validateConfirmPassword(String? password, String? confirmPassword) {
+  static String? validateConfirmPassword(
+      String? password, String? confirmPassword) {
     if (confirmPassword == null || confirmPassword.isEmpty) {
       return AppStrings.fieldRequired;
     }
@@ -56,14 +61,16 @@ class AppUtils {
     return null;
   }
 
-  static String? validateNotEmpty(String? value, {String fieldName = "This field"}) {
+  static String? validateNotEmpty(String? value,
+      {String fieldName = "This field"}) {
     if (value == null || value.isEmpty) {
       return "$fieldName is required."; // Or use AppStrings.fieldRequired
     }
     return null;
   }
 
-  static String? validateNumber(String? value, {bool allowDecimal = false, bool allowNegative = false}) {
+  static String? validateNumber(String? value,
+      {bool allowDecimal = false, bool allowNegative = false}) {
     if (value == null || value.isEmpty) {
       return AppStrings.fieldRequired;
     }
@@ -80,24 +87,29 @@ class AppUtils {
     return null;
   }
 
-
   // --- UI Helpers ---
-  static void showSnackBar(BuildContext context, String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar(); // Remove previous snackbar if any
+  static void showSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    ScaffoldMessenger.of(context)
+        .removeCurrentSnackBar(); // Remove previous snackbar if any
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.secondary,
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.secondary,
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  static Future<void> showLoadingDialog(BuildContext context, {String message = AppStrings.loading}) async {
+  static Future<void> showLoadingDialog(BuildContext context,
+      {String message = AppStrings.loading}) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // User must not close it manually
-      builder: (BuildContext dialogContext) { // Renamed to avoid conflict
+      builder: (BuildContext dialogContext) {
+        // Renamed to avoid conflict
         return AlertDialog(
           content: Row(
             children: [
@@ -119,15 +131,16 @@ class AppUtils {
   }
 
   static Future<bool?> showConfirmationDialog(
-      BuildContext context, {
-        required String title,
-        required String content,
-        String confirmText = AppStrings.ok,
-        String cancelText = AppStrings.cancel,
-      }) async {
+    BuildContext context, {
+    required String title,
+    required String content,
+    String confirmText = AppStrings.ok,
+    String cancelText = AppStrings.cancel,
+  }) async {
     return showDialog<bool>(
       context: context,
-      builder: (BuildContext dialogContext) => AlertDialog( // Renamed to avoid conflict
+      builder: (BuildContext dialogContext) => AlertDialog(
+        // Renamed to avoid conflict
         title: Text(title),
         content: Text(content),
         actions: <Widget>[

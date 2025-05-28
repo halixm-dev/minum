@@ -21,64 +21,77 @@ class LocalHydrationRepository implements HydrationRepository {
         isSynced: false,
         isLocallyDeleted: false,
         localDbId: null,
-        id: entry.id
-    );
+        id: entry.id);
 
     int localId = await _dbHelper.insertHydrationEntry(entryToSave);
-    logger.i("LocalHydrationRepo: Entry added for user/scope: $effectiveUserId with local ID: $localId");
+    logger.i(
+        "LocalHydrationRepo: Entry added for user/scope: $effectiveUserId with local ID: $localId");
   }
 
   @override
   Future<void> updateHydrationEntry(String userId, HydrationEntry entry) async {
     int? localIdToUpdate = entry.localDbId;
-    final effectiveUserId = userId.isEmpty ? guestUserId : userId; // Ensure effectiveUserId is used
+    final effectiveUserId =
+        userId.isEmpty ? guestUserId : userId; // Ensure effectiveUserId is used
 
     if (localIdToUpdate == null && entry.id != null) {
       // Use effectiveUserId when looking up by Firestore ID
-      localIdToUpdate = await _dbHelper.getLocalIdFromFirestoreId(entry.id!, effectiveUserId);
+      localIdToUpdate =
+          await _dbHelper.getLocalIdFromFirestoreId(entry.id!, effectiveUserId);
     }
 
     if (localIdToUpdate != null) {
       final HydrationEntry entryToUpdate = entry.copyWith(
           userId: effectiveUserId, // Ensure this is the effectiveUserId
           isSynced: false,
-          isLocallyDeleted: false
-      );
-      await _dbHelper.updateHydrationEntryByLocalId(localIdToUpdate, entryToUpdate);
-      logger.i("LocalHydrationRepo: Entry with local ID $localIdToUpdate updated for user $effectiveUserId.");
+          isLocallyDeleted: false);
+      await _dbHelper.updateHydrationEntryByLocalId(
+          localIdToUpdate, entryToUpdate);
+      logger.i(
+          "LocalHydrationRepo: Entry with local ID $localIdToUpdate updated for user $effectiveUserId.");
     } else {
-      logger.w("LocalHydrationRepo: Could not update entry. Local ID not found for entry with Firestore ID: ${entry.id} or entry has no ID for user $effectiveUserId. Attempting to add as new.");
+      logger.w(
+          "LocalHydrationRepo: Could not update entry. Local ID not found for entry with Firestore ID: ${entry.id} or entry has no ID for user $effectiveUserId. Attempting to add as new.");
       await addHydrationEntry(effectiveUserId, entry); // Pass effectiveUserId
     }
   }
 
   // Updated method signature to match interface (will be HydrationEntry entryToDelete)
   @override
-  Future<void> deleteHydrationEntry(String userId, HydrationEntry entryToDelete) async {
+  Future<void> deleteHydrationEntry(
+      String userId, HydrationEntry entryToDelete) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
 
     if (entryToDelete.localDbId != null) {
-      await _dbHelper.markHydrationEntryAsDeletedByLocalId(entryToDelete.localDbId!);
-      logger.i("LocalHydrationRepo: Entry (local ID ${entryToDelete.localDbId}) marked as deleted for user $effectiveUserId.");
+      await _dbHelper
+          .markHydrationEntryAsDeletedByLocalId(entryToDelete.localDbId!);
+      logger.i(
+          "LocalHydrationRepo: Entry (local ID ${entryToDelete.localDbId}) marked as deleted for user $effectiveUserId.");
     } else if (entryToDelete.id != null) {
-      int? localId = await _dbHelper.getLocalIdFromFirestoreId(entryToDelete.id!, effectiveUserId);
+      int? localId = await _dbHelper.getLocalIdFromFirestoreId(
+          entryToDelete.id!, effectiveUserId);
       if (localId != null) {
         await _dbHelper.markHydrationEntryAsDeletedByLocalId(localId);
-        logger.i("LocalHydrationRepo: Entry (Firestore ID ${entryToDelete.id}, local ID $localId) marked as deleted for user $effectiveUserId.");
+        logger.i(
+            "LocalHydrationRepo: Entry (Firestore ID ${entryToDelete.id}, local ID $localId) marked as deleted for user $effectiveUserId.");
       } else {
-        logger.w("LocalHydrationRepo: Entry with Firestore ID ${entryToDelete.id} not found locally to mark as deleted for user $effectiveUserId.");
+        logger.w(
+            "LocalHydrationRepo: Entry with Firestore ID ${entryToDelete.id} not found locally to mark as deleted for user $effectiveUserId.");
       }
     } else {
-      logger.e("LocalHydrationRepo: Cannot mark entry for deletion - no localDbId or FirestoreId provided in entryToDelete object for user $effectiveUserId.");
+      logger.e(
+          "LocalHydrationRepo: Cannot mark entry for deletion - no localDbId or FirestoreId provided in entryToDelete object for user $effectiveUserId.");
     }
   }
 
   @override
-  Future<HydrationEntry?> getHydrationEntry(String userId, String entryId) async {
+  Future<HydrationEntry?> getHydrationEntry(
+      String userId, String entryId) async {
     // entryId is assumed to be Firestore ID
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
-    int? localId = await _dbHelper.getLocalIdFromFirestoreId(entryId, effectiveUserId);
-    if(localId != null) {
+    int? localId =
+        await _dbHelper.getLocalIdFromFirestoreId(entryId, effectiveUserId);
+    if (localId != null) {
       return await _dbHelper.getHydrationEntryByLocalId(localId);
     }
     return null;
@@ -93,20 +106,25 @@ class LocalHydrationRepository implements HydrationRepository {
   Stream<List<HydrationEntry>> getHydrationEntriesForDateRange(
       String userId, DateTime startDate, DateTime endDate) {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
-    logger.d("LocalHydrationRepo: Getting entries for user/scope: $effectiveUserId, range: $startDate - $endDate");
+    logger.d(
+        "LocalHydrationRepo: Getting entries for user/scope: $effectiveUserId, range: $startDate - $endDate");
 
-    return Stream.fromFuture(
-        _dbHelper.getHydrationEntriesForUser(effectiveUserId, startDate, endDate));
+    return Stream.fromFuture(_dbHelper.getHydrationEntriesForUser(
+        effectiveUserId, startDate, endDate));
   }
 
   @override
-  Stream<List<HydrationEntry>> getHydrationEntriesForDay(String userId, DateTime date) {
-    final DateTime startDate = DateTime(date.year, date.month, date.day, 0, 0, 0);
-    final DateTime endDate = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+  Stream<List<HydrationEntry>> getHydrationEntriesForDay(
+      String userId, DateTime date) {
+    final DateTime startDate =
+        DateTime(date.year, date.month, date.day, 0, 0, 0);
+    final DateTime endDate =
+        DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
     return getHydrationEntriesForDateRange(userId, startDate, endDate);
   }
 
-  Future<List<HydrationEntry>> getUnsyncedNewOrUpdatedEntries(String userId) async {
+  Future<List<HydrationEntry>> getUnsyncedNewOrUpdatedEntries(
+      String userId) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getUnsyncedNewOrUpdatedEntries(effectiveUserId);
   }
@@ -124,18 +142,21 @@ class LocalHydrationRepository implements HydrationRepository {
     await _dbHelper.deleteHydrationEntryPermanentlyByLocalId(localId);
   }
 
-  Future<int> updateGuestEntriesToUser(String guestId, String firebaseUserId) async {
+  Future<int> updateGuestEntriesToUser(
+      String guestId, String firebaseUserId) async {
     return await _dbHelper.updateGuestEntriesToUser(guestId, firebaseUserId);
   }
 
-  Future<int?> getLocalIdFromFirestoreId(String firestoreId, String userId) async {
+  Future<int?> getLocalIdFromFirestoreId(
+      String firestoreId, String userId) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getLocalIdFromFirestoreId(firestoreId, effectiveUserId);
   }
 
   Future<int> upsertHydrationEntry(HydrationEntry entry, String userId) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
-    final entryToUpsert = entry.copyWith(userId: effectiveUserId, isSynced: true, isLocallyDeleted: false);
+    final entryToUpsert = entry.copyWith(
+        userId: effectiveUserId, isSynced: true, isLocallyDeleted: false);
     return _dbHelper.upsertHydrationEntry(entryToUpsert, effectiveUserId);
   }
 }

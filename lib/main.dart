@@ -32,7 +32,6 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart'; // Import BottomNavProvider
 import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
 
-
 // Global logger instance
 final logger = Logger(
   printer: PrettyPrinter(
@@ -71,17 +70,21 @@ void main() async {
   }
 
   final UserRepository userRepository = FirebaseUserRepository();
-  final AuthRepository authRepository = FirebaseAuthRepository(userRepository: userRepository);
+  final AuthRepository authRepository =
+      FirebaseAuthRepository(userRepository: userRepository);
 
-  final LocalHydrationRepository localHydrationRepository = LocalHydrationRepository();
-  final FirebaseHydrationRepository firebaseHydrationRepository = FirebaseHydrationRepository();
+  final LocalHydrationRepository localHydrationRepository =
+      LocalHydrationRepository();
+  final FirebaseHydrationRepository firebaseHydrationRepository =
+      FirebaseHydrationRepository();
 
   final AuthService authService = AuthService(
     authRepository: authRepository,
     userRepository: userRepository,
   );
 
-  final HydrationRepository syncableHydrationRepository = SyncableHydrationRepository(
+  final HydrationRepository syncableHydrationRepository =
+      SyncableHydrationRepository(
     localRepository: localHydrationRepository,
     firebaseRepository: firebaseHydrationRepository,
     authService: authService,
@@ -90,7 +93,6 @@ void main() async {
   final HydrationService hydrationService = HydrationService(
     hydrationRepository: syncableHydrationRepository,
   );
-
 
   runApp(
     MultiProvider(
@@ -102,8 +104,10 @@ void main() async {
         Provider<HydrationRepository>.value(value: syncableHydrationRepository),
 
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => BottomNavProvider()), // Add BottomNavProvider
-        ChangeNotifierProvider(create: (_) => ReminderSettingsNotifier()), // <-- ADD THIS LINE
+        ChangeNotifierProvider(
+            create: (_) => BottomNavProvider()), // Add BottomNavProvider
+        ChangeNotifierProvider(
+            create: (_) => ReminderSettingsNotifier()), // <-- ADD THIS LINE
         ChangeNotifierProvider<AuthProvider>(
           create: (context) => AuthProvider(
             context.read<AuthService>(),

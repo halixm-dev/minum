@@ -20,7 +20,9 @@ abstract class AuthRepository {
 
   // Register a new user with email and password.
   // Returns a UserModel on success, throws an exception on failure.
-  Future<UserModel> createUserWithEmailAndPassword(String email, String password, {String? displayName});
+  Future<UserModel> createUserWithEmailAndPassword(
+      String email, String password,
+      {String? displayName});
 
   // Sign in with Google.
   // Returns a UserModel on success, throws an exception on failure or if the user cancels.

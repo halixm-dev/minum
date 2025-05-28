@@ -18,70 +18,88 @@ class FirebaseHydrationRepository implements HydrationRepository {
         .doc(userId)
         .collection(_hydrationEntriesSubcollection)
         .withConverter<HydrationEntry>(
-      fromFirestore: (snapshots, _) => HydrationEntry.fromFirestore(snapshots),
-      toFirestore: (entry, _) => entry.toFirestore(),
-    );
+          fromFirestore: (snapshots, _) =>
+              HydrationEntry.fromFirestore(snapshots),
+          toFirestore: (entry, _) => entry.toFirestore(),
+        );
   }
 
   @override
   Future<void> addHydrationEntry(String userId, HydrationEntry entry) async {
     try {
-      final docRef = await _hydrationEntriesRef(userId).add(entry.copyWith(id: null));
-      logger.i("FirebaseHydrationRepo: Entry added for user $userId with new Firestore ID: ${docRef.id}");
+      final docRef =
+          await _hydrationEntriesRef(userId).add(entry.copyWith(id: null));
+      logger.i(
+          "FirebaseHydrationRepo: Entry added for user $userId with new Firestore ID: ${docRef.id}");
     } catch (e) {
-      logger.e("FirebaseHydrationRepo: Error adding hydration entry for user $userId: $e");
+      logger.e(
+          "FirebaseHydrationRepo: Error adding hydration entry for user $userId: $e");
       rethrow;
     }
   }
 
-  Future<HydrationEntry> addHydrationEntryReturnId(String userId, HydrationEntry entry) async {
+  Future<HydrationEntry> addHydrationEntryReturnId(
+      String userId, HydrationEntry entry) async {
     try {
       final DocumentReference<HydrationEntry> docRef =
-      await _hydrationEntriesRef(userId).add(entry.copyWith(id: null));
+          await _hydrationEntriesRef(userId).add(entry.copyWith(id: null));
 
-      final HydrationEntry syncedEntry = entry.copyWith(id: docRef.id, userId: userId);
-      logger.i("FirebaseHydrationRepo: Entry added and returned for user $userId with Firestore ID: ${docRef.id}");
+      final HydrationEntry syncedEntry =
+          entry.copyWith(id: docRef.id, userId: userId);
+      logger.i(
+          "FirebaseHydrationRepo: Entry added and returned for user $userId with Firestore ID: ${docRef.id}");
       return syncedEntry;
     } catch (e) {
-      logger.e("FirebaseHydrationRepo: Error adding hydration entry (and returning ID) for user $userId: $e");
+      logger.e(
+          "FirebaseHydrationRepo: Error adding hydration entry (and returning ID) for user $userId: $e");
       rethrow;
     }
   }
-
 
   @override
   Future<void> updateHydrationEntry(String userId, HydrationEntry entry) async {
     if (entry.id == null) {
-      logger.e("FirebaseHydrationRepo: Cannot update entry without a Firestore ID for user $userId.");
-      throw ArgumentError("Entry ID cannot be null for an update operation to Firebase.");
+      logger.e(
+          "FirebaseHydrationRepo: Cannot update entry without a Firestore ID for user $userId.");
+      throw ArgumentError(
+          "Entry ID cannot be null for an update operation to Firebase.");
     }
     try {
-      await _hydrationEntriesRef(userId).doc(entry.id).update(entry.toFirestore());
-      logger.i("FirebaseHydrationRepo: Entry ${entry.id} updated for user $userId");
+      await _hydrationEntriesRef(userId)
+          .doc(entry.id)
+          .update(entry.toFirestore());
+      logger.i(
+          "FirebaseHydrationRepo: Entry ${entry.id} updated for user $userId");
     } catch (e) {
-      logger.e("FirebaseHydrationRepo: Error updating entry ${entry.id} for user $userId: $e");
+      logger.e(
+          "FirebaseHydrationRepo: Error updating entry ${entry.id} for user $userId: $e");
       rethrow;
     }
   }
 
   // Updated method signature
   @override
-  Future<void> deleteHydrationEntry(String userId, HydrationEntry entryToDelete) async {
+  Future<void> deleteHydrationEntry(
+      String userId, HydrationEntry entryToDelete) async {
     if (entryToDelete.id == null || entryToDelete.id!.isEmpty) {
-      logger.w("FirebaseHydrationRepo: Cannot delete entry from Firebase without a Firestore ID for user $userId. Entry might be local only.");
+      logger.w(
+          "FirebaseHydrationRepo: Cannot delete entry from Firebase without a Firestore ID for user $userId. Entry might be local only.");
       return;
     }
     try {
       await _hydrationEntriesRef(userId).doc(entryToDelete.id).delete();
-      logger.i("FirebaseHydrationRepo: Entry ${entryToDelete.id} deleted for user $userId");
+      logger.i(
+          "FirebaseHydrationRepo: Entry ${entryToDelete.id} deleted for user $userId");
     } catch (e) {
-      logger.e("FirebaseHydrationRepo: Error deleting entry ${entryToDelete.id} for user $userId: $e");
+      logger.e(
+          "FirebaseHydrationRepo: Error deleting entry ${entryToDelete.id} for user $userId: $e");
       rethrow;
     }
   }
 
   @override
-  Future<HydrationEntry?> getHydrationEntry(String userId, String entryId) async {
+  Future<HydrationEntry?> getHydrationEntry(
+      String userId, String entryId) async {
     // entryId is Firestore ID
     try {
       final docSnapshot = await _hydrationEntriesRef(userId).doc(entryId).get();
@@ -90,50 +108,64 @@ class FirebaseHydrationRepository implements HydrationRepository {
       }
       return null;
     } catch (e) {
-      logger.e("FirebaseHydrationRepo: Error getting hydration entry $entryId for user $userId: $e");
+      logger.e(
+          "FirebaseHydrationRepo: Error getting hydration entry $entryId for user $userId: $e");
       rethrow;
     }
   }
 
   @override
   Stream<List<HydrationEntry>> getHydrationEntriesForDateRange(
-      String userId,
-      DateTime startDate,
-      DateTime endDate,
-      ) {
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  ) {
     try {
-      final DateTime effectiveEndDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+      final DateTime effectiveEndDate =
+          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
 
       return _hydrationEntriesRef(userId)
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(effectiveEndDate))
+          .where('timestamp',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('timestamp',
+              isLessThanOrEqualTo: Timestamp.fromDate(effectiveEndDate))
           .orderBy('timestamp', descending: true)
           .snapshots()
           .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList())
           .handleError((error) {
-        logger.e("FirebaseHydrationRepo: Error streaming hydration entries for date range for user $userId: $error");
+        logger.e(
+            "FirebaseHydrationRepo: Error streaming hydration entries for date range for user $userId: $error");
         return <HydrationEntry>[];
       });
     } catch (e) {
-      logger.e("FirebaseHydrationRepo: Error setting up stream for hydration entries (date range) for user $userId: $e");
+      logger.e(
+          "FirebaseHydrationRepo: Error setting up stream for hydration entries (date range) for user $userId: $e");
       return Stream.value([]);
     }
   }
 
   @override
-  Stream<List<HydrationEntry>> getHydrationEntriesForDay(String userId, DateTime date) {
-    final DateTime startDate = DateTime(date.year, date.month, date.day, 0, 0, 0);
-    final DateTime endDate = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+  Stream<List<HydrationEntry>> getHydrationEntriesForDay(
+      String userId, DateTime date) {
+    final DateTime startDate =
+        DateTime(date.year, date.month, date.day, 0, 0, 0);
+    final DateTime endDate =
+        DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
     return getHydrationEntriesForDateRange(userId, startDate, endDate);
   }
 
-  Future<List<HydrationEntry>> getAllHydrationEntriesForUser(String userId) async {
+  Future<List<HydrationEntry>> getAllHydrationEntriesForUser(
+      String userId) async {
     try {
-      final querySnapshot = await _hydrationEntriesRef(userId).orderBy('timestamp', descending: true).get();
-      logger.i("FirebaseHydrationRepo: Fetched ${querySnapshot.docs.length} total entries for user $userId.");
+      final querySnapshot = await _hydrationEntriesRef(userId)
+          .orderBy('timestamp', descending: true)
+          .get();
+      logger.i(
+          "FirebaseHydrationRepo: Fetched ${querySnapshot.docs.length} total entries for user $userId.");
       return querySnapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      logger.e("FirebaseHydrationRepo: Error fetching all entries for user $userId: $e");
+      logger.e(
+          "FirebaseHydrationRepo: Error fetching all entries for user $userId: $e");
       return [];
     }
   }

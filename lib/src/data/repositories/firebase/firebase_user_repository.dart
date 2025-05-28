@@ -14,9 +14,9 @@ class FirebaseUserRepository implements UserRepository {
 
   CollectionReference<UserModel> get _usersRef =>
       _firestore.collection(_usersCollection).withConverter<UserModel>(
-        fromFirestore: (snapshots, _) => UserModel.fromFirestore(snapshots),
-        toFirestore: (user, _) => user.toFirestore(),
-      );
+            fromFirestore: (snapshots, _) => UserModel.fromFirestore(snapshots),
+            toFirestore: (user, _) => user.toFirestore(),
+          );
 
   @override
   Future<UserModel?> getUser(String uid) async {

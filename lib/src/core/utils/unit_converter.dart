@@ -11,7 +11,8 @@ double convertOzToMl(double oz) {
   return oz * _mlPerOz;
 }
 
-String formatVolume(double volumeMl, MeasurementUnit unit, {bool includeUnitString = true, int decimalPlaces = 1}) {
+String formatVolume(double volumeMl, MeasurementUnit unit,
+    {bool includeUnitString = true, int decimalPlaces = 1}) {
   double displayVolume;
   String unitString;
 

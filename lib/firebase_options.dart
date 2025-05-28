@@ -64,7 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '873255446363',
     projectId: 'halixm-minum',
     storageBucket: 'halixm-minum.firebasestorage.app',
-    iosClientId: '873255446363-9v372ib6baa046od59d2unm0uueet61t.apps.googleusercontent.com',
+    iosClientId:
+        '873255446363-9v372ib6baa046od59d2unm0uueet61t.apps.googleusercontent.com',
     iosBundleId: 'com.halixm.minum',
   );
 
@@ -74,7 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '873255446363',
     projectId: 'halixm-minum',
     storageBucket: 'halixm-minum.firebasestorage.app',
-    iosClientId: '873255446363-9v372ib6baa046od59d2unm0uueet61t.apps.googleusercontent.com',
+    iosClientId:
+        '873255446363-9v372ib6baa046od59d2unm0uueet61t.apps.googleusercontent.com',
     iosBundleId: 'com.halixm.minum',
   );
 
@@ -87,5 +89,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'halixm-minum.firebasestorage.app',
     measurementId: 'G-TYPRMC0HW4',
   );
-
 }

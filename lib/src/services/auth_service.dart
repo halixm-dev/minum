@@ -1,5 +1,6 @@
 // lib/src/services/auth_service.dart
-import 'package:firebase_auth/firebase_auth.dart' as fb_auth; // For FirebaseAuthException
+import 'package:firebase_auth/firebase_auth.dart'
+    as fb_auth; // For FirebaseAuthException
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/data/repositories/auth_repository.dart';
 import 'package:minum/src/data/repositories/user_repository.dart';
@@ -26,16 +27,19 @@ class AuthService {
   UserModel? get currentUser => _authRepository.currentUser;
 
   // Sign in with email and password.
-  Future<UserModel> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserModel> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       logger.i("AuthService: Attempting to sign in with email.");
-      UserModel user = await _authRepository.signInWithEmailAndPassword(email, password);
+      UserModel user =
+          await _authRepository.signInWithEmailAndPassword(email, password);
       // Additional logic after sign-in can go here, e.g., updating last login.
       // The repository implementation already handles fetching/creating the UserModel.
       logger.i("AuthService: User ${user.id} signed in successfully.");
       return user;
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("AuthService: FirebaseAuthException during email sign in - ${e.code}: ${e.message}");
+      logger.e(
+          "AuthService: FirebaseAuthException during email sign in - ${e.code}: ${e.message}");
       rethrow; // Re-throw to be handled by the UI/Provider
     } catch (e) {
       logger.e("AuthService: Unknown error during email sign in: $e");
@@ -44,7 +48,8 @@ class AuthService {
   }
 
   // Register a new user with email and password.
-  Future<UserModel> signUpWithEmailAndPassword(String email, String password, {String? displayName}) async {
+  Future<UserModel> signUpWithEmailAndPassword(String email, String password,
+      {String? displayName}) async {
     try {
       logger.i("AuthService: Attempting to register new user with email.");
       // The repository implementation handles creating the Firebase Auth user
@@ -54,10 +59,12 @@ class AuthService {
         password,
         displayName: displayName,
       );
-      logger.i("AuthService: User ${newUser.id} registered and profile created successfully.");
+      logger.i(
+          "AuthService: User ${newUser.id} registered and profile created successfully.");
       return newUser;
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("AuthService: FirebaseAuthException during email sign up - ${e.code}: ${e.message}");
+      logger.e(
+          "AuthService: FirebaseAuthException during email sign up - ${e.code}: ${e.message}");
       rethrow;
     } catch (e) {
       logger.e("AuthService: Unknown error during email sign up: $e");
@@ -72,13 +79,15 @@ class AuthService {
       // The repository implementation handles Firebase Auth and Firestore user creation/update.
       UserModel? user = await _authRepository.signInWithGoogle();
       if (user != null) {
-        logger.i("AuthService: User ${user.id} signed in with Google successfully.");
+        logger.i(
+            "AuthService: User ${user.id} signed in with Google successfully.");
       } else {
         logger.i("AuthService: Google Sign-In cancelled by user or failed.");
       }
       return user;
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("AuthService: FirebaseAuthException during Google sign in - ${e.code}: ${e.message}");
+      logger.e(
+          "AuthService: FirebaseAuthException during Google sign in - ${e.code}: ${e.message}");
       rethrow;
     } catch (e) {
       logger.e("AuthService: Unknown error during Google sign in: $e");
@@ -93,11 +102,13 @@ class AuthService {
       await _authRepository.sendPasswordResetEmail(email);
       logger.i("AuthService: Password reset email sent successfully.");
     } on fb_auth.FirebaseAuthException catch (e) {
-      logger.e("AuthService: FirebaseAuthException during password reset - ${e.code}: ${e.message}");
+      logger.e(
+          "AuthService: FirebaseAuthException during password reset - ${e.code}: ${e.message}");
       rethrow;
     } catch (e) {
       logger.e("AuthService: Unknown error sending password reset email: $e");
-      throw Exception("An unexpected error occurred while sending password reset email.");
+      throw Exception(
+          "An unexpected error occurred while sending password reset email.");
     }
   }
 
@@ -129,7 +140,8 @@ class AuthService {
     try {
       logger.i("AuthService: Updating user profile for ${user.id}.");
       await _userRepository.updateUser(user);
-      logger.i("AuthService: User profile for ${user.id} updated successfully.");
+      logger
+          .i("AuthService: User profile for ${user.id} updated successfully.");
     } catch (e) {
       logger.e("AuthService: Error updating user profile for ${user.id}: $e");
       throw Exception("Failed to update profile. Please try again.");
