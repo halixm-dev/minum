@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart'; // For date formatting
-import 'package:minum/src/core/constants/app_colors.dart';
+// AppColors import removed
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/src/presentation/widgets/common/custom_button.dart';
+// CustomButton import removed
 import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
@@ -197,18 +197,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         firstDate: DateTime(1900),
         lastDate: DateTime.now(),
         helpText: "Select Date of Birth",
+        // M3 DatePicker should pick up colors from the main theme's colorScheme.
+        // Custom builder might not be necessary if the global theme is set up correctly.
+        // If specific overrides are still needed for the picker:
         builder: (context, child) {
+          final currentTheme = Theme.of(context);
           return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: AppColors.primaryColor,
-                onPrimary: Colors.white,
-              ),
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryColor,
-                ),
-              ),
+            data: currentTheme.copyWith(
+              // DatePicker uses colorScheme.primary for selected day, header background
+              // colorScheme.onPrimary for text on selected day, header text
+              // colorScheme.surface for dialog background (already themed)
+              // colorScheme.onSurface for text on dialog background
+              // textButtonTheme for OK/Cancel buttons (already themed)
+              // Ensure these are M3 defaults or app-specific.
             ),
             child: child!,
           );
@@ -478,8 +479,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: TextButton(
                     onPressed: _isLoading ? null : _saveProfile,
                     child: _isLoading
-                        ? SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary))
-                        : Text("SAVE", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                        ? SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary)) // Use primary for TextButton loader
+                        : Text("SAVE", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: Theme.of(context).textTheme.labelLarge?.fontWeight)), // M3 TextButton uses labelLarge
                   ),
                 )
             ],
@@ -492,15 +493,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   _buildSectionTitle('Personal Information'),
-                  CustomTextField( controller: _displayNameController, focusNode: _displayNameFocusNode, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name")),
+                  CustomTextField( controller: _displayNameController, focusNode: _displayNameFocusNode, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name"), textInputAction: TextInputAction.next),
                   SizedBox(height: 16.h),
-                  CustomTextField( controller: _emailController, focusNode: _emailFocusNode, labelText: AppStrings.email, prefixIcon: Icons.email_outlined, readOnly: true, enabled: false ),
+                  CustomTextField( controller: _emailController, focusNode: _emailFocusNode, labelText: AppStrings.email, prefixIcon: Icons.email_outlined, readOnly: true, enabled: false ), // Email is not editable
                   SizedBox(height: 16.h),
-                  _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth,
-                          (date) {
-                        if (mounted) {
-                          setState(() { _selectedDateOfBirth = date; _isDirty = true;});
-                        }
+                  _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth, (date) {
+                        if (mounted) { setState(() { _selectedDateOfBirth = date; _isDirty = true;}); }
                       }
                   ),
                   SizedBox(height: 16.h),
@@ -511,79 +509,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onChanged: (Gender? newValue) {
                       if (mounted) {
                         setState(() {
-                          _selectedGender = newValue;
-                          _isDirty = true;
+                          _selectedGender = newValue; _isDirty = true;
                           if (newValue != Gender.female) {
                             _selectedHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
-                            if (_selectedHealthConditions.isEmpty) {
-                              _selectedHealthConditions = [HealthCondition.none];
-                            }
+                            if (_selectedHealthConditions.isEmpty) _selectedHealthConditions = [HealthCondition.none];
                           }
                         });
                       }
                     },
                     itemAsString: _getGenderDisplayString,
-                    prefixIcon: Icons.wc_outlined,
+                    prefixIcon: Icons.wc, // Changed from Icons.wc_outlined
                   ),
                   SizedBox(height: 16.h),
-                  CustomTextField( controller: _heightController, focusNode: _heightFocusNode, labelText: 'Height (cm)', prefixIcon: Icons.height_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true), onChanged: (_) => _setIsDirty() ),
+                  CustomTextField( controller: _heightController, focusNode: _heightFocusNode, labelText: 'Height (cm)', prefixIcon: Icons.height_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true), onChanged: (_) => _setIsDirty(), textInputAction: TextInputAction.next ),
                   SizedBox(height: 16.h),
-                  CustomTextField( controller: _weightController, focusNode: _weightFocusNode, labelText: '${AppStrings.weight} (${AppStrings.kg})', prefixIcon: Icons.monitor_weight_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], onChanged: (_) => _setIsDirty() ),
+                  CustomTextField( controller: _weightController, focusNode: _weightFocusNode, labelText: '${AppStrings.weight} (${AppStrings.kg})', prefixIcon: Icons.monitor_weight_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], onChanged: (_) => _setIsDirty(), textInputAction: TextInputAction.next ),
                   SizedBox(height: 24.h),
 
                   _buildSectionTitle('Lifestyle & Environment'),
                   _buildDropdown<ActivityLevel?>(
-                    label: AppStrings.activityLevel,
-                    value: _selectedActivityLevel,
-                    items: [null, ...ActivityLevel.values],
-                    onChanged: (ActivityLevel? newValue) {
-                      if (mounted) {
-                        setState(() { _selectedActivityLevel = newValue; _isDirty = true; });
-                      }
-                    },
-                    itemAsString: _getActivityLevelDisplayString,
-                    prefixIcon: Icons.directions_run_outlined,
+                    label: AppStrings.activityLevel, value: _selectedActivityLevel, items: [null, ...ActivityLevel.values],
+                    onChanged: (ActivityLevel? newValue) { if (mounted) setState(() { _selectedActivityLevel = newValue; _isDirty = true; }); },
+                    itemAsString: _getActivityLevelDisplayString, prefixIcon: Icons.directions_run_outlined,
                   ),
                   SizedBox(height: 16.h),
                   _buildMultiSelectChipGroup<HealthCondition>(
-                    label: "Health Conditions (Optional)",
-                    allOptions: availableHealthConditions, // Uses the correctly filtered list
-                    selectedOptions: _selectedHealthConditions,
+                    label: "Health Conditions (Optional)", allOptions: availableHealthConditions, selectedOptions: _selectedHealthConditions,
                     optionAsString: _getHealthConditionDisplayString,
-                    onSelectionChanged: (selected) {
-                      if (mounted) {
-                        setState(() { _selectedHealthConditions = selected; _isDirty = true; });
-                      }
-                    },
+                    onSelectionChanged: (selected) { if (mounted) setState(() { _selectedHealthConditions = selected; _isDirty = true; }); },
                   ),
                   SizedBox(height: 16.h),
                   _buildDropdown<WeatherCondition>(
-                    label: "Typical Weather",
-                    value: _selectedWeatherCondition,
-                    items: WeatherCondition.values,
-                    onChanged: (WeatherCondition? newValue) {
-                      if (newValue != null && mounted) {
-                        setState(() { _selectedWeatherCondition = newValue; _isDirty = true; });
-                      }
-                    },
-                    itemAsString: _getWeatherConditionDisplayString,
-                    prefixIcon: Icons.thermostat_outlined,
+                    label: "Typical Weather", value: _selectedWeatherCondition, items: WeatherCondition.values,
+                    onChanged: (WeatherCondition? newValue) { if (newValue != null && mounted) setState(() { _selectedWeatherCondition = newValue; _isDirty = true; }); },
+                    itemAsString: _getWeatherConditionDisplayString, prefixIcon: Icons.thermostat, // Changed from Icons.thermostat_outlined
                   ),
                   SizedBox(height: 24.h),
 
                   _buildSectionTitle('Hydration Goal'),
-                  CustomTextField( 
-                    controller: _dailyGoalController, 
-                    focusNode: _dailyGoalFocusNode, 
-                    labelText: 'Daily Goal (${user.preferredUnit.displayName})', 
-                    prefixIcon: Icons.flag_outlined, 
-                    keyboardType: goalKeyboardType, 
-                    inputFormatters: goalInputFormatters, 
-                    validator: (val) => AppUtils.validateNumber(val, allowDecimal: isOz), 
-                    onChanged: (_) => _setIsDirty() 
-                  ),
+                  CustomTextField( controller: _dailyGoalController, focusNode: _dailyGoalFocusNode, labelText: 'Daily Goal (${user.preferredUnit.displayName})', prefixIcon: Icons.flag_outlined, keyboardType: goalKeyboardType, inputFormatters: goalInputFormatters, validator: (val) => AppUtils.validateNumber(val, allowDecimal: isOz), onChanged: (_) => _setIsDirty(), textInputAction: TextInputAction.done, onFieldSubmitted: (_) => _saveProfile() ),
                   SizedBox(height: 12.h),
-                  CustomButton( text: "Calculate Suggested Goal", onPressed: _calculateAndSuggestGoal, backgroundColor: Theme.of(context).colorScheme.secondary, textColor: Theme.of(context).colorScheme.onSecondary ),
+                  FilledButton.tonal( // Changed from CustomButton to FilledButton.tonal for M3 style
+                    onPressed: _calculateAndSuggestGoal, 
+                    child: const Text("Calculate Suggested Goal"),
+                    // FilledButton.tonal uses secondaryContainer and onSecondaryContainer by default from theme
+                  ),
                   SizedBox(height: 40.h),
                 ],
               ),
@@ -595,40 +565,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
+    final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h, top: 16.h),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+        style: theme.textTheme.titleLarge?.copyWith( // Changed to titleLarge for section headers
+          color: theme.colorScheme.primary,
+          // fontWeight removed, rely on M3 theme's definition
         ),
       ),
     );
   }
+
   Widget _buildDatePickerField(BuildContext context, String label, DateTime? selectedDate, Function(DateTime) onDateSelected) {
+    final theme = Theme.of(context);
+    final inputTheme = theme.inputDecorationTheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).hintColor)),
+        Text(label, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
         SizedBox(height: 8.h),
         InkWell(
           onTap: () => _selectDateOfBirth(context),
+          borderRadius: inputTheme.border?.borderRadius ?? BorderRadius.circular(4.r), // Use theme border radius
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
+            padding: inputTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).inputDecorationTheme.enabledBorder?.borderSide.color ?? Colors.grey),
-              borderRadius: BorderRadius.circular(8.r),
+              color: inputTheme.fillColor ?? theme.colorScheme.surfaceContainerHighest, // Use theme fill color
+              border: Border.all(color: inputTheme.enabledBorder?.borderSide.color ?? theme.colorScheme.outline),
+              borderRadius: inputTheme.border?.borderRadius ?? BorderRadius.circular(4.r), // Use theme border radius
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   selectedDate != null ? DateFormat.yMMMd().format(selectedDate) : 'Select Date',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 15.sp),
+                  style: theme.textTheme.bodyLarge, // Use M3 text style
                 ),
-                Icon(Icons.calendar_today_outlined, size: 20.sp, color: Theme.of(context).hintColor),
+                Icon(Icons.calendar_today_outlined, size: 20.sp, color: theme.colorScheme.onSurfaceVariant), // Use onSurfaceVariant
               ],
             ),
           ),
@@ -636,23 +613,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ],
     );
   }
+
   Widget _buildDropdown<T>({ required String label, required T value, required List<T> items, required ValueChanged<T?> onChanged, required String Function(T item) itemAsString, IconData? prefixIcon, }) {
+    final theme = Theme.of(context);
     return DropdownButtonFormField<T>(
+      // Decoration should largely come from inputDecorationTheme in AppTheme.
+      // Specific overrides like prefixIcon are fine.
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp) : null,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp, color: theme.colorScheme.onSurfaceVariant) : null,
+        // border, contentPadding, fillColor, filled will be from theme.
       ),
       value: value,
       items: items.map((T item) {
         return DropdownMenuItem<T>(
           value: item,
-          child: Text(itemAsString(item), style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 15.sp)),
+          child: Text(itemAsString(item), style: theme.textTheme.bodyLarge), // Use M3 text style
         );
       }).toList(),
       onChanged: onChanged,
       isExpanded: true,
+      // Dropdown specific styles like iconColor, dropdownColor can be set here if needed
+      // or ideally via DropdownMenuThemeData in AppTheme.
+      iconSize: 24.sp,
+      dropdownColor: theme.colorScheme.surfaceContainerHighest, // M3 dropdown menu background
     );
   }
 
@@ -663,18 +647,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String Function(T item) optionAsString,
     required Function(List<T> selected) onSelectionChanged,
   }) {
+    final theme = Theme.of(context);
+    final chipTheme = theme.chipTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).hintColor)),
+        Text(label, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
         SizedBox(height: 8.h),
         Wrap(
           spacing: 8.w,
-          runSpacing: 8.h,
+          runSpacing: 8.h, // Changed from 0.h to 8.h for M3 compliance
           children: allOptions.map((option) {
             final bool isSelected = selectedOptions.contains(option);
             return FilterChip(
-              label: Text(optionAsString(option), style: TextStyle(fontSize: 13.sp)),
+              label: Text(optionAsString(option)), // Style from chipTheme.labelStyle
               selected: isSelected,
               onSelected: (bool selected) {
                 List<T> newSelection = List.from(selectedOptions);
@@ -683,25 +670,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     newSelection = [option];
                   } else {
                     newSelection.removeWhere((item) => item == HealthCondition.none);
-                    if (!newSelection.contains(option)) {
-                      newSelection.add(option);
-                    }
+                    if (!newSelection.contains(option)) newSelection.add(option);
                   }
                 } else {
                   if (option != HealthCondition.none) {
                     newSelection.remove(option);
-                    if (newSelection.isEmpty) {
-                      newSelection.add(HealthCondition.none as T);
-                    }
+                    if (newSelection.isEmpty) newSelection.add(HealthCondition.none as T);
                   }
                 }
                 onSelectionChanged(newSelection);
               },
-              selectedColor: Theme.of(context).colorScheme.secondaryContainer, // Changed
-              checkmarkColor: Theme.of(context).colorScheme.onSecondaryContainer, // Changed
-              labelStyle: TextStyle(color: isSelected ? Theme.of(context).colorScheme.onSecondaryContainer : Theme.of(context).colorScheme.onSurfaceVariant), // Ensure text color contrasts
-              labelPadding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 0),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              // Styling from chipTheme in AppTheme:
+              // backgroundColor (unselected), selectedColor, checkmarkColor, labelStyle, shape, side.
+              // Ensure the global chipTheme is set for M3 FilterChip.
+              // If specific overrides are needed here:
+              // selectedColor: theme.colorScheme.secondaryContainer,
+              // checkmarkColor: theme.colorScheme.onSecondaryContainer,
+              // labelStyle: chipTheme.labelStyle?.copyWith(
+              //   color: isSelected ? theme.colorScheme.onSecondaryContainer : chipTheme.labelStyle?.color
+              // ),
+              // shape: chipTheme.shape,
+              // side: chipTheme.side,
             );
           }).toList(),
         ),

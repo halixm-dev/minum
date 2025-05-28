@@ -3,12 +3,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
+// AppColors import removed
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
-import 'package:minum/src/presentation/widgets/common/custom_button.dart';
+// CustomButton import removed
 import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:minum/src/presentation/widgets/common/social_login_button.dart';
 import 'package:provider/provider.dart';
@@ -92,36 +92,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Image.asset(
                     AppAssets.appLogo,
                     height: 70.h,
-                    errorBuilder: (context, error, stackTrace) => Icon(Icons.water_drop, size: 70.h, color: AppColors.primaryColor),
+                    color: Theme.of(context).colorScheme.primary, // Optionally tint logo
+                    errorBuilder: (context, error, stackTrace) => Icon(Icons.water_drop, size: 70.h, color: Theme.of(context).colorScheme.primary),
                   ),
-                  SizedBox(height: 10.h),
+                  SizedBox(height: 8.h), // Changed from 10.h to 8.h
                   Text(
                     'Create Account',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary, // Changed
-                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                      // fontWeight removed, use M3 theme's definition
                     ),
                   ),
                   SizedBox(height: 8.h),
                   Text(
                     'Join Minum and stay hydrated!',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant, // Adjusted for less emphasis
+                    ),
                   ),
                   SizedBox(height: 28.h),
 
-                  // Display Name Field
                   CustomTextField(
                     controller: _displayNameController,
                     labelText: 'Display Name',
                     hintText: 'Your Name',
                     prefixIcon: Icons.person_outline,
                     validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name"),
+                    textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 16.h),
 
-                  // Email Field
                   CustomTextField(
                     controller: _emailController,
                     labelText: AppStrings.email,
@@ -129,10 +131,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email_outlined,
                     validator: AppUtils.validateEmail,
+                    textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 16.h),
 
-                  // Password Field
                   CustomTextField(
                     controller: _passwordController,
                     labelText: AppStrings.password,
@@ -143,10 +145,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword)),
                     validator: AppUtils.validatePassword,
+                    textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 16.h),
 
-                  // Confirm Password Field
                   CustomTextField(
                     controller: _confirmPasswordController,
                     labelText: AppStrings.confirmPassword,
@@ -157,59 +159,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         icon: Icon(_obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                         onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword)),
                     validator: (value) => AppUtils.validateConfirmPassword(_passwordController.text, value),
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _registerUser(),
                   ),
                   SizedBox(height: 24.h),
 
-                  // Register Button
-                  CustomButton(
-                    text: AppStrings.register,
-                    isLoading: authProvider.authStatus == AuthStatus.authenticating &&
-                        (authProvider.errorMessage == null || !authProvider.errorMessage!.toLowerCase().contains("google")),
-                    onPressed: _registerUser,
+                  FilledButton( // Replaced CustomButton
+                    onPressed: authProvider.authStatus == AuthStatus.authenticating ? null : _registerUser,
+                    child: authProvider.authStatus == AuthStatus.authenticating &&
+                           (authProvider.errorMessage == null || !authProvider.errorMessage!.toLowerCase().contains("google"))
+                        ? SizedBox(
+                            width: 20.r, height: 20.r,
+                            child: CircularProgressIndicator(strokeWidth: 2.5, color: Theme.of(context).colorScheme.onPrimary))
+                        : const Text(AppStrings.register),
                   ),
                   SizedBox(height: 20.h),
 
-                  // "Or sign up with"
                   Row(
                     children: <Widget>[
                       const Expanded(child: Divider()),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Text('Or sign up with', style: Theme.of(context).textTheme.bodyMedium),
+                        child: Text('Or sign up with', style: Theme.of(context).textTheme.bodySmall), // Changed to bodySmall for hierarchy
                       ),
                       const Expanded(child: Divider()),
                     ],
                   ),
                   SizedBox(height: 20.h),
 
-                  // Google Register Button
                   SocialLoginButton(
                     text: AppStrings.registerWithGoogle,
-                    assetName: 'assets/images/google_logo.png', // Make sure you have this asset
+                    assetName: 'assets/images/google_logo.png',
                     isLoading: authProvider.authStatus == AuthStatus.authenticating &&
                         authProvider.errorMessage == null &&
-                        _emailController.text.isEmpty, // Basic check if it's Google auth
+                        _emailController.text.isEmpty, 
                     onPressed: _registerWithGoogle,
+                    style: OutlinedButton.styleFrom( // Consistent Google button styling
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+                      foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                      side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                    ).merge(Theme.of(context).outlinedButtonTheme.style),
                   ),
                   SizedBox(height: 32.h),
 
-                  // Already have an account? Login
                   Center(
                     child: RichText(
+                      textAlign: TextAlign.center, // Center align RichText
                       text: TextSpan(
                         text: AppStrings.alreadyHaveAccount,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         children: <TextSpan>[
                           TextSpan(
-                            text: AppStrings.signInHere,
-                            style: TextStyle( // Changed to use Theme.of(context)
-                              color: Theme.of(context).colorScheme.primary, // Changed
-                              fontWeight: FontWeight.bold,
+                            text: ' ${AppStrings.signInHere}', // Added space for better separation
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              // fontWeight removed, rely on theme or default
                               decoration: TextDecoration.underline,
+                              decorationColor: Theme.of(context).colorScheme.primary, // Explicit underline color
                             ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+                                if (authProvider.authStatus != AuthStatus.authenticating) { // Prevent navigation while loading
+                                  Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+                                }
                               },
                           ),
                         ],

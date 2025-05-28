@@ -49,41 +49,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bottomNavProvider = Provider.of<BottomNavProvider>(context);
     final currentIndex = bottomNavProvider.currentIndex;
-    // final user = Provider.of<UserProvider>(context).userProfile; // Removed as it's unused
+    final theme = Theme.of(context); // Store theme for easier access
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_appBarTitles[currentIndex]),
-        centerTitle: true,
-        actions: [
-          // Removed the conditional add button from AppBar actions.
-          // The FAB on the home screen is now the primary way to add water.
-          // if (currentIndex != 0)
-          //   IconButton(
-          //     icon: Icon(Icons.add_circle_outline, size: 28.sp, color: Theme.of(context).appBarTheme.actionsIconTheme?.color ?? Theme.of(context).primaryColor),
-          //     tooltip: "Add Water",
-          //     onPressed: () {
-          //       Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
-          //     },
-          //   ),
-          // Removed profile icon from Settings tab AppBar as per new requirements
-          // if (currentIndex == 2) 
-          //   IconButton(
-          //     icon: CircleAvatar(
-          //       radius: 16.r,
-          //       backgroundColor: AppColors.primaryColor.withAlpha(50),
-          //       backgroundImage: (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
-          //           ? NetworkImage(user.photoUrl!)
-          //           : null,
-          //       child: (user?.photoUrl == null || user!.photoUrl!.isEmpty)
-          //           ? Icon(Icons.person_outline, size: 18.sp, color: AppColors.primaryColor)
-          //           : null,
-          //     ),
-          //     onPressed: () {
-          //       Navigator.of(context).pushNamed(AppRoutes.profile);
-          //     },
-          //   ),
-        ],
+        // centerTitle and actions will be handled by appBarTheme from AppTheme
       ),
       body: IndexedStack(
         index: currentIndex,
@@ -91,60 +62,46 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: currentIndex == 0
           ? FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
-        },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        tooltip: "Log Water Intake",
-        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary, size: 28.sp),
-      )
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
+              },
+              // backgroundColor and foregroundColor will be handled by floatingActionButtonTheme
+              tooltip: "Log Water Intake",
+              child: Icon(Icons.add, size: 28.sp), // Icon color will also be from theme
+            )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).bottomAppBarTheme.color ?? Theme.of(context).colorScheme.surface,
-        elevation: Theme.of(context).bottomAppBarTheme.elevation ?? 8.0,
-        child: SizedBox(
-          height: 60.h,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              _buildNavItem(context: context, icon: Icons.home_outlined, label: 'Home', index: 0),
-              _buildNavItem(context: context, icon: Icons.bar_chart_outlined, label: 'History', index: 1),
-              _buildNavItem(context: context, icon: Icons.settings_outlined, label: 'Settings', index: 2),
-            ],
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // M3 default is often .centerFloat with BottomAppBar, or .endFloat
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: currentIndex,
+        onDestinationSelected: (index) {
+          bottomNavProvider.setCurrentIndex(index);
+        },
+        // Styling for NavigationBar comes from navigationBarTheme in AppTheme:
+        // - backgroundColor: colorScheme.surfaceContainer
+        // - indicatorColor: colorScheme.secondaryContainer
+        // - iconTheme: (selected: onSecondaryContainer, unselected: onSurfaceVariant)
+        // - labelTextStyle: (selected: onSurface, unselected: onSurfaceVariant, using labelMedium)
+        // - height: 80.h
+        // - elevation: 2.0
+        destinations: const <Widget>[
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home), // M3 often uses filled icons for selected state
+            label: 'Home',
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({required BuildContext context, required IconData icon, required String label, required int index}) {
-    final bottomNavProvider = Provider.of<BottomNavProvider>(context, listen: false);
-    final currentTab = Provider.of<BottomNavProvider>(context).currentIndex;
-    final isSelected = currentTab == index;
-    final color = isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).unselectedWidgetColor;
-
-    return Expanded(
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: () => bottomNavProvider.setCurrentIndex(index),
-          splashColor: Theme.of(context).colorScheme.primary.withAlpha(30),
-          highlightColor: Theme.of(context).colorScheme.primary.withAlpha(15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(icon, color: color, size: 24.sp),
-              SizedBox(height: 2.h),
-              Text(
-                label,
-                style: TextStyle(color: color, fontSize: 10.sp, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+          NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'History',
           ),
-        ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
       ),
     );
   }
 }
+// _buildNavItem method is no longer needed as NavigationBar handles its items directly.
