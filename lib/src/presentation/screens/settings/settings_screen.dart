@@ -167,15 +167,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) { // Ensure context is valid before using Provider
       Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
         logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed after saving settings.");
-        // Notify that settings have changed AFTER rescheduling is attempted
-        Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged(); // <-- ADD THIS LINE
+        Future.delayed(const Duration(milliseconds: 200), () { // <-- ADD DELAY
+          if (mounted) { // Check mounted again after delay
+            Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged();
+          }
+        });
       }).catchError((e) {
         logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(): $e");
-        // Optionally, you might still want to notify if there's an error,
-        // or perhaps handle this state differently in the listener.
-        // For now, we'll notify even if rescheduling had an error,
-        // as the settings themselves *were* saved.
-        Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged(); // <-- ADD THIS LINE (or decide if only on success)
+        Future.delayed(const Duration(milliseconds: 200), () { // <-- ADD DELAY
+          if (mounted) { // Check mounted again after delay
+            Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged();
+          }
+        });
       });
     }
   }
