@@ -44,7 +44,8 @@ class WelcomeScreen extends StatelessWidget {
                   height: 120.h,
                   errorBuilder: (context, error, stackTrace) {
                     logger.e("WelcomeScreen: Error loading app logo: $error");
-                    return Icon(Icons.water_drop_rounded, size: 120.h, color: AppColors.primaryColor);
+                    return Icon(Icons.water_drop_rounded,
+                        size: 120.h, color: AppColors.primaryColor);
                   },
                 ),
                 SizedBox(height: 16.h),
@@ -68,10 +69,12 @@ class WelcomeScreen extends StatelessWidget {
                 CustomButton(
                   text: 'Start Now',
                   onPressed: () {
-                    logger.i("WelcomeScreen: 'Start Now' pressed. Navigating to HomeScreen.");
+                    logger.i(
+                        "WelcomeScreen: 'Start Now' pressed. Navigating to HomeScreen.");
                     // Navigate directly to HomeScreen, implying a guest mode or skipping login for now.
                     // AuthGate will still protect routes if actual authentication is required later.
-                    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.home, (route) => false);
                   },
                   backgroundColor: AppColors.primaryColor,
                   textColor: Colors.white,
@@ -80,10 +83,13 @@ class WelcomeScreen extends StatelessWidget {
                 CustomButton(
                   text: AppStrings.login,
                   onPressed: () {
-                    logger.i("WelcomeScreen: 'Login' pressed. Navigating to LoginScreen.");
+                    logger.i(
+                        "WelcomeScreen: 'Login' pressed. Navigating to LoginScreen.");
                     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
                   },
-                  backgroundColor: theme.brightness == Brightness.light ? Colors.white : AppColors.darkSurface,
+                  backgroundColor: theme.brightness == Brightness.light
+                      ? Colors.white
+                      : AppColors.darkSurface,
                   textColor: AppColors.primaryColor,
                   // Add a border for better visual distinction for the secondary button
                   // This requires modifying CustomButton or using OutlinedButton directly.

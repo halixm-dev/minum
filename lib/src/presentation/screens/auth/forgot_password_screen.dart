@@ -43,7 +43,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       } catch (e) {
         if (mounted) {
-          AppUtils.showSnackBar(context, authProvider.errorMessage ?? e.toString(), isError: true);
+          AppUtils.showSnackBar(
+              context, authProvider.errorMessage ?? e.toString(),
+              isError: true);
         }
       } finally {
         if (mounted) {
@@ -71,14 +73,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Icon(Icons.lock_reset_outlined, size: 70.h, color: Theme.of(context).colorScheme.primary), // Changed
+                  Icon(Icons.lock_reset_outlined,
+                      size: 70.h,
+                      color: Theme.of(context).colorScheme.primary), // Changed
                   SizedBox(height: 20.h),
                   Text(
                     'Forgot Your Password?',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   SizedBox(height: 12.h),
                   Text(
@@ -109,7 +113,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   TextButton(
                     onPressed: () {
-                      if (!_isLoading) Navigator.of(context).pop(); // Go back to Login
+                      if (!_isLoading)
+                        Navigator.of(context).pop(); // Go back to Login
                     },
                     child: const Text('Back to Login'),
                   )

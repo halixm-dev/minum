@@ -20,7 +20,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   final List<Widget> _screens = [
     const MainHydrationView(),
     const HydrationHistoryScreen(),
@@ -37,10 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    if (userProvider.userProfile == null && userProvider.status != UserProfileStatus.loading) {
-      final authUser = Provider.of<AuthProvider>(context, listen: false).currentUser;
+    if (userProvider.userProfile == null &&
+        userProvider.status != UserProfileStatus.loading) {
+      final authUser =
+          Provider.of<AuthProvider>(context, listen: false).currentUser;
       if (authUser != null) {
-        logger.i("HomeScreen initState: User profile is null, UserProvider should fetch it via auth state changes.");
+        logger.i(
+            "HomeScreen initState: User profile is null, UserProvider should fetch it via auth state changes.");
       }
     }
   }
@@ -67,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
           //     },
           //   ),
           // Removed profile icon from Settings tab AppBar as per new requirements
-          // if (currentIndex == 2) 
+          // if (currentIndex == 2)
           //   IconButton(
           //     icon: CircleAvatar(
           //       radius: 16.r,
@@ -91,26 +93,40 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: currentIndex == 0
           ? FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
-        },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        tooltip: "Log Water Intake",
-        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary, size: 28.sp),
-      )
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
+              },
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              tooltip: "Log Water Intake",
+              child: Icon(Icons.add,
+                  color: Theme.of(context).colorScheme.onPrimary, size: 28.sp),
+            )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).bottomAppBarTheme.color ?? Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).bottomAppBarTheme.color ??
+            Theme.of(context).colorScheme.surface,
         elevation: Theme.of(context).bottomAppBarTheme.elevation ?? 8.0,
         child: SizedBox(
           height: 60.h,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
-              _buildNavItem(context: context, icon: Icons.home_outlined, label: 'Home', index: 0),
-              _buildNavItem(context: context, icon: Icons.bar_chart_outlined, label: 'History', index: 1),
-              _buildNavItem(context: context, icon: Icons.settings_outlined, label: 'Settings', index: 2),
+              _buildNavItem(
+                  context: context,
+                  icon: Icons.home_outlined,
+                  label: 'Home',
+                  index: 0),
+              _buildNavItem(
+                  context: context,
+                  icon: Icons.bar_chart_outlined,
+                  label: 'History',
+                  index: 1),
+              _buildNavItem(
+                  context: context,
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  index: 2),
             ],
           ),
         ),
@@ -118,11 +134,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem({required BuildContext context, required IconData icon, required String label, required int index}) {
-    final bottomNavProvider = Provider.of<BottomNavProvider>(context, listen: false);
+  Widget _buildNavItem(
+      {required BuildContext context,
+      required IconData icon,
+      required String label,
+      required int index}) {
+    final bottomNavProvider =
+        Provider.of<BottomNavProvider>(context, listen: false);
     final currentTab = Provider.of<BottomNavProvider>(context).currentIndex;
     final isSelected = currentTab == index;
-    final color = isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).unselectedWidgetColor;
+    final color = isSelected
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).unselectedWidgetColor;
 
     return Expanded(
       child: Material(
@@ -138,7 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(height: 2.h),
               Text(
                 label,
-                style: TextStyle(color: color, fontSize: 10.sp, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
+                style: TextStyle(
+                    color: color,
+                    fontSize: 10.sp,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal),
                 overflow: TextOverflow.ellipsis,
               ),
             ],

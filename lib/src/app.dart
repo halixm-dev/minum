@@ -11,7 +11,6 @@ import 'package:minum/src/presentation/providers/hydration_provider.dart'; // Ad
 // For logger - assuming it's available via another import or globally, if not, add:
 // import 'package:minum/main.dart';
 
-
 class MinumApp extends StatefulWidget {
   const MinumApp({super.key});
 
@@ -46,14 +45,17 @@ class _MinumAppState extends State<MinumApp> {
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (screenUtilContext, child) { // Renamed context to avoid conflict, though not strictly necessary here
+      builder: (screenUtilContext, child) {
+        // Renamed context to avoid conflict, though not strictly necessary here
         return DynamicColorBuilder(
-          builder: (ColorScheme? lightDynamicScheme, ColorScheme? darkDynamicScheme) {
+          builder: (ColorScheme? lightDynamicScheme,
+              ColorScheme? darkDynamicScheme) {
             // Update ThemeProvider with the dynamic palettes after the build frame.
             // Use the 'context' from MinumApp's build method, which has ThemeProvider in its widget tree.
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Provider.of<ThemeProvider>(context, listen: false)
-                  .setDynamicColorSchemes(lightDynamicScheme, darkDynamicScheme);
+                  .setDynamicColorSchemes(
+                      lightDynamicScheme, darkDynamicScheme);
             });
 
             return MaterialApp(
@@ -67,7 +69,8 @@ class _MinumAppState extends State<MinumApp> {
               home: const AuthGateScreen(),
               onGenerateRoute: AppRouter.generateRoute,
 
-              builder: (materialAppContext, widget) { // This builder is for MaterialApp
+              builder: (materialAppContext, widget) {
+                // This builder is for MaterialApp
                 return widget!;
               },
             );

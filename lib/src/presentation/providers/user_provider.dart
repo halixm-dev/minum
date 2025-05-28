@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/data/repositories/user_repository.dart';
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
+import 'package:minum/src/data/repositories/local/local_hydration_repository.dart'
+    show guestUserId;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
 
@@ -34,9 +35,12 @@ class UserProvider with ChangeNotifier {
   UserModel? get userProfile => _userProfile;
   UserProfileStatus get status => _status;
   String? get errorMessage => _errorMessage;
-  bool get isGuestUser => _userProfile != null && _userProfile!.id == guestUserId;
+  bool get isGuestUser =>
+      _userProfile != null && _userProfile!.id == guestUserId;
 
-  UserProvider({required AuthService authService, required UserRepository userRepository})
+  UserProvider(
+      {required AuthService authService,
+      required UserRepository userRepository})
       : _authService = authService,
         _userRepository = userRepository {
     _subscribeToAuthChanges();
@@ -46,7 +50,8 @@ class UserProvider with ChangeNotifier {
     if (!_isDisposed) {
       notifyListeners();
     } else {
-      logger.w("UserProvider: Attempted to call notifyListeners() after dispose.");
+      logger.w(
+          "UserProvider: Attempted to call notifyListeners() after dispose.");
     }
   }
 
@@ -55,32 +60,40 @@ class UserProvider with ChangeNotifier {
     try {
       return enumValues.firstWhere((e) => e.toString() == enumString);
     } catch (e) {
-      logger.w("UserProvider: Could not parse enum string '$enumString' for type $T. Returning null.");
+      logger.w(
+          "UserProvider: Could not parse enum string '$enumString' for type $T. Returning null.");
       return null;
     }
   }
 
   void _subscribeToAuthChanges() {
-    _authSubscription = _authService.authStateChanges.listen((UserModel? authUserFromService) async {
+    _authSubscription = _authService.authStateChanges
+        .listen((UserModel? authUserFromService) async {
       if (_isDisposed) return;
 
-      if (authUserFromService != null && authUserFromService.id.isNotEmpty && authUserFromService.id != guestUserId) {
-        logger.i("UserProvider: Auth user detected (ID: ${authUserFromService.id}). Setting profile.");
+      if (authUserFromService != null &&
+          authUserFromService.id.isNotEmpty &&
+          authUserFromService.id != guestUserId) {
+        logger.i(
+            "UserProvider: Auth user detected (ID: ${authUserFromService.id}). Setting profile.");
 
         _status = UserProfileStatus.loading;
         _safeNotifyListeners();
 
-        UserModel? firebaseProfile = await _userRepository.getUser(authUserFromService.id);
+        UserModel? firebaseProfile =
+            await _userRepository.getUser(authUserFromService.id);
         if (_isDisposed) return;
 
         final prefs = await SharedPreferences.getInstance();
         if (_isDisposed) return;
 
         if (firebaseProfile != null) {
-          firebaseProfile = await _migrateGuestSettingsToFirebaseUser(firebaseProfile, prefs);
+          firebaseProfile =
+              await _migrateGuestSettingsToFirebaseUser(firebaseProfile, prefs);
           _userProfile = firebaseProfile;
         } else {
-          logger.w("UserProvider: Firestore document not found for user ${authUserFromService.id}. Constructing temporary profile and migrating guest settings.");
+          logger.w(
+              "UserProvider: Firestore document not found for user ${authUserFromService.id}. Constructing temporary profile and migrating guest settings.");
           UserModel tempProfile = UserModel(
             id: authUserFromService.id,
             email: authUserFromService.email,
@@ -88,13 +101,16 @@ class UserProvider with ChangeNotifier {
             photoUrl: authUserFromService.photoUrl,
             createdAt: authUserFromService.createdAt,
           );
-          _userProfile = await _migrateGuestSettingsToFirebaseUser(tempProfile, prefs);
+          _userProfile =
+              await _migrateGuestSettingsToFirebaseUser(tempProfile, prefs);
         }
         _status = UserProfileStatus.loaded;
         _errorMessage = null;
-        logger.i("UserProvider: User profile set/updated: ${_userProfile?.displayName}");
+        logger.i(
+            "UserProvider: User profile set/updated: ${_userProfile?.displayName}");
       } else {
-        logger.i("UserProvider: No authenticated Firebase user. Loading/creating guest profile.");
+        logger.i(
+            "UserProvider: No authenticated Firebase user. Loading/creating guest profile.");
         await _loadGuestProfile();
       }
       _safeNotifyListeners();
@@ -110,29 +126,53 @@ class UserProvider with ChangeNotifier {
       if (_isDisposed) return;
 
       final double guestGoal = prefs.getDouble(prefsGuestDailyGoalMl) ?? 2000.0;
-      final MeasurementUnit guestUnit = _parseEnum(prefs.getString(prefsGuestPreferredUnit), MeasurementUnit.values) ?? MeasurementUnit.ml;
-      final List<String> guestFavorites = prefs.getStringList(prefsGuestFavoriteVolumes) ?? const ['250', '500', '750'];
+      final MeasurementUnit guestUnit = _parseEnum(
+              prefs.getString(prefsGuestPreferredUnit),
+              MeasurementUnit.values) ??
+          MeasurementUnit.ml;
+      final List<String> guestFavorites =
+          prefs.getStringList(prefsGuestFavoriteVolumes) ??
+              const ['250', '500', '750'];
       DateTime? guestDob;
       final String? dobString = prefs.getString(prefsGuestDateOfBirth);
       if (dobString != null) guestDob = DateTime.tryParse(dobString);
-      final Gender? guestGender = _parseEnum(prefs.getString(prefsGuestGender), Gender.values);
+      final Gender? guestGender =
+          _parseEnum(prefs.getString(prefsGuestGender), Gender.values);
       final double? guestWeight = prefs.getDouble(prefsGuestWeightKg);
       final double? guestHeight = prefs.getDouble(prefsGuestHeightCm);
-      final ActivityLevel? guestActivity = _parseEnum(prefs.getString(prefsGuestActivityLevel), ActivityLevel.values);
+      final ActivityLevel? guestActivity = _parseEnum(
+          prefs.getString(prefsGuestActivityLevel), ActivityLevel.values);
       List<HealthCondition> guestHealth = [HealthCondition.none];
-      final List<String>? healthStrings = prefs.getStringList(prefsGuestHealthConditions);
+      final List<String>? healthStrings =
+          prefs.getStringList(prefsGuestHealthConditions);
       if (healthStrings != null) {
-        guestHealth = healthStrings.map((s) => _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
-            .where((item) => item != HealthCondition.none || healthStrings.length == 1).toList();
+        guestHealth = healthStrings
+            .map((s) =>
+                _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
+            .where((item) =>
+                item != HealthCondition.none || healthStrings.length == 1)
+            .toList();
         if (guestHealth.isEmpty) guestHealth = [HealthCondition.none];
       }
-      final WeatherCondition guestWeather = _parseEnum(prefs.getString(prefsGuestSelectedWeather), WeatherCondition.values) ?? WeatherCondition.temperate;
+      final WeatherCondition guestWeather = _parseEnum(
+              prefs.getString(prefsGuestSelectedWeather),
+              WeatherCondition.values) ??
+          WeatherCondition.temperate;
 
       _userProfile = UserModel(
-        id: guestUserId, displayName: "Guest User", createdAt: DateTime.now(),
-        dailyGoalMl: guestGoal, preferredUnit: guestUnit, favoriteIntakeVolumes: guestFavorites,
-        dateOfBirth: guestDob, gender: guestGender, weightKg: guestWeight, heightCm: guestHeight,
-        activityLevel: guestActivity, healthConditions: guestHealth, selectedWeatherCondition: guestWeather,
+        id: guestUserId,
+        displayName: "Guest User",
+        createdAt: DateTime.now(),
+        dailyGoalMl: guestGoal,
+        preferredUnit: guestUnit,
+        favoriteIntakeVolumes: guestFavorites,
+        dateOfBirth: guestDob,
+        gender: guestGender,
+        weightKg: guestWeight,
+        heightCm: guestHeight,
+        activityLevel: guestActivity,
+        healthConditions: guestHealth,
+        selectedWeatherCondition: guestWeather,
       );
       _status = UserProfileStatus.loaded;
       logger.i("UserProvider: Guest profile loaded/created: $_userProfile");
@@ -141,70 +181,107 @@ class UserProvider with ChangeNotifier {
       _status = UserProfileStatus.error;
       _errorMessage = "Failed to load guest profile: $e";
       logger.e("UserProvider: Error loading guest profile: $e");
-      _userProfile = UserModel(id: guestUserId, createdAt: DateTime.now(), displayName: "Guest");
+      _userProfile = UserModel(
+          id: guestUserId, createdAt: DateTime.now(), displayName: "Guest");
     }
     // Note: _safeNotifyListeners() is called by the method that invokes _loadGuestProfile (e.g. _subscribeToAuthChanges)
   }
 
-  Future<UserModel> _migrateGuestSettingsToFirebaseUser(UserModel firebaseUser, SharedPreferences prefs) async {
+  Future<UserModel> _migrateGuestSettingsToFirebaseUser(
+      UserModel firebaseUser, SharedPreferences prefs) async {
     if (_isDisposed) return firebaseUser;
     // ... (migration logic as before, it doesn't call notifyListeners itself)
     bool needsUpdate = false;
     UserModel userToUpdateWithGuestSettings = firebaseUser;
 
-    double? migrateDouble(String key, double? firebaseVal, double? defaultValFirebase) {
+    double? migrateDouble(
+        String key, double? firebaseVal, double? defaultValFirebase) {
       double? guestVal = prefs.getDouble(key);
-      if (guestVal != null && (firebaseVal == defaultValFirebase || firebaseVal == null || firebaseVal != guestVal)) {
+      if (guestVal != null &&
+          (firebaseVal == defaultValFirebase ||
+              firebaseVal == null ||
+              firebaseVal != guestVal)) {
         return guestVal;
       }
       return firebaseVal;
     }
 
-    T? migrateEnum<T extends Enum>(String prefKey, T? firebaseVal, List<T> enumValues, T? defaultEnumValFirebase) {
+    T? migrateEnum<T extends Enum>(String prefKey, T? firebaseVal,
+        List<T> enumValues, T? defaultEnumValFirebase) {
       String? guestValString = prefs.getString(prefKey);
       if (guestValString != null) {
         T? guestVal = _parseEnum(guestValString, enumValues);
-        if (guestVal != null && (firebaseVal == null || firebaseVal == defaultEnumValFirebase || firebaseVal != guestVal)) {
+        if (guestVal != null &&
+            (firebaseVal == null ||
+                firebaseVal == defaultEnumValFirebase ||
+                firebaseVal != guestVal)) {
           return guestVal;
         }
       }
       return firebaseVal;
     }
 
-    final initialProfileSnapshot = userToUpdateWithGuestSettings; // For comparison
+    final initialProfileSnapshot =
+        userToUpdateWithGuestSettings; // For comparison
 
     userToUpdateWithGuestSettings = userToUpdateWithGuestSettings.copyWith(
-        dailyGoalMl: migrateDouble(prefsGuestDailyGoalMl, initialProfileSnapshot.dailyGoalMl, 2000.0),
-        preferredUnit: migrateEnum(prefsGuestPreferredUnit, initialProfileSnapshot.preferredUnit, MeasurementUnit.values, MeasurementUnit.ml) ?? MeasurementUnit.ml,
-        dateOfBirth: DateTime.tryParse(prefs.getString(prefsGuestDateOfBirth) ?? "") ?? initialProfileSnapshot.dateOfBirth,
-        gender: migrateEnum(prefsGuestGender, initialProfileSnapshot.gender, Gender.values, null),
-        weightKg: migrateDouble(prefsGuestWeightKg, initialProfileSnapshot.weightKg, null),
-        heightCm: migrateDouble(prefsGuestHeightCm, initialProfileSnapshot.heightCm, null),
-        activityLevel: migrateEnum(prefsGuestActivityLevel, initialProfileSnapshot.activityLevel, ActivityLevel.values, null)
-    );
+        dailyGoalMl: migrateDouble(
+            prefsGuestDailyGoalMl, initialProfileSnapshot.dailyGoalMl, 2000.0),
+        preferredUnit: migrateEnum(
+                prefsGuestPreferredUnit,
+                initialProfileSnapshot.preferredUnit,
+                MeasurementUnit.values,
+                MeasurementUnit.ml) ??
+            MeasurementUnit.ml,
+        dateOfBirth:
+            DateTime.tryParse(prefs.getString(prefsGuestDateOfBirth) ?? "") ??
+                initialProfileSnapshot.dateOfBirth,
+        gender: migrateEnum(prefsGuestGender, initialProfileSnapshot.gender,
+            Gender.values, null),
+        weightKg: migrateDouble(
+            prefsGuestWeightKg, initialProfileSnapshot.weightKg, null),
+        heightCm: migrateDouble(
+            prefsGuestHeightCm, initialProfileSnapshot.heightCm, null),
+        activityLevel: migrateEnum(prefsGuestActivityLevel,
+            initialProfileSnapshot.activityLevel, ActivityLevel.values, null));
 
     final guestFavorites = prefs.getStringList(prefsGuestFavoriteVolumes);
     if (guestFavorites != null && guestFavorites.isNotEmpty) {
       final defaultFavs = const ['250', '500', '750'];
-      bool firebaseIsDefaultFavs = listEquals(initialProfileSnapshot.favoriteIntakeVolumes, defaultFavs);
-      if (firebaseIsDefaultFavs || !listEquals(initialProfileSnapshot.favoriteIntakeVolumes, guestFavorites)) {
-        userToUpdateWithGuestSettings = userToUpdateWithGuestSettings.copyWith(favoriteIntakeVolumes: guestFavorites);
+      bool firebaseIsDefaultFavs =
+          listEquals(initialProfileSnapshot.favoriteIntakeVolumes, defaultFavs);
+      if (firebaseIsDefaultFavs ||
+          !listEquals(
+              initialProfileSnapshot.favoriteIntakeVolumes, guestFavorites)) {
+        userToUpdateWithGuestSettings = userToUpdateWithGuestSettings.copyWith(
+            favoriteIntakeVolumes: guestFavorites);
       }
     }
 
     final healthStrings = prefs.getStringList(prefsGuestHealthConditions);
     if (healthStrings != null) {
-      List<HealthCondition> guestHealth = healthStrings.map((s) => _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
-          .where((item) => item != HealthCondition.none || healthStrings.length == 1).toList();
-      if (guestHealth.isEmpty) { guestHealth = [HealthCondition.none]; }
+      List<HealthCondition> guestHealth = healthStrings
+          .map((s) =>
+              _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
+          .where((item) =>
+              item != HealthCondition.none || healthStrings.length == 1)
+          .toList();
+      if (guestHealth.isEmpty) {
+        guestHealth = [HealthCondition.none];
+      }
       if (!listEquals(initialProfileSnapshot.healthConditions, guestHealth)) {
-        userToUpdateWithGuestSettings = userToUpdateWithGuestSettings.copyWith(healthConditions: guestHealth);
+        userToUpdateWithGuestSettings = userToUpdateWithGuestSettings.copyWith(
+            healthConditions: guestHealth);
       }
     }
 
     userToUpdateWithGuestSettings = userToUpdateWithGuestSettings.copyWith(
-        selectedWeatherCondition: migrateEnum(prefsGuestSelectedWeather, initialProfileSnapshot.selectedWeatherCondition, WeatherCondition.values, WeatherCondition.temperate) ?? WeatherCondition.temperate
-    );
+        selectedWeatherCondition: migrateEnum(
+                prefsGuestSelectedWeather,
+                initialProfileSnapshot.selectedWeatherCondition,
+                WeatherCondition.values,
+                WeatherCondition.temperate) ??
+            WeatherCondition.temperate);
 
     // Determine if any actual change occurred that requires a Firebase update
     if (userToUpdateWithGuestSettings != initialProfileSnapshot) {
@@ -212,55 +289,92 @@ class UserProvider with ChangeNotifier {
     }
 
     if (needsUpdate) {
-      logger.i("UserProvider: Migrating guest settings to user ${firebaseUser.id}");
+      logger.i(
+          "UserProvider: Migrating guest settings to user ${firebaseUser.id}");
       try {
         await _userRepository.updateUser(userToUpdateWithGuestSettings);
         if (_isDisposed) return firebaseUser;
-        logger.i("UserProvider: Successfully migrated/updated Firebase profile with guest settings for user ${firebaseUser.id}.");
+        logger.i(
+            "UserProvider: Successfully migrated/updated Firebase profile with guest settings for user ${firebaseUser.id}.");
 
-        await prefs.remove(prefsGuestDailyGoalMl); await prefs.remove(prefsGuestPreferredUnit);
-        await prefs.remove(prefsGuestFavoriteVolumes); await prefs.remove(prefsGuestDateOfBirth);
-        await prefs.remove(prefsGuestGender); await prefs.remove(prefsGuestWeightKg);
-        await prefs.remove(prefsGuestHeightCm); await prefs.remove(prefsGuestActivityLevel);
-        await prefs.remove(prefsGuestHealthConditions); await prefs.remove(prefsGuestSelectedWeather);
-        logger.i("UserProvider: Cleared all migrated guest settings from SharedPreferences.");
+        await prefs.remove(prefsGuestDailyGoalMl);
+        await prefs.remove(prefsGuestPreferredUnit);
+        await prefs.remove(prefsGuestFavoriteVolumes);
+        await prefs.remove(prefsGuestDateOfBirth);
+        await prefs.remove(prefsGuestGender);
+        await prefs.remove(prefsGuestWeightKg);
+        await prefs.remove(prefsGuestHeightCm);
+        await prefs.remove(prefsGuestActivityLevel);
+        await prefs.remove(prefsGuestHealthConditions);
+        await prefs.remove(prefsGuestSelectedWeather);
+        logger.i(
+            "UserProvider: Cleared all migrated guest settings from SharedPreferences.");
         return userToUpdateWithGuestSettings;
       } catch (e) {
-        logger.e("UserProvider: Error migrating guest settings to Firebase for user ${firebaseUser.id}: $e");
+        logger.e(
+            "UserProvider: Error migrating guest settings to Firebase for user ${firebaseUser.id}: $e");
       }
     } else {
-      logger.i("UserProvider: No guest settings needed migration for user ${firebaseUser.id}.");
+      logger.i(
+          "UserProvider: No guest settings needed migration for user ${firebaseUser.id}.");
     }
     return userToUpdateWithGuestSettings; // Return original or updated if no Firebase save was needed/done
   }
 
   Future<void> fetchUserProfile(String uid) async {
     // ... (logic as before, ensuring _migrateGuestSettingsToFirebaseUser is called with prefs)
-    if (_isDisposed) { return; }
-    if (uid == guestUserId) { await _loadGuestProfile(); _safeNotifyListeners(); return; }
-    if (uid.isEmpty) { _status = UserProfileStatus.idle; _userProfile = null; _safeNotifyListeners(); return; }
+    if (_isDisposed) {
+      return;
+    }
+    if (uid == guestUserId) {
+      await _loadGuestProfile();
+      _safeNotifyListeners();
+      return;
+    }
+    if (uid.isEmpty) {
+      _status = UserProfileStatus.idle;
+      _userProfile = null;
+      _safeNotifyListeners();
+      return;
+    }
 
-    _status = UserProfileStatus.loading; _errorMessage = null; _safeNotifyListeners();
+    _status = UserProfileStatus.loading;
+    _errorMessage = null;
+    _safeNotifyListeners();
     try {
       _userProfile = await _userRepository.getUser(uid);
-      if (_isDisposed) { return; }
+      if (_isDisposed) {
+        return;
+      }
       if (_userProfile == null) {
         final fbAuthUser = _authService.currentUser;
         if (fbAuthUser != null && fbAuthUser.id == uid) {
-          UserModel newProfileFromAuth = UserModel(id: uid, email: fbAuthUser.email, displayName: fbAuthUser.displayName, photoUrl: fbAuthUser.photoUrl, createdAt: fbAuthUser.createdAt);
+          UserModel newProfileFromAuth = UserModel(
+              id: uid,
+              email: fbAuthUser.email,
+              displayName: fbAuthUser.displayName,
+              photoUrl: fbAuthUser.photoUrl,
+              createdAt: fbAuthUser.createdAt);
           final prefsForMigration = await SharedPreferences.getInstance();
-          if (_isDisposed) { return; }
-          _userProfile = await _migrateGuestSettingsToFirebaseUser(newProfileFromAuth, prefsForMigration);
+          if (_isDisposed) {
+            return;
+          }
+          _userProfile = await _migrateGuestSettingsToFirebaseUser(
+              newProfileFromAuth, prefsForMigration);
           _status = UserProfileStatus.loaded;
         } else {
-          _status = UserProfileStatus.error; _errorMessage = "User profile not found and no auth user.";
+          _status = UserProfileStatus.error;
+          _errorMessage = "User profile not found and no auth user.";
         }
       } else {
         _status = UserProfileStatus.loaded;
       }
     } catch (e) {
-      if (_isDisposed) { return; }
-      _status = UserProfileStatus.error; _errorMessage = "Failed to fetch user profile: ${e.toString()}";
+      if (_isDisposed) {
+        return;
+      }
+      _status = UserProfileStatus.error;
+      _errorMessage = "Failed to fetch user profile: ${e.toString()}";
     }
     _safeNotifyListeners();
   }
@@ -276,22 +390,64 @@ class UserProvider with ChangeNotifier {
     try {
       if (updatedProfile.id == guestUserId) {
         final prefs = await SharedPreferences.getInstance();
-        if (_isDisposed) { _status = UserProfileStatus.idle; /* Or previous status */ return; } // Revert status if disposed
+        if (_isDisposed) {
+          _status = UserProfileStatus.idle;
+          /* Or previous status */ return;
+        } // Revert status if disposed
 
-        await prefs.setDouble(prefsGuestDailyGoalMl, updatedProfile.dailyGoalMl);
-        await prefs.setString(prefsGuestPreferredUnit, updatedProfile.preferredUnit.toString());
-        await prefs.setStringList(prefsGuestFavoriteVolumes, updatedProfile.favoriteIntakeVolumes);
-        if (updatedProfile.dateOfBirth != null) { await prefs.setString(prefsGuestDateOfBirth, updatedProfile.dateOfBirth!.toIso8601String()); } else { await prefs.remove(prefsGuestDateOfBirth); }
-        if (updatedProfile.gender != null) { await prefs.setString(prefsGuestGender, updatedProfile.gender.toString()); } else { await prefs.remove(prefsGuestGender); }
-        if (updatedProfile.weightKg != null) { await prefs.setDouble(prefsGuestWeightKg, updatedProfile.weightKg!); } else { await prefs.remove(prefsGuestWeightKg); }
-        if (updatedProfile.heightCm != null) { await prefs.setDouble(prefsGuestHeightCm, updatedProfile.heightCm!); } else { await prefs.remove(prefsGuestHeightCm); }
-        if (updatedProfile.activityLevel != null) { await prefs.setString(prefsGuestActivityLevel, updatedProfile.activityLevel.toString()); } else { await prefs.remove(prefsGuestActivityLevel); }
-        if (updatedProfile.healthConditions != null && updatedProfile.healthConditions!.isNotEmpty && !(updatedProfile.healthConditions!.length == 1 && updatedProfile.healthConditions!.contains(HealthCondition.none))) {
-          await prefs.setStringList(prefsGuestHealthConditions, updatedProfile.healthConditions!.map((e) => e.toString()).toList());
+        await prefs.setDouble(
+            prefsGuestDailyGoalMl, updatedProfile.dailyGoalMl);
+        await prefs.setString(
+            prefsGuestPreferredUnit, updatedProfile.preferredUnit.toString());
+        await prefs.setStringList(
+            prefsGuestFavoriteVolumes, updatedProfile.favoriteIntakeVolumes);
+        if (updatedProfile.dateOfBirth != null) {
+          await prefs.setString(prefsGuestDateOfBirth,
+              updatedProfile.dateOfBirth!.toIso8601String());
+        } else {
+          await prefs.remove(prefsGuestDateOfBirth);
+        }
+        if (updatedProfile.gender != null) {
+          await prefs.setString(
+              prefsGuestGender, updatedProfile.gender.toString());
+        } else {
+          await prefs.remove(prefsGuestGender);
+        }
+        if (updatedProfile.weightKg != null) {
+          await prefs.setDouble(prefsGuestWeightKg, updatedProfile.weightKg!);
+        } else {
+          await prefs.remove(prefsGuestWeightKg);
+        }
+        if (updatedProfile.heightCm != null) {
+          await prefs.setDouble(prefsGuestHeightCm, updatedProfile.heightCm!);
+        } else {
+          await prefs.remove(prefsGuestHeightCm);
+        }
+        if (updatedProfile.activityLevel != null) {
+          await prefs.setString(
+              prefsGuestActivityLevel, updatedProfile.activityLevel.toString());
+        } else {
+          await prefs.remove(prefsGuestActivityLevel);
+        }
+        if (updatedProfile.healthConditions != null &&
+            updatedProfile.healthConditions!.isNotEmpty &&
+            !(updatedProfile.healthConditions!.length == 1 &&
+                updatedProfile.healthConditions!
+                    .contains(HealthCondition.none))) {
+          await prefs.setStringList(
+              prefsGuestHealthConditions,
+              updatedProfile.healthConditions!
+                  .map((e) => e.toString())
+                  .toList());
         } else {
           await prefs.remove(prefsGuestHealthConditions);
         }
-        if (updatedProfile.selectedWeatherCondition != null) { await prefs.setString(prefsGuestSelectedWeather, updatedProfile.selectedWeatherCondition.toString()); } else { await prefs.remove(prefsGuestSelectedWeather); }
+        if (updatedProfile.selectedWeatherCondition != null) {
+          await prefs.setString(prefsGuestSelectedWeather,
+              updatedProfile.selectedWeatherCondition.toString());
+        } else {
+          await prefs.remove(prefsGuestSelectedWeather);
+        }
 
         // Update state *after* all async SharedPreferences operations are complete
         if (!_isDisposed) {
@@ -300,33 +456,42 @@ class UserProvider with ChangeNotifier {
           _errorMessage = null;
           logger.i("UserProvider: Guest profile updated locally.");
         }
-      } else { // Logged-in user
+      } else {
+        // Logged-in user
         if (_userProfile == null || _userProfile!.id != updatedProfile.id) {
           _errorMessage = "Cannot update profile: No user or mismatched ID.";
           _status = UserProfileStatus.error;
         } else {
           try {
-            await _userRepository.updateUser(updatedProfile).timeout(const Duration(seconds: 5));
+            await _userRepository
+                .updateUser(updatedProfile)
+                .timeout(const Duration(seconds: 5));
             if (!_isDisposed) {
               _userProfile = updatedProfile;
               _status = UserProfileStatus.loaded;
               _errorMessage = null; // Clear any previous error/message
-              logger.i("UserProvider: Profile updated successfully for user ${updatedProfile.id}");
+              logger.i(
+                  "UserProvider: Profile updated successfully for user ${updatedProfile.id}");
             }
           } on TimeoutException {
             if (!_isDisposed) {
-              logger.w("UserProvider: Timeout waiting for user profile update for ${updatedProfile.id}. Assuming offline and data queued.");
+              logger.w(
+                  "UserProvider: Timeout waiting for user profile update for ${updatedProfile.id}. Assuming offline and data queued.");
               _userProfile = updatedProfile; // Optimistic update
-              _status = UserProfileStatus.loaded; // Treat as loaded for UI purposes
+              _status =
+                  UserProfileStatus.loaded; // Treat as loaded for UI purposes
               // Use _errorMessage to carry a success/info message in this specific case
-              _errorMessage = "Profile saved locally. Will sync when online."; 
+              _errorMessage = "Profile saved locally. Will sync when online.";
             }
           }
           // Other exceptions will be caught by the general catch block below
         }
       }
     } catch (e) {
-      if (_isDisposed) { _status = UserProfileStatus.idle; /* Or previous status */ return; }
+      if (_isDisposed) {
+        _status = UserProfileStatus.idle;
+        /* Or previous status */ return;
+      }
       _status = UserProfileStatus.error;
       _errorMessage = "Failed to update profile: ${e.toString()}";
       logger.e("UserProvider: Error updating profile: $e");
@@ -343,70 +508,110 @@ class UserProvider with ChangeNotifier {
 
   Future<void> updateDailyGoal(double newGoalMl) async {
     await _ensureGuestProfileLoaded();
-    if (_userProfile == null || _isDisposed) { return; }
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
     final updated = _userProfile!.copyWith(dailyGoalMl: newGoalMl);
     await updateUserProfile(updated);
   }
 
   Future<void> updatePreferredUnit(MeasurementUnit newUnit) async {
     await _ensureGuestProfileLoaded();
-    if (_userProfile == null || _isDisposed) { return; }
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
     final updated = _userProfile!.copyWith(preferredUnit: newUnit);
     await updateUserProfile(updated);
   }
 
   Future<void> updateFavoriteIntakeVolumes(List<String> newVolumes) async {
     await _ensureGuestProfileLoaded();
-    if (_userProfile == null || _isDisposed) { return; }
-    final validatedVolumes = newVolumes.where((v) => double.tryParse(v) != null && double.parse(v) > 0).toList();
-    final updated = _userProfile!.copyWith(favoriteIntakeVolumes: validatedVolumes.isEmpty ? const ['250', '500', '750'] : validatedVolumes);
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
+    final validatedVolumes = newVolumes
+        .where((v) => double.tryParse(v) != null && double.parse(v) > 0)
+        .toList();
+    final updated = _userProfile!.copyWith(
+        favoriteIntakeVolumes: validatedVolumes.isEmpty
+            ? const ['250', '500', '750']
+            : validatedVolumes);
     await updateUserProfile(updated);
   }
 
   Future<void> updateDateOfBirth(DateTime? newDob) async {
     await _ensureGuestProfileLoaded();
-    if(_userProfile == null || _isDisposed) { return; }
-    await updateUserProfile(_userProfile!.copyWith(dateOfBirth: newDob, clearDateOfBirth: newDob == null));
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
+    await updateUserProfile(_userProfile!
+        .copyWith(dateOfBirth: newDob, clearDateOfBirth: newDob == null));
   }
+
   Future<void> updateGender(Gender? newGender) async {
     await _ensureGuestProfileLoaded();
-    if(_userProfile == null || _isDisposed) { return; }
-    await updateUserProfile(_userProfile!.copyWith(gender: newGender, clearGender: newGender == null));
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
+    await updateUserProfile(_userProfile!
+        .copyWith(gender: newGender, clearGender: newGender == null));
   }
+
   Future<void> updateHeight(double? newHeightCm) async {
     await _ensureGuestProfileLoaded();
-    if(_userProfile == null || _isDisposed) { return; }
-    await updateUserProfile(_userProfile!.copyWith(heightCm: newHeightCm, clearHeightCm: newHeightCm == null));
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
+    await updateUserProfile(_userProfile!
+        .copyWith(heightCm: newHeightCm, clearHeightCm: newHeightCm == null));
   }
+
   Future<void> updateWeight(double? newWeightKg) async {
     await _ensureGuestProfileLoaded();
-    if (_userProfile == null || _isDisposed) { return; }
-    final updated = _userProfile!.copyWith(weightKg: newWeightKg, clearWeightKg: newWeightKg == null);
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
+    final updated = _userProfile!
+        .copyWith(weightKg: newWeightKg, clearWeightKg: newWeightKg == null);
     await updateUserProfile(updated);
   }
 
   Future<void> updateActivityLevel(ActivityLevel? level) async {
     await _ensureGuestProfileLoaded();
-    if (_userProfile == null || _isDisposed) { return; }
-    final updated = _userProfile!.copyWith(activityLevel: level, clearActivityLevel: level == null);
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
+    final updated = _userProfile!
+        .copyWith(activityLevel: level, clearActivityLevel: level == null);
     await updateUserProfile(updated);
   }
-  Future<void> updateHealthConditions(List<HealthCondition> newConditions) async {
+
+  Future<void> updateHealthConditions(
+      List<HealthCondition> newConditions) async {
     await _ensureGuestProfileLoaded();
-    if(_userProfile == null || _isDisposed) { return; }
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
     List<HealthCondition> processedConditions = newConditions;
-    if (newConditions.contains(HealthCondition.none) && newConditions.length > 1) {
-      processedConditions = newConditions.where((c) => c != HealthCondition.none).toList();
+    if (newConditions.contains(HealthCondition.none) &&
+        newConditions.length > 1) {
+      processedConditions =
+          newConditions.where((c) => c != HealthCondition.none).toList();
     }
     if (processedConditions.isEmpty) {
       processedConditions = [HealthCondition.none];
     }
-    await updateUserProfile(_userProfile!.copyWith(healthConditions: processedConditions));
+    await updateUserProfile(
+        _userProfile!.copyWith(healthConditions: processedConditions));
   }
+
   Future<void> updateSelectedWeather(WeatherCondition newWeather) async {
     await _ensureGuestProfileLoaded();
-    if(_userProfile == null || _isDisposed) { return; }
-    await updateUserProfile(_userProfile!.copyWith(selectedWeatherCondition: newWeather));
+    if (_userProfile == null || _isDisposed) {
+      return;
+    }
+    await updateUserProfile(
+        _userProfile!.copyWith(selectedWeatherCondition: newWeather));
   }
 
   @override

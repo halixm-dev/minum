@@ -25,18 +25,22 @@ class HydrationLogListItem extends StatelessWidget {
   IconData _getSourceIcon() {
     if (entry.source == null) return Icons.water_drop_outlined;
     if (entry.source!.startsWith('quick_add')) return Icons.bolt_outlined;
-    if (entry.source!.contains('google_fit')) return Icons.fitness_center_outlined;
-    if (entry.source!.contains('health_connect')) return Icons.health_and_safety_outlined;
+    if (entry.source!.contains('google_fit'))
+      return Icons.fitness_center_outlined;
+    if (entry.source!.contains('health_connect'))
+      return Icons.health_and_safety_outlined;
     return Icons.water_drop_outlined; // Default
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final double amountInPreferredUnit = AppUtils.convertToPreferredUnit(entry.amountMl, unit);
+    final double amountInPreferredUnit =
+        AppUtils.convertToPreferredUnit(entry.amountMl, unit);
 
     return Dismissible(
-      key: Key(entry.id ?? DateTime.now().toIso8601String() + entry.amountMl.toString()),
+      key: Key(entry.id ??
+          DateTime.now().toIso8601String() + entry.amountMl.toString()),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
         onDismissed?.call();
@@ -50,24 +54,31 @@ class HydrationLogListItem extends StatelessWidget {
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         leading: CircleAvatar(
-          backgroundColor: AppColors.primaryColor.withAlpha((255 * 0.15).round()),
-          child: Icon(_getSourceIcon(), color: AppColors.primaryColor, size: 24.sp),
+          backgroundColor:
+              AppColors.primaryColor.withAlpha((255 * 0.15).round()),
+          child: Icon(_getSourceIcon(),
+              color: AppColors.primaryColor, size: 24.sp),
         ),
         title: Text(
           '${AppUtils.formatAmount(amountInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: entry.notes != null && entry.notes!.isNotEmpty
             ? Text(
-          entry.notes!,
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withAlpha((255 * 0.7).round())),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        )
+                entry.notes!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface
+                        .withAlpha((255 * 0.7).round())),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
         trailing: Text(
           DateFormat.jm().format(entry.timestamp),
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withAlpha((255 * 0.7).round())),
+          style: theme.textTheme.bodyMedium?.copyWith(
+              color:
+                  theme.colorScheme.onSurface.withAlpha((255 * 0.7).round())),
         ),
         onTap: () {
           Navigator.of(context).pushNamed(

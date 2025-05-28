@@ -30,15 +30,16 @@ class NotFoundScreen extends StatelessWidget {
               Text(
                 'Page Not Found',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 10.h),
               Text(
                 routeName != null
                     ? "Sorry, the route '$routeName' could not be found."
-                    : AppStrings.anErrorOccurred, // Generic message if routeName is null
+                    : AppStrings
+                        .anErrorOccurred, // Generic message if routeName is null
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
@@ -46,7 +47,8 @@ class NotFoundScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   // Navigate to a safe route, like home or auth gate
-                  Navigator.of(context).pushReplacementNamed(AppRoutes.authGate);
+                  Navigator.of(context)
+                      .pushReplacementNamed(AppRoutes.authGate);
                 },
                 child: const Text('Go to Home'),
               ),

@@ -26,7 +26,8 @@ class AuthProvider with ChangeNotifier {
   UserModel? get currentUser => _currentUser;
   AuthStatus get authStatus => _authStatus;
   String? get errorMessage => _errorMessage;
-  bool get isAuthenticated => _authStatus == AuthStatus.authenticated && _currentUser != null;
+  bool get isAuthenticated =>
+      _authStatus == AuthStatus.authenticated && _currentUser != null;
 
   AuthProvider(this._authService) {
     _listenToAuthStateChanges();
@@ -36,19 +37,21 @@ class AuthProvider with ChangeNotifier {
     if (!_isDisposed) {
       notifyListeners();
     } else {
-      logger.w("AuthProvider: Attempted to call notifyListeners() after dispose.");
+      logger.w(
+          "AuthProvider: Attempted to call notifyListeners() after dispose.");
     }
   }
 
   void _listenToAuthStateChanges() {
     _authStateSubscription = _authService.authStateChanges.listen(
-          (UserModel? user) {
+      (UserModel? user) {
         if (_isDisposed) return; // Check before proceeding
 
         _currentUser = user;
         if (user != null) {
           _authStatus = AuthStatus.authenticated;
-          logger.i("AuthProvider: User authenticated - ID: ${user.id}, Email: ${user.email}");
+          logger.i(
+              "AuthProvider: User authenticated - ID: ${user.id}, Email: ${user.email}");
         } else {
           _authStatus = AuthStatus.unauthenticated;
           logger.i("AuthProvider: User unauthenticated.");
@@ -72,7 +75,8 @@ class AuthProvider with ChangeNotifier {
     if (_isDisposed) return;
     _setAuthStatus(AuthStatus.authenticating);
     try {
-      _currentUser = await _authService.signInWithEmailAndPassword(email, password);
+      _currentUser =
+          await _authService.signInWithEmailAndPassword(email, password);
       if (_isDisposed) return; // Check after await
       _setAuthStatus(AuthStatus.authenticated);
     } on fb_auth.FirebaseAuthException catch (e) {
@@ -84,11 +88,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signUpWithEmail(String email, String password, {String? displayName}) async {
+  Future<void> signUpWithEmail(String email, String password,
+      {String? displayName}) async {
     if (_isDisposed) return;
     _setAuthStatus(AuthStatus.authenticating);
     try {
-      _currentUser = await _authService.signUpWithEmailAndPassword(email, password, displayName: displayName);
+      _currentUser = await _authService.signUpWithEmailAndPassword(
+          email, password,
+          displayName: displayName);
       if (_isDisposed) return;
       _setAuthStatus(AuthStatus.authenticated);
     } on fb_auth.FirebaseAuthException catch (e) {
@@ -102,18 +109,21 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> signInWithGoogle() async {
     if (_isDisposed) return false;
-    _setAuthStatus(AuthStatus.authenticating); // Notify UI that authentication is in progress
+    _setAuthStatus(AuthStatus
+        .authenticating); // Notify UI that authentication is in progress
     try {
       final UserModel? userFromService = await _authService.signInWithGoogle();
       if (_isDisposed) return false; // Check after await
 
       if (userFromService != null) {
-        _currentUser = userFromService; // Store user, but don't notify authenticated yet
+        _currentUser =
+            userFromService; // Store user, but don't notify authenticated yet
         // DO NOT call _setAuthStatus(AuthStatus.authenticated) here.
         return true; // Signal success to caller
       } else {
         // User cancelled Google Sign In
-        _setAuthStatus(AuthStatus.unauthenticated); // Reset status from authenticating
+        _setAuthStatus(
+            AuthStatus.unauthenticated); // Reset status from authenticating
         _errorMessage = null; // Clear any previous error
         _safeNotifyListeners(); // Notify to clear loading state on UI if needed
         return false; // Signal cancellation/failure
@@ -132,12 +142,14 @@ class AuthProvider with ChangeNotifier {
   void completeGoogleSignIn() {
     if (_isDisposed) return;
     if (_currentUser != null) {
-      _setAuthStatus(AuthStatus.authenticated); // Now set authenticated and notify
+      _setAuthStatus(
+          AuthStatus.authenticated); // Now set authenticated and notify
     } else {
       // This case should ideally not be hit if signInWithGoogle returned true
       // but as a safeguard:
       _setAuthStatus(AuthStatus.unauthenticated);
-      logger.w("AuthProvider: completeGoogleSignIn called but _currentUser was null.");
+      logger.w(
+          "AuthProvider: completeGoogleSignIn called but _currentUser was null.");
     }
   }
 
@@ -148,7 +160,8 @@ class AuthProvider with ChangeNotifier {
       // No state change that requires notifyListeners here usually
     } on fb_auth.FirebaseAuthException catch (e) {
       if (_isDisposed) return;
-      _handleAuthError(e.message ?? "Password reset failed.", e.code, notify: false);
+      _handleAuthError(e.message ?? "Password reset failed.", e.code,
+          notify: false);
       rethrow;
     } catch (e) {
       if (_isDisposed) return;

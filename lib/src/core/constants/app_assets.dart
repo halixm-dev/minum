@@ -8,10 +8,14 @@ class AppAssets {
 
   // --- Images ---
   static const String appLogo = "$_imagesBasePath/app_logo.png"; // Example
-  static const String onboarding1 = "$_imagesBasePath/onboarding_1.png"; // Placeholder
-  static const String onboarding2 = "$_imagesBasePath/onboarding_2.png"; // Placeholder
-  static const String onboarding3 = "$_imagesBasePath/onboarding_3.png"; // Placeholder
-  static const String waterDrop = "$_imagesBasePath/water_drop.png"; // Placeholder
+  static const String onboarding1 =
+      "$_imagesBasePath/onboarding_1.png"; // Placeholder
+  static const String onboarding2 =
+      "$_imagesBasePath/onboarding_2.png"; // Placeholder
+  static const String onboarding3 =
+      "$_imagesBasePath/onboarding_3.png"; // Placeholder
+  static const String waterDrop =
+      "$_imagesBasePath/water_drop.png"; // Placeholder
 
 // --- Icons ---
 // Example: if you have custom SVG icons not part of Material/Cupertino

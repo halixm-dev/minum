@@ -5,7 +5,8 @@ import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
 import 'package:minum/src/core/utils/app_utils.dart'; // For formatting amount
 
 class QuickAddButtons extends StatelessWidget {
-  final List<String> favoriteVolumes; // List of volumes in mL as strings e.g., ["250", "500"]
+  final List<String>
+      favoriteVolumes; // List of volumes in mL as strings e.g., ["250", "500"]
   final MeasurementUnit unit;
   final Function(double volumeMl) onQuickAdd;
 
@@ -23,7 +24,8 @@ class QuickAddButtons extends StatelessWidget {
     final theme = Theme.of(context);
 
     if (favoriteVolumes.isEmpty) {
-      return const SizedBox.shrink(); // Don't show if no favorite volumes defined
+      return const SizedBox
+          .shrink(); // Don't show if no favorite volumes defined
     }
 
     return Column(
@@ -33,7 +35,8 @@ class QuickAddButtons extends StatelessWidget {
           padding: EdgeInsets.only(bottom: 10.h, left: 4.w),
           child: Text(
             'Quick Add',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
         SizedBox(
@@ -45,23 +48,30 @@ class QuickAddButtons extends StatelessWidget {
             itemBuilder: (context, index) {
               final volumeMlString = favoriteVolumes[index];
               final double volumeMl = double.tryParse(volumeMlString) ?? 0.0;
-              if (volumeMl <= 0) return const SizedBox.shrink(); // Skip invalid volumes
+              if (volumeMl <= 0)
+                return const SizedBox.shrink(); // Skip invalid volumes
 
-              final double displayVolume = AppUtils.convertToPreferredUnit(volumeMl, unit);
-              final String displayAmount = AppUtils.formatAmount(displayVolume, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0);
+              final double displayVolume =
+                  AppUtils.convertToPreferredUnit(volumeMl, unit);
+              final String displayAmount = AppUtils.formatAmount(displayVolume,
+                  decimalDigits: unit == MeasurementUnit.oz ? 1 : 0);
 
               return ActionChip(
-                avatar: Icon(Icons.add_circle_outline, size: 20.sp, color: theme.colorScheme.onSecondaryContainer), // Changed
+                avatar: Icon(Icons.add_circle_outline,
+                    size: 20.sp,
+                    color: theme.colorScheme.onSecondaryContainer), // Changed
                 label: Text('$displayAmount $_unitString'),
                 labelStyle: TextStyle(
                   color: theme.colorScheme.onSecondaryContainer, // Changed
                   fontWeight: FontWeight.w500,
                   fontSize: 14.sp,
                 ),
-                backgroundColor: theme.colorScheme.secondaryContainer, // Changed
+                backgroundColor:
+                    theme.colorScheme.secondaryContainer, // Changed
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25.r),
-                  side: BorderSide(color: theme.colorScheme.outline, width: 1.w), // Changed
+                  side: BorderSide(
+                      color: theme.colorScheme.outline, width: 1.w), // Changed
                 ),
                 onPressed: () {
                   onQuickAdd(volumeMl);

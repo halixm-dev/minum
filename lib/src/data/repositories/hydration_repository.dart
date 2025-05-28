@@ -7,15 +7,18 @@ abstract class HydrationRepository {
   Future<void> updateHydrationEntry(String userId, HydrationEntry entry);
 
   // Updated signature to accept HydrationEntry object
-  Future<void> deleteHydrationEntry(String userId, HydrationEntry entryToDelete);
+  Future<void> deleteHydrationEntry(
+      String userId, HydrationEntry entryToDelete);
 
-  Future<HydrationEntry?> getHydrationEntry(String userId, String entryId); // entryId here is Firestore ID
+  Future<HydrationEntry?> getHydrationEntry(
+      String userId, String entryId); // entryId here is Firestore ID
 
   Stream<List<HydrationEntry>> getHydrationEntriesForDateRange(
-      String userId,
-      DateTime startDate,
-      DateTime endDate,
-      );
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  );
 
-  Stream<List<HydrationEntry>> getHydrationEntriesForDay(String userId, DateTime date);
+  Stream<List<HydrationEntry>> getHydrationEntriesForDay(
+      String userId, DateTime date);
 }

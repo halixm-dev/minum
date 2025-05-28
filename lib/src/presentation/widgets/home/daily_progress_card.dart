@@ -26,10 +26,13 @@ class DailyProgressCard extends StatelessWidget {
     final double progress = goal > 0 ? math.min(consumed / goal, 1.0) : 0.0;
 
     // Convert amounts to preferred unit for display
-    final double consumedInPreferredUnit = AppUtils.convertToPreferredUnit(consumed, unit);
-    final double goalInPreferredUnit = AppUtils.convertToPreferredUnit(goal, unit);
+    final double consumedInPreferredUnit =
+        AppUtils.convertToPreferredUnit(consumed, unit);
+    final double goalInPreferredUnit =
+        AppUtils.convertToPreferredUnit(goal, unit);
     // Ensure remaining is not negative
-    final double remainingInPreferredUnit = math.max(0, goalInPreferredUnit - consumedInPreferredUnit);
+    final double remainingInPreferredUnit =
+        math.max(0, goalInPreferredUnit - consumedInPreferredUnit);
 
     return Card(
       elevation: 3,
@@ -49,23 +52,28 @@ class DailyProgressCard extends StatelessWidget {
             SizedBox(height: 12.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end, // Align text baselines
+              crossAxisAlignment:
+                  CrossAxisAlignment.end, // Align text baselines
               children: <Widget>[
                 Flexible(
                   child: RichText(
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: AppUtils.formatAmount(consumedInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0),
+                          text: AppUtils.formatAmount(consumedInPreferredUnit,
+                              decimalDigits:
+                                  unit == MeasurementUnit.oz ? 1 : 0),
                           style: theme.textTheme.displaySmall?.copyWith(
                             color: theme.colorScheme.primary, // Changed
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         TextSpan(
-                          text: ' / ${AppUtils.formatAmount(goalInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString',
+                          text:
+                              ' / ${AppUtils.formatAmount(goalInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString',
                           style: theme.textTheme.titleLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant, // Changed
+                            color:
+                                theme.colorScheme.onSurfaceVariant, // Changed
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -75,7 +83,8 @@ class DailyProgressCard extends StatelessWidget {
                 ),
                 SizedBox(width: 10.w),
                 if (progress >= 1.0)
-                  Icon(Icons.check_circle_rounded, color: theme.colorScheme.tertiary, size: 30.sp) // Changed
+                  Icon(Icons.check_circle_rounded,
+                      color: theme.colorScheme.tertiary, size: 30.sp) // Changed
                 else
                   Text(
                     '${AppUtils.formatAmount(remainingInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString left',
@@ -93,7 +102,8 @@ class DailyProgressCard extends StatelessWidget {
                 value: progress,
                 minHeight: 10.h,
                 backgroundColor: theme.colorScheme.primaryContainer, // Changed
-                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary), // Changed
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    theme.colorScheme.primary), // Changed
               ),
             ),
             SizedBox(height: 8.h),

@@ -14,16 +14,19 @@ const String prefsReminderStartTimeMinute = 'prefs_reminder_start_time_minute';
 const String prefsReminderEndTimeHour = 'prefs_reminder_end_time_hour';
 const String prefsReminderEndTimeMinute = 'prefs_reminder_end_time_minute';
 const String prefsLastScheduledDate = 'prefs_last_scheduled_date';
-const String prefsFavoriteVolumes = 'prefs_favorite_volumes'; // Assuming UserProvider saves this
+const String prefsFavoriteVolumes =
+    'prefs_favorite_volumes'; // Assuming UserProvider saves this
 
 class NotificationService {
   static const String _basicChannelKey = "basic_channel";
   static const String _basicChannelName = "Basic Notifications";
-  static const String _basicChannelDescription = "Notification channel for basic alerts";
+  static const String _basicChannelDescription =
+      "Notification channel for basic alerts";
 
   static const String _scheduledChannelKey = "scheduled_hydration_channel";
   static const String _scheduledChannelName = "Hydration Reminders";
-  static const String _scheduledChannelDescription = "Channel for Minum water intake reminders.";
+  static const String _scheduledChannelDescription =
+      "Channel for Minum water intake reminders.";
 
   Future<void> init() async {
     await AwesomeNotifications().initialize(
@@ -61,9 +64,12 @@ class NotificationService {
 
     AwesomeNotifications().setListeners(
       onActionReceivedMethod: NotificationController.onActionReceivedMethod,
-      onNotificationCreatedMethod: NotificationController.onNotificationCreatedMethod,
-      onNotificationDisplayedMethod: NotificationController.onNotificationDisplayedMethod,
-      onDismissActionReceivedMethod: NotificationController.onDismissActionReceivedMethod,
+      onNotificationCreatedMethod:
+          NotificationController.onNotificationCreatedMethod,
+      onNotificationDisplayedMethod:
+          NotificationController.onNotificationDisplayedMethod,
+      onDismissActionReceivedMethod:
+          NotificationController.onDismissActionReceivedMethod,
     );
 
     logger.i("AwesomeNotificationsService initialized.");
@@ -72,7 +78,8 @@ class NotificationService {
   Future<bool> requestNotificationPermissions() async {
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) {
-      isAllowed = await AwesomeNotifications().requestPermissionToSendNotifications(
+      isAllowed =
+          await AwesomeNotifications().requestPermissionToSendNotifications(
         channelKey: _scheduledChannelKey,
         permissions: [
           NotificationPermission.Alert,
@@ -82,7 +89,7 @@ class NotificationService {
         ],
       );
     }
-    if(isAllowed){
+    if (isAllowed) {
       logger.i("Notification permissions granted.");
     } else {
       logger.w("Notification permissions denied by user.");
@@ -105,7 +112,11 @@ class NotificationService {
         label: '+$volume ml',
       ));
     }
-    actionButtons.add(NotificationActionButton(key: 'DISMISS', label: 'Dismiss', actionType: ActionType.DismissAction, isDangerousOption: true));
+    actionButtons.add(NotificationActionButton(
+        key: 'DISMISS',
+        label: 'Dismiss',
+        actionType: ActionType.DismissAction,
+        isDangerousOption: true));
 
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
@@ -120,7 +131,8 @@ class NotificationService {
       ),
       actionButtons: actionButtons, // Use dynamic buttons
     );
-    logger.i("Hydration Reminder Test: id=$id, title=$title, volumes: $favoriteVolumesMl");
+    logger.i(
+        "Hydration Reminder Test: id=$id, title=$title, volumes: $favoriteVolumesMl");
   }
 
   Future<void> scheduleHydrationReminder({
@@ -132,7 +144,8 @@ class NotificationService {
     List<String> favoriteVolumesMl = const [], // Added parameter
   }) async {
     if (scheduledTime.isBefore(DateTime.now())) {
-      logger.w("Attempted to schedule notification in the past. ID: $id. Time: $scheduledTime");
+      logger.w(
+          "Attempted to schedule notification in the past. ID: $id. Time: $scheduledTime");
       return;
     }
 
@@ -152,7 +165,8 @@ class NotificationService {
         allowWhileIdle: true,
         repeats: false,
       ),
-      actionButtons: () { // Use dynamic buttons
+      actionButtons: () {
+        // Use dynamic buttons
         List<NotificationActionButton> actionButtons = [];
         for (var i = 0; i < favoriteVolumesMl.length && i < 3; i++) {
           final volume = favoriteVolumesMl[i];
@@ -161,11 +175,16 @@ class NotificationService {
             label: '+$volume ml',
           ));
         }
-        actionButtons.add(NotificationActionButton(key: 'DISMISS', label: 'Dismiss', actionType: ActionType.DismissAction, isDangerousOption: true));
+        actionButtons.add(NotificationActionButton(
+            key: 'DISMISS',
+            label: 'Dismiss',
+            actionType: ActionType.DismissAction,
+            isDangerousOption: true));
         return actionButtons;
       }(),
     );
-    logger.i("Hydration Reminder scheduled: id=$id, title=$title, time=$scheduledTime, volumes: $favoriteVolumesMl");
+    logger.i(
+        "Hydration Reminder scheduled: id=$id, title=$title, time=$scheduledTime, volumes: $favoriteVolumesMl");
   }
 
   Future<void> scheduleDailyRepeatingReminder({
@@ -195,8 +214,10 @@ class NotificationService {
         allowWhileIdle: true,
       ),
     );
-    final String formattedTime = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
-    logger.i("Daily repeating reminder scheduled: id=$id, title=$title, time=$formattedTime");
+    final String formattedTime =
+        "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+    logger.i(
+        "Daily repeating reminder scheduled: id=$id, title=$title, time=$formattedTime");
   }
 
   Future<void> cancelNotification(int id) async {
@@ -215,56 +236,73 @@ class NotificationService {
   }
 
   Future<List<NotificationModel>> listScheduledNotifications() async {
-    List<NotificationModel> scheduledNotifications = await AwesomeNotifications().listScheduledNotifications();
-    logger.i("Retrieved ${scheduledNotifications.length} scheduled notifications.");
+    List<NotificationModel> scheduledNotifications =
+        await AwesomeNotifications().listScheduledNotifications();
+    logger.i(
+        "Retrieved ${scheduledNotifications.length} scheduled notifications.");
     return scheduledNotifications;
   }
 
-  Future<void> scheduleDailyRemindersIfNeeded({bool forceReschedule = false}) async {
-    logger.i("NotificationService: scheduleDailyRemindersIfNeeded() called. forceReschedule: $forceReschedule");
+  Future<void> scheduleDailyRemindersIfNeeded(
+      {bool forceReschedule = false}) async {
+    logger.i(
+        "NotificationService: scheduleDailyRemindersIfNeeded() called. forceReschedule: $forceReschedule");
     final prefs = await SharedPreferences.getInstance();
 
     final bool remindersEnabled = prefs.getBool(prefsRemindersEnabled) ?? false;
     if (!remindersEnabled) {
       logger.i("Reminders are disabled. No scheduling will occur.");
-      await AwesomeNotifications().cancelAllSchedules(); // Cancel any existing just in case
+      await AwesomeNotifications()
+          .cancelAllSchedules(); // Cancel any existing just in case
       await prefs.remove(prefsLastScheduledDate); // Clear last scheduled date
       return;
     }
 
-    final String? lastScheduledDateStr = prefs.getString(prefsLastScheduledDate);
-    final String todayDateStr = DateTime.now().toIso8601String().substring(0, 10);
+    final String? lastScheduledDateStr =
+        prefs.getString(prefsLastScheduledDate);
+    final String todayDateStr =
+        DateTime.now().toIso8601String().substring(0, 10);
 
-    if (!forceReschedule && lastScheduledDateStr == todayDateStr) { // <-- Check !forceReschedule
-      logger.i("Notifications have already been scheduled for today ($todayDateStr) and forceReschedule is false. No rescheduling needed.");
+    if (!forceReschedule && lastScheduledDateStr == todayDateStr) {
+      // <-- Check !forceReschedule
+      logger.i(
+          "Notifications have already been scheduled for today ($todayDateStr) and forceReschedule is false. No rescheduling needed.");
       return;
     }
 
     if (forceReschedule) {
-      logger.i("forceReschedule is true. Proceeding with rescheduling for today ($todayDateStr).");
+      logger.i(
+          "forceReschedule is true. Proceeding with rescheduling for today ($todayDateStr).");
     }
     // This log is still useful
-    logger.i("Proceeding with notification scheduling check for today ($todayDateStr). Last scheduled: $lastScheduledDateStr, Force: $forceReschedule");
+    logger.i(
+        "Proceeding with notification scheduling check for today ($todayDateStr). Last scheduled: $lastScheduledDateStr, Force: $forceReschedule");
 
-    final double intervalHours = prefs.getDouble(prefsReminderIntervalHours) ?? 1.0;
+    final double intervalHours =
+        prefs.getDouble(prefsReminderIntervalHours) ?? 1.0;
     final int startTimeHour = prefs.getInt(prefsReminderStartTimeHour) ?? 8;
     final int startTimeMinute = prefs.getInt(prefsReminderStartTimeMinute) ?? 0;
     final int endTimeHour = prefs.getInt(prefsReminderEndTimeHour) ?? 22;
     final int endTimeMinute = prefs.getInt(prefsReminderEndTimeMinute) ?? 0;
-    final List<String> favoriteVolumes = prefs.getStringList(prefsFavoriteVolumes) ?? ['100', '250', '500'];
+    final List<String> favoriteVolumes =
+        prefs.getStringList(prefsFavoriteVolumes) ?? ['100', '250', '500'];
 
-    await AwesomeNotifications().cancelAllSchedules(); // Clear previous day's schedules
+    await AwesomeNotifications()
+        .cancelAllSchedules(); // Clear previous day's schedules
     logger.i("Cancelled all previously scheduled notifications.");
 
     DateTime currentTime = DateTime.now();
-    DateTime scheduleStart = DateTime(currentTime.year, currentTime.month, currentTime.day, startTimeHour, startTimeMinute);
-    DateTime scheduleEnd = DateTime(currentTime.year, currentTime.month, currentTime.day, endTimeHour, endTimeMinute);
+    DateTime scheduleStart = DateTime(currentTime.year, currentTime.month,
+        currentTime.day, startTimeHour, startTimeMinute);
+    DateTime scheduleEnd = DateTime(currentTime.year, currentTime.month,
+        currentTime.day, endTimeHour, endTimeMinute);
 
     // If scheduleEnd is before scheduleStart (e.g. end time is 2 AM, start time is 8 AM for previous day),
     // and we are scheduling for *today*, this implies an overnight schedule that should end today.
     // However, our logic aims to schedule *within* today.
     // If current time has already passed scheduleEnd for *today*, then no scheduling for today.
-    if (scheduleEnd.isBefore(scheduleStart) && scheduleEnd.day == scheduleStart.day) {
+    if (scheduleEnd.isBefore(scheduleStart) &&
+        scheduleEnd.day == scheduleStart.day) {
       // This case implies an overnight schedule ending on the same calendar day it started, which is unusual for this logic.
       // For simplicity, if end time is "before" start time on the same day, assume it means "next day".
       // But since we are only scheduling for *today*, if scheduleEnd (e.g. 2AM today) is before scheduleStart (e.g. 8AM today)
@@ -299,22 +337,27 @@ class NotificationService {
       // For today, this means two potential blocks: 00:00 to endTime, AND startTime to 23:59.
       // The current loop `while (nextReminderTime.isBefore(scheduleEnd))` will not run if scheduleEnd < scheduleStart.
       // Let's adjust scheduleEnd if it's for an overnight period that *ends* today.
-      if (scheduleEnd.hour < scheduleStart.hour && scheduleEnd.day == scheduleStart.day) {
+      if (scheduleEnd.hour < scheduleStart.hour &&
+          scheduleEnd.day == scheduleStart.day) {
         // This means the period started yesterday and ends today. e.g. Start 22:00, End 02:00.
         // For today, we are interested in 00:00 up to 02:00.
         // So, scheduleStart for *today's segment* should be midnight.
-        scheduleStart = DateTime(currentTime.year, currentTime.month, currentTime.day, 0, 0);
+        scheduleStart = DateTime(
+            currentTime.year, currentTime.month, currentTime.day, 0, 0);
         // scheduleEnd is already correctly today @ 02:00
-        logger.i("Adjusted for overnight schedule ending today. Effective range for today: ${scheduleStart.toIso8601String()} to ${scheduleEnd.toIso8601String()}");
+        logger.i(
+            "Adjusted for overnight schedule ending today. Effective range for today: ${scheduleStart.toIso8601String()} to ${scheduleEnd.toIso8601String()}");
       }
       // If it's an overnight schedule starting today and ending tomorrow (e.g. start 22:00, end 02:00)
       // then for *today* scheduleEnd should effectively be end of day.
-      else if (scheduleStart.hour > scheduleEnd.hour && scheduleStart.day == scheduleEnd.day) {
-        scheduleEnd = DateTime(currentTime.year, currentTime.month, currentTime.day, 23, 59, 59);
-        logger.i("Adjusted for overnight schedule starting today. Effective range for today: ${scheduleStart.toIso8601String()} to ${scheduleEnd.toIso8601String()}");
+      else if (scheduleStart.hour > scheduleEnd.hour &&
+          scheduleStart.day == scheduleEnd.day) {
+        scheduleEnd = DateTime(
+            currentTime.year, currentTime.month, currentTime.day, 23, 59, 59);
+        logger.i(
+            "Adjusted for overnight schedule starting today. Effective range for today: ${scheduleStart.toIso8601String()} to ${scheduleEnd.toIso8601String()}");
       }
     }
-
 
     int notificationIdBase = 100;
     int notificationId = notificationIdBase;
@@ -325,59 +368,76 @@ class NotificationService {
     if (currentTime.isAfter(scheduleStart)) {
       int intervalInMinutes = (intervalHours * 60).toInt();
       if (intervalInMinutes <= 0) {
-        logger.w("Interval is <= 0 minutes. Cannot schedule. Interval Hours: $intervalHours");
-        await prefs.setString(prefsLastScheduledDate, todayDateStr); // Mark as "processed" for today.
+        logger.w(
+            "Interval is <= 0 minutes. Cannot schedule. Interval Hours: $intervalHours");
+        await prefs.setString(prefsLastScheduledDate,
+            todayDateStr); // Mark as "processed" for today.
         return;
       }
       nextReminderTime = scheduleStart;
-      while(nextReminderTime.isBefore(currentTime)){
-        nextReminderTime = nextReminderTime.add(Duration(minutes: intervalInMinutes));
+      while (nextReminderTime.isBefore(currentTime)) {
+        nextReminderTime =
+            nextReminderTime.add(Duration(minutes: intervalInMinutes));
       }
     }
 
     // Ensure nextReminderTime is not before scheduleStart (e.g. if current time was before scheduleStart)
-    if(nextReminderTime.isBefore(scheduleStart)){
+    if (nextReminderTime.isBefore(scheduleStart)) {
       nextReminderTime = scheduleStart;
     }
 
     int scheduledCount = 0;
-    logger.i("Starting scheduling loop for today: Start=${scheduleStart.toIso8601String()}, End=${scheduleEnd.toIso8601String()}, NextReminderStart=${nextReminderTime.toIso8601String()}");
+    logger.i(
+        "Starting scheduling loop for today: Start=${scheduleStart.toIso8601String()}, End=${scheduleEnd.toIso8601String()}, NextReminderStart=${nextReminderTime.toIso8601String()}");
 
-    while ((nextReminderTime.isBefore(scheduleEnd) || nextReminderTime.isAtSameMomentAs(scheduleEnd)) && nextReminderTime.day == currentTime.day) {
-      if (nextReminderTime.isAfter(DateTime.now())) { // Ensure we only schedule for the future
+    while ((nextReminderTime.isBefore(scheduleEnd) ||
+            nextReminderTime.isAtSameMomentAs(scheduleEnd)) &&
+        nextReminderTime.day == currentTime.day) {
+      if (nextReminderTime.isAfter(DateTime.now())) {
+        // Ensure we only schedule for the future
         if (notificationId >= notificationIdBase + maxNotificationsPerDay) {
-          logger.w("Reached maximum notification limit for today ($maxNotificationsPerDay). Stopping further scheduling for today. Last ID: $notificationId");
+          logger.w(
+              "Reached maximum notification limit for today ($maxNotificationsPerDay). Stopping further scheduling for today. Last ID: $notificationId");
           break;
         }
-        scheduleHydrationReminder( // Use the class method
+        scheduleHydrationReminder(
+            // Use the class method
             id: notificationId++,
-            title: AppStrings.reminderTitle, // Assuming AppStrings is accessible or pass as param
+            title: AppStrings
+                .reminderTitle, // Assuming AppStrings is accessible or pass as param
             body: "Time for some water! Stay hydrated.",
             scheduledTime: nextReminderTime,
             favoriteVolumesMl: favoriteVolumes,
-            payload: {'type': 'hydration_reminder', 'scheduled_at': nextReminderTime.toIso8601String()}
-        );
+            payload: {
+              'type': 'hydration_reminder',
+              'scheduled_at': nextReminderTime.toIso8601String()
+            });
         scheduledCount++;
       }
       int intervalMinutes = (intervalHours * 60).toInt();
-      if (intervalMinutes <= 0) { // Should have been caught earlier, but as a safeguard
-        logger.e("Critical: Interval is <= 0 minutes inside loop. Breaking. Interval Hours: $intervalHours");
+      if (intervalMinutes <= 0) {
+        // Should have been caught earlier, but as a safeguard
+        logger.e(
+            "Critical: Interval is <= 0 minutes inside loop. Breaking. Interval Hours: $intervalHours");
         break;
       }
-      nextReminderTime = nextReminderTime.add(Duration(minutes: intervalMinutes));
+      nextReminderTime =
+          nextReminderTime.add(Duration(minutes: intervalMinutes));
     }
 
     if (scheduledCount > 0) {
-      logger.i("Successfully scheduled $scheduledCount reminders for today ($todayDateStr). Last ID used: ${notificationId -1}. Favorite volumes: $favoriteVolumes");
+      logger.i(
+          "Successfully scheduled $scheduledCount reminders for today ($todayDateStr). Last ID used: ${notificationId - 1}. Favorite volumes: $favoriteVolumes");
     } else {
-      logger.i("No reminders were scheduled for today ($todayDateStr). This might be because the time window has passed or due to settings.");
+      logger.i(
+          "No reminders were scheduled for today ($todayDateStr). This might be because the time window has passed or due to settings.");
     }
     await prefs.setString(prefsLastScheduledDate, todayDateStr);
   }
 
-
   Future<void> checkAndLogExactAlarmPermissionStatus() async {
-    logger.i("Note: For precise alarms (if `preciseAlarm: true` is used in scheduling), "
+    logger.i(
+        "Note: For precise alarms (if `preciseAlarm: true` is used in scheduling), "
         "Android 12+ requires the 'Alarms & reminders' special app access. "
         "Awesome_notifications will attempt to use it if specified. "
         "Users may need to grant this via system settings if alarms are not precise.");
@@ -388,23 +448,31 @@ const String prefsPendingWaterAdditionMl = 'prefs_pending_water_addition_ml';
 
 class NotificationController {
   @pragma("vm:entry-point")
-  static Future<void> onNotificationCreatedMethod(ReceivedNotification receivedNotification) async {
-    logger.d('Notification created: ${receivedNotification.id} - ${receivedNotification.title}');
+  static Future<void> onNotificationCreatedMethod(
+      ReceivedNotification receivedNotification) async {
+    logger.d(
+        'Notification created: ${receivedNotification.id} - ${receivedNotification.title}');
   }
 
   @pragma("vm:entry-point")
-  static Future<void> onNotificationDisplayedMethod(ReceivedNotification receivedNotification) async {
-    logger.d('Notification displayed: ${receivedNotification.id} - ${receivedNotification.title}');
+  static Future<void> onNotificationDisplayedMethod(
+      ReceivedNotification receivedNotification) async {
+    logger.d(
+        'Notification displayed: ${receivedNotification.id} - ${receivedNotification.title}');
   }
 
   @pragma("vm:entry-point")
-  static Future<void> onDismissActionReceivedMethod(ReceivedAction receivedAction) async {
-    logger.d('Notification dismissed: ${receivedAction.id} - ${receivedAction.title}');
+  static Future<void> onDismissActionReceivedMethod(
+      ReceivedAction receivedAction) async {
+    logger.d(
+        'Notification dismissed: ${receivedAction.id} - ${receivedAction.title}');
   }
 
   @pragma("vm:entry-point")
-  static Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
-    logger.d('Action received: ${receivedAction.id} - ${receivedAction.title}, buttonKey: ${receivedAction.buttonKeyPressed}, payload: ${receivedAction.payload}');
+  static Future<void> onActionReceivedMethod(
+      ReceivedAction receivedAction) async {
+    logger.d(
+        'Action received: ${receivedAction.id} - ${receivedAction.title}, buttonKey: ${receivedAction.buttonKeyPressed}, payload: ${receivedAction.payload}');
 
     // if (receivedAction.buttonKeyPressed == 'MARK_AS_DONE') {
     //   logger.i("Notification ${receivedAction.id} marked as done by user.");
@@ -418,15 +486,19 @@ class NotificationController {
         if (volumeMl != null) {
           try {
             final prefs = await SharedPreferences.getInstance();
-            double currentPendingAmount = prefs.getDouble(prefsPendingWaterAdditionMl) ?? 0.0;
+            double currentPendingAmount =
+                prefs.getDouble(prefsPendingWaterAdditionMl) ?? 0.0;
             double newTotalPendingAmount = currentPendingAmount + volumeMl;
-            await prefs.setDouble(prefsPendingWaterAdditionMl, newTotalPendingAmount);
-            logger.i("ADD_WATER action: ${receivedAction.buttonKeyPressed}, volume $volumeMl ml. Total pending: $newTotalPendingAmount ml saved to SharedPreferences.");
+            await prefs.setDouble(
+                prefsPendingWaterAdditionMl, newTotalPendingAmount);
+            logger.i(
+                "ADD_WATER action: ${receivedAction.buttonKeyPressed}, volume $volumeMl ml. Total pending: $newTotalPendingAmount ml saved to SharedPreferences.");
           } catch (e) {
             logger.e("Error saving water addition to SharedPreferences: $e");
           }
         } else {
-          logger.w("Could not parse volume from button key: ${receivedAction.buttonKeyPressed}");
+          logger.w(
+              "Could not parse volume from button key: ${receivedAction.buttonKeyPressed}");
         }
       }
     }

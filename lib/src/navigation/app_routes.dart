@@ -11,7 +11,8 @@ class AppRoutes {
 
   // --- Authentication Routes ---
   static const String login = '/login';
-  static const String register = '/register'; // Still keep for potential future use or direct access
+  static const String register =
+      '/register'; // Still keep for potential future use or direct access
   static const String forgotPassword = '/forgot-password'; // Still keep
 
   // --- Main App Routes ---

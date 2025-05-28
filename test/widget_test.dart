@@ -39,7 +39,8 @@ void main() {
   // Group for CustomButton tests
   group('CustomButton Widget Tests', () {
     // Test to verify that the CustomButton displays text correctly.
-    testWidgets('CustomButton displays text and can be tapped', (WidgetTester tester) async {
+    testWidgets('CustomButton displays text and can be tapped',
+        (WidgetTester tester) async {
       String buttonText = 'Tap Me';
       bool tapped = false;
 
@@ -47,25 +48,23 @@ void main() {
       // We need to wrap it in a MaterialApp and Scaffold (or another Material ancestor)
       // to provide context for theming and directionality.
       // Also, ScreenUtilInit if your widget relies on ScreenUtil for sizing.
-      await tester.pumpWidget(
-          ScreenUtilInit( // Ensure ScreenUtil is initialized if CustomButton uses it
-              designSize: const Size(375, 812),
-              minTextAdapt: true,
-              splitScreenMode: true,
-              builder: (_, child) {
-                return MaterialApp(
-                  home: Scaffold(
-                    body: CustomButton(
-                      text: buttonText,
-                      onPressed: () {
-                        tapped = true;
-                      },
-                    ),
-                  ),
-                );
-              }
-          )
-      );
+      await tester.pumpWidget(ScreenUtilInit(
+          // Ensure ScreenUtil is initialized if CustomButton uses it
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (_, child) {
+            return MaterialApp(
+              home: Scaffold(
+                body: CustomButton(
+                  text: buttonText,
+                  onPressed: () {
+                    tapped = true;
+                  },
+                ),
+              ),
+            );
+          }));
 
       // Verify that the button displays the correct text.
       expect(find.text(buttonText), findsOneWidget);
@@ -79,26 +78,25 @@ void main() {
     });
 
     // Test to verify the loading state of CustomButton.
-    testWidgets('CustomButton shows loading indicator when isLoading is true', (WidgetTester tester) async {
+    testWidgets('CustomButton shows loading indicator when isLoading is true',
+        (WidgetTester tester) async {
       String buttonText = 'Loading Button';
 
       // Build the CustomButton in its loading state.
-      await tester.pumpWidget(
-          ScreenUtilInit(
-              designSize: const Size(375, 812),
-              builder: (_, child) {
-                return MaterialApp(
-                  home: Scaffold(
-                    body: CustomButton(
-                      text: buttonText,
-                      isLoading: true,
-                      onPressed: () {}, // onPressed can be null or empty for loading state
-                    ),
-                  ),
-                );
-              }
-          )
-      );
+      await tester.pumpWidget(ScreenUtilInit(
+          designSize: const Size(375, 812),
+          builder: (_, child) {
+            return MaterialApp(
+              home: Scaffold(
+                body: CustomButton(
+                  text: buttonText,
+                  isLoading: true,
+                  onPressed:
+                      () {}, // onPressed can be null or empty for loading state
+                ),
+              ),
+            );
+          }));
 
       // Verify that the CircularProgressIndicator is present.
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -113,31 +111,30 @@ void main() {
     });
 
     // Test to verify the button is disabled when onPressed is null
-    testWidgets('CustomButton is disabled when onPressed is null', (WidgetTester tester) async {
+    testWidgets('CustomButton is disabled when onPressed is null',
+        (WidgetTester tester) async {
       String buttonText = 'Disabled Button';
 
-      await tester.pumpWidget(
-          ScreenUtilInit(
-              designSize: const Size(375, 812),
-              builder: (_, child) {
-                return MaterialApp(
-                  home: Scaffold(
-                    body: CustomButton(
-                      text: buttonText,
-                      onPressed: null, // Explicitly disabled
-                    ),
-                  ),
-                );
-              }
-          )
-      );
+      await tester.pumpWidget(ScreenUtilInit(
+          designSize: const Size(375, 812),
+          builder: (_, child) {
+            return MaterialApp(
+              home: Scaffold(
+                body: CustomButton(
+                  text: buttonText,
+                  onPressed: null, // Explicitly disabled
+                ),
+              ),
+            );
+          }));
 
       // Verify the button text is displayed.
       expect(find.text(buttonText), findsOneWidget);
 
       // Check if the ElevatedButton inside CustomButton is disabled.
       // We find the ElevatedButton and check its onPressed property.
-      final ElevatedButton elevatedButton = tester.widget(find.byType(ElevatedButton));
+      final ElevatedButton elevatedButton =
+          tester.widget(find.byType(ElevatedButton));
       expect(elevatedButton.onPressed, isNull);
 
       // Attempt to tap and ensure no action happens (not easily verifiable without a callback state change)

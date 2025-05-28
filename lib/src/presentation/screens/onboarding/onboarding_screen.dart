@@ -51,14 +51,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       logger.i("Onboarding marked as completed.");
       if (mounted) {
         // Navigate to the simplified LoginScreen
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Changed from AppRoutes.welcome
+        Navigator.of(context).pushReplacementNamed(
+            AppRoutes.login); // Changed from AppRoutes.welcome
         logger.i("OnboardingScreen: Navigating to LoginScreen.");
       }
     } catch (e) {
       logger.e("Error saving onboarding status or navigating: $e");
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
-        logger.w("OnboardingScreen: Fallback navigation to LoginScreen due to error.");
+        Navigator.of(context)
+            .pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
+        logger.w(
+            "OnboardingScreen: Fallback navigation to LoginScreen due to error.");
       }
     }
   }
@@ -80,7 +83,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   onPressed: _completeOnboarding,
                   child: Text(
                     AppStrings.skip,
-                    style: TextStyle(color: AppColors.primaryColor, fontSize: 16.sp),
+                    style: TextStyle(
+                        color: AppColors.primaryColor, fontSize: 16.sp),
                   ),
                 ),
               ),
@@ -112,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       _onboardingPages.length,
-                          (index) => _buildDot(index, context),
+                      (index) => _buildDot(index, context),
                     ),
                   ),
                   SizedBox(
@@ -162,7 +166,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               return Container(
                 height: 280.h,
                 color: Colors.grey[300],
-                child: Center(child: Icon(Icons.image_not_supported_outlined, size: 100.sp, color: Colors.grey[500])),
+                child: Center(
+                    child: Icon(Icons.image_not_supported_outlined,
+                        size: 100.sp, color: Colors.grey[500])),
               );
             },
           ),
@@ -171,18 +177,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             title,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryColor,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryColor,
+                ),
           ),
           SizedBox(height: 16.h),
           Text(
             description,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).textTheme.bodyLarge?.color?.withAlpha((255 * 0.7).round()),
-              height: 1.5,
-            ),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
+                      ?.withAlpha((255 * 0.7).round()),
+                  height: 1.5,
+                ),
           ),
         ],
       ),
@@ -196,7 +206,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: 10.h,
       width: _currentPage == index ? 24.w : 10.w,
       decoration: BoxDecoration(
-        color: _currentPage == index ? AppColors.primaryColor : Colors.grey[300],
+        color:
+            _currentPage == index ? AppColors.primaryColor : Colors.grey[300],
         borderRadius: BorderRadius.circular(5.r),
       ),
     );

@@ -20,34 +20,39 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   Future<void> _loginWithGoogle() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     // Capture the context that is valid *before* the async operation.
     // This context will be used for showing and hiding the dialog.
-    final BuildContext dialogContext = context; 
+    final BuildContext dialogContext = context;
     // Capture the ModalRoute before potential async gaps if possible, though settings.arguments should be stable.
-    final String? returnToRoute = ModalRoute.of(dialogContext)?.settings.arguments as String?;
-    
-    AppUtils.showLoadingDialog(dialogContext, message: "Connecting to Google...");
+    final String? returnToRoute =
+        ModalRoute.of(dialogContext)?.settings.arguments as String?;
+
+    AppUtils.showLoadingDialog(dialogContext,
+        message: "Connecting to Google...");
 
     bool signInSuccess = false;
     String? loginError;
 
     try {
-      signInSuccess = await authProvider.signInWithGoogle(); // Returns true on success, false on error/cancel
+      signInSuccess = await authProvider
+          .signInWithGoogle(); // Returns true on success, false on error/cancel
 
       if (!signInSuccess && authProvider.authStatus == AuthStatus.authError) {
         // Error message is already set by AuthProvider's _handleAuthError
-        loginError = authProvider.errorMessage ?? "Google Sign-In failed. Please try again.";
-      } else if (!signInSuccess && authProvider.authStatus == AuthStatus.unauthenticated) {
+        loginError = authProvider.errorMessage ??
+            "Google Sign-In failed. Please try again.";
+      } else if (!signInSuccess &&
+          authProvider.authStatus == AuthStatus.unauthenticated) {
         // User cancelled, no error message needed unless you want to show one.
         // loginError = "Google Sign-In cancelled."; // Optional
       }
       // If signInSuccess is true, _currentUser is set in AuthProvider but AuthStatus is not yet 'authenticated'.
     } catch (e) {
       // Fallback for truly unexpected errors not caught by AuthProvider
-      logger.e("LoginScreen: Unexpected error during signInWithGoogle call: $e");
+      logger
+          .e("LoginScreen: Unexpected error during signInWithGoogle call: $e");
       loginError = "An unexpected error occurred. Please try again.";
       // Ensure authProvider status is error if we hit here, though it should be set by provider.
       // authProvider.forceErrorState("Unexpected error"); // Hypothetical method
@@ -57,7 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
 
-    if (signInSuccess && mounted) { // Check 'mounted' for the LoginScreen context
+    if (signInSuccess && mounted) {
+      // Check 'mounted' for the LoginScreen context
       authProvider.completeGoogleSignIn(); // This will trigger AuthGate
 
       // Now, handle navigation based on returnToRoute
@@ -68,10 +74,11 @@ class _LoginScreenState extends State<LoginScreen> {
       // A slight delay before this custom navigation might be needed, or AuthGate needs to be aware.
       // For now, let's try direct navigation.
       if (returnToRoute != null) {
-          // Ensure this context for navigation is still valid if there was a build in between
-          if (mounted) { 
-               Navigator.of(context).pushNamedAndRemoveUntil(returnToRoute, (route) => false);
-          }
+        // Ensure this context for navigation is still valid if there was a build in between
+        if (mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil(returnToRoute, (route) => false);
+        }
       }
       // If returnToRoute is null, AuthGate will navigate to home.
     } else if (loginError != null && mounted) {
@@ -85,12 +92,14 @@ class _LoginScreenState extends State<LoginScreen> {
     // AuthGate will still protect routes if actual authentication is required later.
     // If a user is already "logged in" as guest, this ensures they stay on home.
     // If they are truly logged out, AuthGate will handle it if they try to access protected content.
-    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context); // For status listening
+    final authProvider =
+        Provider.of<AuthProvider>(context); // For status listening
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -98,16 +107,22 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: BoxDecoration( // Optional: Add a subtle gradient or background image
+          decoration: BoxDecoration(
+            // Optional: Add a subtle gradient or background image
             gradient: LinearGradient(
               colors: [
-                theme.colorScheme.primaryContainer.withAlpha((255 * 0.5).round()), // Changed
+                theme.colorScheme.primaryContainer
+                    .withAlpha((255 * 0.5).round()), // Changed
                 theme.scaffoldBackgroundColor,
                 theme.scaffoldBackgroundColor,
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              stops: const [0.0, 0.4, 1.0], // Adjusted stop for a shorter gradient
+              stops: const [
+                0.0,
+                0.4,
+                1.0
+              ], // Adjusted stop for a shorter gradient
             ),
           ),
           child: Padding(
@@ -121,7 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Image.asset(
                   AppAssets.appLogo,
                   height: 100.h,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.water_drop_rounded, size: 100.h, color: AppColors.primaryColor),
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                      Icons.water_drop_rounded,
+                      size: 100.h,
+                      color: AppColors.primaryColor),
                 ),
                 SizedBox(height: 16.h),
                 Text(
@@ -137,18 +155,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Stay hydrated, effortlessly.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.textTheme.titleMedium?.color?.withAlpha(200)
-                  ),
+                      color:
+                          theme.textTheme.titleMedium?.color?.withAlpha(200)),
                 ),
                 const Spacer(flex: 3),
 
                 // Login with Google Button
                 SocialLoginButton(
                   text: AppStrings.loginWithGoogle,
-                  assetName: 'assets/images/google_logo.png', // Make sure you have this asset
-                  isLoading: authProvider.authStatus == AuthStatus.authenticating,
+                  assetName:
+                      'assets/images/google_logo.png', // Make sure you have this asset
+                  isLoading:
+                      authProvider.authStatus == AuthStatus.authenticating,
                   onPressed: _loginWithGoogle,
-                  backgroundColor: Colors.white, // Explicit white background for Google button
+                  backgroundColor: Colors
+                      .white, // Explicit white background for Google button
                   textColor: Colors.black87, // Typical Google button text color
                 ),
                 SizedBox(height: 20.h),
@@ -157,7 +178,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 CustomButton(
                   text: 'Skip login for now',
                   onPressed: _skipLogin,
-                  backgroundColor: theme.colorScheme.secondaryContainer.withAlpha((255 * 0.7).round()), // Changed
+                  backgroundColor: theme.colorScheme.secondaryContainer
+                      .withAlpha((255 * 0.7).round()), // Changed
                   textColor: theme.colorScheme.onSecondaryContainer, // Changed
                 ),
                 const Spacer(flex: 1),
@@ -166,7 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(
                     "You can log in later from settings to sync your data.",
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.hintColor),
                   ),
                 ),
               ],

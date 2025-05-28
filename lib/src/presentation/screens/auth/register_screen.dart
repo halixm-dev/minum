@@ -14,7 +14,6 @@ import 'package:minum/src/presentation/widgets/common/social_login_button.dart';
 import 'package:provider/provider.dart';
 // For logger
 
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -54,7 +53,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) AppUtils.hideLoadingDialog(context);
 
       if (authProvider.authStatus == AuthStatus.authError && mounted) {
-        AppUtils.showSnackBar(context, authProvider.errorMessage ?? AppStrings.anErrorOccurred, isError: true);
+        AppUtils.showSnackBar(
+            context, authProvider.errorMessage ?? AppStrings.anErrorOccurred,
+            isError: true);
       }
       // AuthGate will handle navigation if successful
     }
@@ -64,12 +65,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     AppUtils.showLoadingDialog(context, message: "Connecting to Google...");
 
-    await authProvider.signInWithGoogle(); // signInWithGoogle handles both sign-in and registration flow
+    await authProvider
+        .signInWithGoogle(); // signInWithGoogle handles both sign-in and registration flow
 
     if (mounted) AppUtils.hideLoadingDialog(context);
 
     if (authProvider.authStatus == AuthStatus.authError && mounted) {
-      AppUtils.showSnackBar(context, authProvider.errorMessage ?? AppStrings.anErrorOccurred, isError: true);
+      AppUtils.showSnackBar(
+          context, authProvider.errorMessage ?? AppStrings.anErrorOccurred,
+          isError: true);
     }
     // AuthGate will handle navigation if successful
   }
@@ -92,16 +96,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Image.asset(
                     AppAssets.appLogo,
                     height: 70.h,
-                    errorBuilder: (context, error, stackTrace) => Icon(Icons.water_drop, size: 70.h, color: AppColors.primaryColor),
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.water_drop,
+                        size: 70.h,
+                        color: AppColors.primaryColor),
                   ),
                   SizedBox(height: 10.h),
                   Text(
                     'Create Account',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary, // Changed
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color:
+                              Theme.of(context).colorScheme.primary, // Changed
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   SizedBox(height: 8.h),
                   Text(
@@ -117,7 +125,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Display Name',
                     hintText: 'Your Name',
                     prefixIcon: Icons.person_outline,
-                    validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name"),
+                    validator: (value) => AppUtils.validateNotEmpty(value,
+                        fieldName: "Display name"),
                   ),
                   SizedBox(height: 16.h),
 
@@ -140,8 +149,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     obscureText: _obscurePassword,
                     prefixIcon: Icons.lock_outline,
                     suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword)),
+                        icon: Icon(_obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword)),
                     validator: AppUtils.validatePassword,
                   ),
                   SizedBox(height: 16.h),
@@ -154,17 +166,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     obscureText: _obscureConfirmPassword,
                     prefixIcon: Icons.lock_outline,
                     suffixIcon: IconButton(
-                        icon: Icon(_obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                        onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword)),
-                    validator: (value) => AppUtils.validateConfirmPassword(_passwordController.text, value),
+                        icon: Icon(_obscureConfirmPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                        onPressed: () => setState(() =>
+                            _obscureConfirmPassword =
+                                !_obscureConfirmPassword)),
+                    validator: (value) => AppUtils.validateConfirmPassword(
+                        _passwordController.text, value),
                   ),
                   SizedBox(height: 24.h),
 
                   // Register Button
                   CustomButton(
                     text: AppStrings.register,
-                    isLoading: authProvider.authStatus == AuthStatus.authenticating &&
-                        (authProvider.errorMessage == null || !authProvider.errorMessage!.toLowerCase().contains("google")),
+                    isLoading:
+                        authProvider.authStatus == AuthStatus.authenticating &&
+                            (authProvider.errorMessage == null ||
+                                !authProvider.errorMessage!
+                                    .toLowerCase()
+                                    .contains("google")),
                     onPressed: _registerUser,
                   ),
                   SizedBox(height: 20.h),
@@ -175,7 +196,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const Expanded(child: Divider()),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        child: Text('Or sign up with', style: Theme.of(context).textTheme.bodyMedium),
+                        child: Text('Or sign up with',
+                            style: Theme.of(context).textTheme.bodyMedium),
                       ),
                       const Expanded(child: Divider()),
                     ],
@@ -185,10 +207,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // Google Register Button
                   SocialLoginButton(
                     text: AppStrings.registerWithGoogle,
-                    assetName: 'assets/images/google_logo.png', // Make sure you have this asset
-                    isLoading: authProvider.authStatus == AuthStatus.authenticating &&
-                        authProvider.errorMessage == null &&
-                        _emailController.text.isEmpty, // Basic check if it's Google auth
+                    assetName:
+                        'assets/images/google_logo.png', // Make sure you have this asset
+                    isLoading:
+                        authProvider.authStatus == AuthStatus.authenticating &&
+                            authProvider.errorMessage == null &&
+                            _emailController.text
+                                .isEmpty, // Basic check if it's Google auth
                     onPressed: _registerWithGoogle,
                   ),
                   SizedBox(height: 32.h),
@@ -202,14 +227,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: <TextSpan>[
                           TextSpan(
                             text: AppStrings.signInHere,
-                            style: TextStyle( // Changed to use Theme.of(context)
-                              color: Theme.of(context).colorScheme.primary, // Changed
+                            style: TextStyle(
+                              // Changed to use Theme.of(context)
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary, // Changed
                               fontWeight: FontWeight.bold,
                               decoration: TextDecoration.underline,
                             ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+                                Navigator.of(context)
+                                    .pushReplacementNamed(AppRoutes.login);
                               },
                           ),
                         ],
