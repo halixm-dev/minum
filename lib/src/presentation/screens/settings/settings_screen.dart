@@ -165,17 +165,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // _rescheduleNotifications(); // This will now be called by the service method triggered below.
     // Instead, directly call the new service method to handle scheduling logic.
     if (mounted) { // Ensure context is valid before using Provider
-      Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
-        logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed after saving settings.");
-        // Notify that settings have changed AFTER rescheduling is attempted
-        Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged(); // <-- ADD THIS LINE
+      Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded(forceReschedule: true).then((_) { // <-- forceReschedule: true
+        logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded(forceReschedule: true) call completed after saving settings.");
+        if (mounted) { // Ensure widget is still mounted
+          Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged();
+        }
       }).catchError((e) {
-        logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(): $e");
-        // Optionally, you might still want to notify if there's an error,
-        // or perhaps handle this state differently in the listener.
-        // For now, we'll notify even if rescheduling had an error,
-        // as the settings themselves *were* saved.
-        Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged(); // <-- ADD THIS LINE (or decide if only on success)
+        logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(forceReschedule: true): $e");
+        if (mounted) { // Ensure widget is still mounted
+          Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged();
+        }
       });
     }
   }
