@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
+// AppColors import removed
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
-import 'package:minum/src/presentation/widgets/common/custom_button.dart';
+// CustomButton import will be replaced by direct M3 buttons
 import 'package:minum/main.dart'; // For logger
 
 class WelcomeScreen extends StatelessWidget {
@@ -14,8 +14,10 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      // Scaffold background will be theme.colorScheme.surface by default from AppTheme
       body: SafeArea(
         child: Container(
           width: double.infinity,
@@ -23,13 +25,13 @@ class WelcomeScreen extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.primaryColor.withAlpha(150),
-                AppColors.accentColor.withAlpha(100),
-                theme.scaffoldBackgroundColor,
+                colorScheme.primary.withValues(alpha: 0.6), // Adjusted opacity for M3 feel
+                colorScheme.secondary.withValues(alpha: 0.4), // Adjusted opacity for M3 feel
+                colorScheme.surface, // End with the surface color
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              stops: const [0.0, 0.4, 0.8],
+              stops: const [0.0, 0.4, 0.9], // Adjusted stops
             ),
           ),
           child: Padding(
@@ -40,11 +42,12 @@ class WelcomeScreen extends StatelessWidget {
               children: <Widget>[
                 const Spacer(flex: 2),
                 Image.asset(
-                  AppAssets.appLogo, // Ensure you have this asset
+                  AppAssets.appLogo,
                   height: 120.h,
+                  color: colorScheme.primary, // Optionally tint logo with primary color if it's a template image
                   errorBuilder: (context, error, stackTrace) {
                     logger.e("WelcomeScreen: Error loading app logo: $error");
-                    return Icon(Icons.water_drop_rounded, size: 120.h, color: AppColors.primaryColor);
+                    return Icon(Icons.water_drop_rounded, size: 120.h, color: colorScheme.primary);
                   },
                 ),
                 SizedBox(height: 16.h),
@@ -52,8 +55,8 @@ class WelcomeScreen extends StatelessWidget {
                   AppStrings.appName,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.displayMedium?.copyWith(
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary, // Use colorScheme.primary
+                    // fontWeight is part of displayMedium in M3 theme
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -61,33 +64,26 @@ class WelcomeScreen extends StatelessWidget {
                   'Your personal hydration companion.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.textTheme.titleMedium?.color?.withAlpha(200),
+                    color: colorScheme.onSurfaceVariant, // Use onSurfaceVariant for less emphasis
                   ),
                 ),
                 const Spacer(flex: 3),
-                CustomButton(
-                  text: 'Start Now',
+                FilledButton( // Replaced CustomButton
+                  // Style will come from FilledButtonThemeData in AppTheme
                   onPressed: () {
                     logger.i("WelcomeScreen: 'Start Now' pressed. Navigating to HomeScreen.");
-                    // Navigate directly to HomeScreen, implying a guest mode or skipping login for now.
-                    // AuthGate will still protect routes if actual authentication is required later.
                     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
                   },
-                  backgroundColor: AppColors.primaryColor,
-                  textColor: Colors.white,
+                  child: const Text('Start Now'),
                 ),
                 SizedBox(height: 16.h),
-                CustomButton(
-                  text: AppStrings.login,
+                OutlinedButton( // Replaced CustomButton
+                  // Style will come from OutlinedButtonThemeData in AppTheme
                   onPressed: () {
                     logger.i("WelcomeScreen: 'Login' pressed. Navigating to LoginScreen.");
                     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
                   },
-                  backgroundColor: theme.brightness == Brightness.light ? Colors.white : AppColors.darkSurface,
-                  textColor: AppColors.primaryColor,
-                  // Add a border for better visual distinction for the secondary button
-                  // This requires modifying CustomButton or using OutlinedButton directly.
-                  // For now, using CustomButton as is.
+                  child: const Text(AppStrings.login),
                 ),
                 const Spacer(flex: 1),
               ],

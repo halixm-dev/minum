@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:minum/src/core/constants/app_colors.dart'; // Using AppColors for consistency
+// AppColors import removed as styles should come from the theme.
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
@@ -53,6 +53,7 @@ class CustomTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // The inputDecorationTheme is now expected to be fully defined in AppTheme.
     final inputDecorationTheme = theme.inputDecorationTheme;
 
     return TextFormField(
@@ -61,34 +62,25 @@ class CustomTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
-        labelStyle: inputDecorationTheme.labelStyle ?? TextStyle(fontSize: 14.sp, color: AppColors.lightTextSecondary),
-        hintStyle: inputDecorationTheme.hintStyle ?? TextStyle(fontSize: 14.sp, color: AppColors.lightTextHint),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp) : null,
+        // labelStyle, hintStyle, border, enabledBorder, focusedBorder, etc.,
+        // will now be taken directly from the inputDecorationTheme.
+        // No need for ?? fallbacks if the theme is comprehensive.
+        labelStyle: inputDecorationTheme.labelStyle,
+        hintStyle: inputDecorationTheme.hintStyle,
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp) : null, // Icon size can be themed via IconThemeData if needed
         suffixIcon: suffixIcon,
-        border: inputDecorationTheme.border ?? OutlineInputBorder(borderRadius: BorderRadius.circular(4.r)),
-        enabledBorder: inputDecorationTheme.enabledBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.r),
-          borderSide: BorderSide(color: AppColors.lightInputBorder, width: 1.w),
-        ),
-        focusedBorder: inputDecorationTheme.focusedBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.r),
-          borderSide: BorderSide(color: theme.primaryColor, width: 1.5.w),
-        ),
-        errorBorder: inputDecorationTheme.errorBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.r),
-          borderSide: BorderSide(color: theme.colorScheme.error, width: 1.w),
-        ),
-        focusedErrorBorder: inputDecorationTheme.focusedErrorBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.r),
-          borderSide: BorderSide(color: theme.colorScheme.error, width: 1.5.w),
-        ),
-        disabledBorder: inputDecorationTheme.disabledBorder ?? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.r),
-          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.w),
-        ),
-        filled: inputDecorationTheme.filled,
-        fillColor: inputDecorationTheme.fillColor,
-        contentPadding: inputDecorationTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
+        border: inputDecorationTheme.border,
+        enabledBorder: inputDecorationTheme.enabledBorder,
+        focusedBorder: inputDecorationTheme.focusedBorder,
+        errorBorder: inputDecorationTheme.errorBorder,
+        focusedErrorBorder: inputDecorationTheme.focusedErrorBorder,
+        disabledBorder: inputDecorationTheme.disabledBorder,
+        filled: inputDecorationTheme.filled, // Should be true in M3 theme
+        fillColor: inputDecorationTheme.fillColor, // Should be defined in M3 theme
+        contentPadding: inputDecorationTheme.contentPadding, // Should be defined in M3 theme
+        // Ensure floatingLabelBehavior is consistent with M3, usually 'auto' or 'always'
+        floatingLabelBehavior: inputDecorationTheme.floatingLabelBehavior,
+        errorStyle: inputDecorationTheme.errorStyle, // Ensure this is also themed
       ),
       obscureText: obscureText,
       keyboardType: keyboardType,
@@ -104,7 +96,10 @@ class CustomTextField extends StatelessWidget {
       onFieldSubmitted: onFieldSubmitted,
       enabled: enabled,
       autovalidateMode: autovalidateMode ?? AutovalidateMode.onUserInteraction,
-      style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15.sp),
+      // Input text style should ideally come from the global text theme, e.g., bodyLarge.
+      // The M3 inputDecorationTheme in AppTheme sets bodyLarge for labelStyle and hintStyle.
+      // The actual input text style is typically derived from the context's default text style or can be set here.
+      style: theme.textTheme.bodyLarge,
     );
   }
 }

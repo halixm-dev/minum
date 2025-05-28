@@ -1,18 +1,16 @@
 // lib/src/presentation/widgets/common/social_login_button.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:minum/src/core/constants/app_colors.dart'; // For default text color
+// AppColors import removed as styles should come from the theme.
 
 class SocialLoginButton extends StatelessWidget {
   final String text;
   final String assetName; // Path to the social icon asset (e.g., Google logo)
   final VoidCallback? onPressed;
   final bool isLoading;
-  final Color? backgroundColor;
-  final Color? textColor;
   final double? width;
-  final double? height;
-  final double borderRadius;
+  final double? height; // Note: M3 button height is controlled by theme padding & text style.
+  final ButtonStyle? style; // Allow full style override if needed
 
   const SocialLoginButton({
     super.key,
@@ -20,81 +18,76 @@ class SocialLoginButton extends StatelessWidget {
     required this.assetName,
     this.onPressed,
     this.isLoading = false,
-    this.backgroundColor,
-    this.textColor,
     this.width,
     this.height,
-    this.borderRadius = 8.0,
+    this.style,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Default to a light background for social buttons, often white or very light grey
-    final effectiveBackgroundColor = backgroundColor ?? (
-        theme.brightness == Brightness.light ? Colors.white : AppColors.darkSurface
-    );
-    // Default text color often contrasts with the button's light background
-    final effectiveTextColor = textColor ?? (
-        theme.brightness == Brightness.light ? AppColors.lightText : AppColors.darkText
-    );
-    final effectiveHeight = height ?? 50.h;
+    // Use the theme's OutlinedButton style as a base
+    final baseStyle = theme.outlinedButtonTheme.style ?? const ButtonStyle();
 
-    return SizedBox(
-      width: width ?? double.infinity,
-      height: effectiveHeight,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          backgroundColor: effectiveBackgroundColor,
-          side: BorderSide(
-            color: theme.brightness == Brightness.light ? AppColors.lightInputBorder : AppColors.darkInputBorder,
-            width: 1.w,
-          ),
-          foregroundColor: effectiveTextColor,
-          padding: EdgeInsets.symmetric(vertical: 0, horizontal: 16.w),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius.r),
-          ),
-          textStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: effectiveTextColor),
-        ).copyWith(
-          minimumSize: WidgetStateProperty.all(Size(0, effectiveHeight)),
-          backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
-              if (states.contains(WidgetState.disabled)) {
-                // Use withAlpha for disabled state background
-                return effectiveBackgroundColor.withAlpha((255 * 0.7).round());
-              }
-              return effectiveBackgroundColor;
+    // Merge with provided style if any
+    ButtonStyle effectiveStyle = baseStyle;
+    if (style != null) {
+      effectiveStyle = baseStyle.merge(style);
+    }
+
+    // Determine color for progress indicator and fallback icon
+    // This should ideally come from the resolved foregroundColor of the button style
+    Color progressIndicatorColor = effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ??
+                                  theme.colorScheme.onSurface.withValues(alpha: 0.38);
+    if (effectiveStyle.foregroundColor?.resolve({}) != null) {
+        progressIndicatorColor = effectiveStyle.foregroundColor!.resolve({})!;
+    }
+
+
+    Widget buttonChild;
+    if (isLoading) {
+      buttonChild = SizedBox(
+        width: 20.r,
+        height: 20.r,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5.w,
+          valueColor: AlwaysStoppedAnimation<Color>(progressIndicatorColor),
+        ),
+      );
+    } else {
+      buttonChild = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min, // Ensure button doesn't stretch unnecessarily
+        children: [
+          Image.asset(
+            assetName,
+            height: 20.h, // Standard icon size for buttons
+            width: 20.w,
+            // color: progressIndicatorColor, // This will only work for SVGs or template images
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(Icons.login, size: 20.sp, color: progressIndicatorColor);
             },
           ),
-        ),
-        onPressed: isLoading ? null : onPressed,
-        child: isLoading
-            ? SizedBox(
-          width: 24.r,
-          height: 24.r,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5.w,
-            valueColor: AlwaysStoppedAnimation<Color>(effectiveTextColor),
-          ),
-        )
-            : Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              assetName,
-              height: 22.h, // Adjust size as needed
-              width: 22.w,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback if asset fails to load
-                return Icon(Icons.login, size: 22.sp, color: effectiveTextColor);
-              },
-            ),
-            SizedBox(width: 12.w),
-            Text(text),
-          ],
-        ),
-      ),
+          SizedBox(width: 12.w), // M3 recommended spacing between icon and label is 8dp, but 12 can be fine.
+          Text(text),
+        ],
+      );
+    }
+
+    final button = OutlinedButton(
+      style: effectiveStyle,
+      onPressed: isLoading ? null : onPressed,
+      child: buttonChild,
     );
+
+    if (width != null || height != null) {
+      return SizedBox(
+        width: width ?? (width == double.infinity ? double.infinity : null),
+        height: height,
+        child: button,
+      );
+    }
+
+    return button;
   }
 }

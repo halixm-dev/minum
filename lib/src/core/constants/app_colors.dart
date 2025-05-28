@@ -4,63 +4,63 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._(); // Private constructor
 
-  // --- Primary & Accent Colors ---
-  static const Color primaryColor = Color(0xFF00A9FF); // A vibrant blue
-  static const Color accentColor = Color(0xFF89CFF3);  // A lighter, complementary blue
-  static const Color primaryColorDark = Color(0xFF008DDD); // Slightly darker for dark theme primary
-  static const Color accentColorDark = Color(0xFF60A3D9);  // Lighter accent for dark theme
+  // --- Primary & Accent Colors (Used for M3 primary/secondary) ---
+  static const Color primaryColor = Color(0xFF00A9FF); // M3 primary (Light)
+  static const Color accentColor = Color(0xFF89CFF3);  // M3 secondary (Light)
+  static const Color primaryColorDark = Color(0xFF008DDD); // M3 primary (Dark)
+  static const Color accentColorDark = Color(0xFF60A3D9);  // M3 secondary (Dark)
 
-  // --- Text Colors ---
+  // --- Text Colors (Mainly covered by onSurface, onSurfaceVariant etc. in ColorScheme) ---
   // Light Theme
-  static const Color lightText = Color(0xFF1D2A3A); // Dark grey for main text
-  static const Color lightTextSecondary = Color(0xFF5A6A7A); // Medium grey for subtitles
-  static const Color lightTextHint = Color(0xFF8C9BAB); // Lighter grey for hints
+  static const Color lightText = Color(0xFF1D2A3A); // Used for M3 onSurface (Light)
+  // static const Color lightTextSecondary = Color(0xFF5A6A7A); // Consider using onSurfaceVariant
+  // static const Color lightTextHint = Color(0xFF8C9BAB); // Consider using onSurfaceVariant.withOpacity(0.6) or similar
 
   // Dark Theme
-  static const Color darkText = Color(0xFFE0E0E0); // Light grey for main text
-  static const Color darkTextSecondary = Color(0xFFB0B0B0); // Medium light grey for subtitles
-  static const Color darkTextHint = Color(0xFF8A8A8A); // Darker grey for hints
+  static const Color darkText = Color(0xFFE0E0E0); // Used for M3 onSurface (Dark)
+  // static const Color darkTextSecondary = Color(0xFFB0B0B0); // Consider using onSurfaceVariant
+  // static const Color darkTextHint = Color(0xFF8A8A8A); // Consider using onSurfaceVariant.withOpacity(0.6) or similar
 
-  // --- Background Colors ---
+  // --- Background Colors (Mapped to M3 surface roles in ColorScheme) ---
   // Light Theme
-  static const Color lightScaffoldBackground = Color(0xFFF4F7FA); // Very light grey/blue
-  static const Color lightBackground = Color(0xFFFFFFFF); // White
-  static const Color lightSurface = Color(0xFFFFFFFF); // White (for cards, dialogs)
-  static const Color lightAppBarBackground = Color(0xFFFFFFFF);
-  static const Color lightAppBarText = Color(0xFF1D2A3A);
-  static const Color lightInputBorder = Color(0xFFD0D5DD);
+  static const Color lightScaffoldBackground = Color(0xFFF4F7FA); // Used for M3 surface, surfaceContainerLow (Light)
+  static const Color lightBackground = Color(0xFFFFFFFF); // Used for M3 surfaceContainerHighest (Light)
+  static const Color lightSurface = Color(0xFFFFFFFF); // Used for M3 surfaceContainer (Light)
+  // static const Color lightAppBarBackground = Color(0xFFFFFFFF); // Superseded by AppBarTheme
+  // static const Color lightAppBarText = Color(0xFF1D2A3A); // Superseded by AppBarTheme
+  // static const Color lightInputBorder = Color(0xFFD0D5DD); // Superseded by InputDecorationTheme
 
   // Dark Theme
-  static const Color darkScaffoldBackground = Color(0xFF121212); // Common dark theme bg
-  static const Color darkBackground = Color(0xFF1E1E1E); // Slightly lighter dark
-  static const Color darkSurface = Color(0xFF2C2C2C); // For cards, dialogs in dark mode
-  static const Color darkAppBarBackground = Color(0xFF1E1E1E);
-  static const Color darkAppBarText = Color(0xFFE0E0E0);
-  static const Color darkInputBorder = Color(0xFF4A4A4A);
+  static const Color darkScaffoldBackground = Color(0xFF121212); // Used for M3 surface, surfaceContainerLowest (Dark)
+  static const Color darkBackground = Color(0xFF1E1E1E); // Used for M3 surfaceContainerLow (Dark)
+  static const Color darkSurface = Color(0xFF2C2C2C); // Used for M3 surfaceContainer (Dark)
+  // static const Color darkAppBarBackground = Color(0xFF1E1E1E); // Superseded by AppBarTheme
+  // static const Color darkAppBarText = Color(0xFFE0E0E0); // Superseded by AppBarTheme
+  // static const Color darkInputBorder = Color(0xFF4A4A4A); // Superseded by InputDecorationTheme
 
 
-  // --- Common Colors ---
-  static const Color errorColor = Color(0xFFD32F2F); // Standard red for errors
+  // --- Semantic Colors (Error is M3, Success/Warning are custom) ---
+  static const Color errorColor = Color(0xFFD32F2F); // M3 error
   static const Color successColor = Color(0xFF388E3C); // Standard green for success
   static const Color warningColor = Color(0xFFFFA000); // Standard orange for warnings
 
   // --- On-Color (Text/icons on colored backgrounds) ---
   static const Color onPrimary = Colors.white;
-  static const Color onSecondary = Colors.black;
-  static const Color onError = Colors.white;
-  static const Color onPrimaryDark = Colors.white;
-  static const Color onSecondaryDark = Colors.black;
+  static const Color onSecondary = Colors.black; // For light theme accentColor (secondaryLight)
+  static const Color onError = Colors.white; // For light theme errorColor (remains for light theme)
+  static const Color onPrimaryDark = Colors.white; // M3 onPrimary (Dark)
+  static const Color onSecondaryDark = onPrimaryContainerDark; // Changed from Colors.black for better M3 dark theme contrast
 
-  // --- Icon Colors ---
-  static const Color lightIcon = Color(0xFF5A6A7A);
-  static const Color darkIcon = Color(0xFFB0B0B0);
+  // --- Icon Colors (Superseded by IconTheme using onSurfaceVariant) ---
+  // static const Color lightIcon = Color(0xFF5A6A7A);
+  // static const Color darkIcon = Color(0xFFB0B0B0);
 
   // --- Other UI Elements ---
-  static const Color dividerColor = Color(0xFFE0E0E0); // For light theme
-  static const Color darkDividerColor = Color(0xFF3A3A3A); // For dark theme
-  static const Color shadowColor = Color(0x33000000); // Light shadow
+  // static const Color dividerColor = Color(0xFFE0E0E0); // Consider using ColorScheme.outline or outlineVariant
+  // static const Color darkDividerColor = Color(0xFF3A3A3A); // Consider using ColorScheme.outline or outlineVariant
+  static const Color shadowColor = Color(0x33000000); // M3 shadow (used in ColorScheme)
 
-  // --- Material 3 Semantic Colors ---
+  // --- Material 3 Semantic Colors (Defined for direct use in ColorScheme) ---
 
   // --- M3 Light Theme Colors ---
   // Primary Family
@@ -87,6 +87,19 @@ class AppColors {
   static const Color outlineLight = Color(0xFF73777F);
   static const Color outlineVariantLight = Color(0xFFC3C7CF);
 
+  // Error Container Family (Light)
+  static const Color errorContainerLight = Color(0xFFF9DEDC);
+  static const Color onErrorContainerLight = Color(0xFF410E0B);
+
+  // New Surface Tones (Light) - Based on lightScaffoldBackground F4F7FA and lightBackground FFFFFF
+  static const Color surfaceDimLight = Color(0xFFE4E7EA); // Darker than scaffold bg
+  static const Color surfaceBrightLight = Color(0xFFFCFCFC); // Lighter than scaffold bg, but not pure white
+  static const Color surfaceContainerLowestLight = Color(0xFFFFFFFF); // Pure white
+  static const Color surfaceContainerLowLight = Color(0xFFF4F7FA); // Existing scaffold bg
+  static const Color surfaceContainerLight = Color(0xFFEFF2F5);   // Slightly above scaffold bg
+  static const Color surfaceContainerHighLight = Color(0xFFE9ECF0);  // Higher than container
+  static const Color surfaceContainerHighestLight = Color(0xFFE3E6E9); // Highest, but below pure white background typically used for app bar
+
   // --- M3 Dark Theme Colors ---
   // Primary Family
   static const Color primaryContainerDark = Color(0xFF004A77);
@@ -111,4 +124,21 @@ class AppColors {
   // Outline Family
   static const Color outlineDark = Color(0xFF8D9199);
   static const Color outlineVariantDark = Color(0xFF43474E); // Can be same as surfaceVariantDark
+
+  // M3 Error Colors for Dark Theme (to be used in ColorScheme.dark)
+  static const Color errorDarkM3 = Color(0xFFFFB4AB);
+  static const Color onErrorDarkM3 = Color(0xFF690005);
+
+  // Error Container Family (Dark) - These are correctly defined for M3 already
+  static const Color errorContainerDark = Color(0xFF93000A);
+  static const Color onErrorContainerDark = Color(0xFFFFDAD6);
+
+  // New Surface Tones (Dark) - Based on darkScaffoldBackground 121212 and darkBackground 1E1E1E
+  static const Color surfaceDimDark = Color(0xFF0E0E0E); // Darker than scaffold bg
+  static const Color surfaceBrightDark = Color(0xFF3A3A3A); // Lighter than darkSurface
+  static const Color surfaceContainerLowestDark = Color(0xFF0A0A0A); // Darkest
+  static const Color surfaceContainerLowDark = Color(0xFF1E1E1E); // Existing darkBackground
+  static const Color surfaceContainerDark = Color(0xFF232323);    // Slightly above darkBackground
+  static const Color surfaceContainerHighDark = Color(0xFF2D2D2D);  // Higher than container
+  static const Color surfaceContainerHighestDark = Color(0xFF383838); // Highest, for things like AppBars
 }

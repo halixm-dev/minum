@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
@@ -69,10 +68,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     logger.i("SplashScreen: build method called.");
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.light
-          ? AppColors.primaryColor
-          : AppColors.darkScaffoldBackground,
+      backgroundColor: theme.brightness == Brightness.light
+          ? colorScheme.primary // Use M3 color
+          : colorScheme.surface, // Use M3 color for dark splash background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -81,38 +83,41 @@ class _SplashScreenState extends State<SplashScreen> {
               AppAssets.appLogo,
               width: 150.w,
               height: 150.h,
+              // For M3, if the logo is simple, consider tinting with onPrimary or onSurface
+              color: theme.brightness == Brightness.light ? colorScheme.onPrimary : colorScheme.primary,
               errorBuilder: (context, error, stackTrace) {
                 logger.e("SplashScreen: Error loading app logo: $error");
-                return Icon(Icons.water_drop_outlined, size: 100.sp, color: Colors.white);
+                return Icon(
+                  Icons.water_drop_outlined, 
+                  size: 100.sp, 
+                  color: theme.brightness == Brightness.light ? colorScheme.onPrimary : colorScheme.primary
+                );
               },
             ),
             SizedBox(height: 20.h),
             Text(
               'Minum',
-              style: TextStyle(
-                fontSize: 32.sp,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.light
-                    ? Colors.white
-                    : AppColors.primaryColor,
+              style: theme.textTheme.displaySmall?.copyWith( // M3 text style
+                color: theme.brightness == Brightness.light
+                    ? colorScheme.onPrimary
+                    : colorScheme.primary,
               ),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 8.h), // Changed from 10.h to 8.h
             Text(
               'Stay Hydrated, Stay Healthy',
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: Theme.of(context).brightness == Brightness.light
-                    ? Colors.white70
-                    : AppColors.darkTextSecondary,
+              style: theme.textTheme.titleMedium?.copyWith( // M3 text style
+                color: theme.brightness == Brightness.light
+                    ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                    : colorScheme.onSurfaceVariant,
               ),
             ),
             SizedBox(height: 40.h),
             CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).brightness == Brightness.light
-                    ? Colors.white
-                    : AppColors.primaryColor,
+                theme.brightness == Brightness.light
+                    ? colorScheme.onPrimary
+                    : colorScheme.primary,
               ),
             ),
           ],

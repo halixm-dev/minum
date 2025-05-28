@@ -2,89 +2,85 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+/// A custom button that aligns with Material 3 FilledButton styling by default.
+/// It supports a loading state and an optional icon.
+/// For different button styles (Elevated, Outlined, Text), use the respective
+/// Material 3 widgets directly.
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
-  final Color? backgroundColor;
-  final Color? textColor;
   final double? width;
-  final double? height;
-  final double? elevation;
-  final double borderRadius;
-  final Widget? icon; // Optional icon
+  final double? height; // Note: M3 button height is typically controlled by padding and text style.
+  final Widget? icon;
+  final ButtonStyle? style; // Allow full style override if needed
 
   const CustomButton({
     super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
-    this.backgroundColor,
-    this.textColor,
     this.width,
     this.height,
-    this.elevation,
-    this.borderRadius = 8.0,
     this.icon,
+    this.style,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveBackgroundColor = backgroundColor ?? theme.elevatedButtonTheme.style?.backgroundColor?.resolve({}) ?? theme.colorScheme.primary;
-    final effectiveTextColor = textColor ?? theme.elevatedButtonTheme.style?.foregroundColor?.resolve({}) ?? theme.colorScheme.onPrimary;
-    final effectiveHeight = height ?? 50.h; // Default height
+    // Use the theme's FilledButton style as a base
+    final baseStyle = theme.filledButtonTheme.style ?? const ButtonStyle();
 
-    return SizedBox(
-      width: width ?? double.infinity, // Default to full width
-      height: effectiveHeight,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: effectiveBackgroundColor,
-          foregroundColor: effectiveTextColor,
-          padding: icon != null ? EdgeInsets.symmetric(horizontal: 16.w) : EdgeInsets.symmetric(vertical: 0, horizontal: 24.w), // Adjust padding if icon
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius.r),
-          ),
-          elevation: elevation ?? (isLoading || onPressed == null ? 0 : 2), // No elevation when loading/disabled
-          textStyle: theme.elevatedButtonTheme.style?.textStyle?.resolve({}) ??
-              TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-        ).copyWith(
-          // Ensure minimum size is respected, especially for height
-          minimumSize: WidgetStateProperty.all(Size(0, effectiveHeight)),
-          // Handle disabled state color more explicitly if needed
-          backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
-              if (states.contains(WidgetState.disabled)) {
-                // Updated to use withAlpha for opacity change
-                return effectiveBackgroundColor.withAlpha((255 * 0.5).round()); // 0.5 opacity
-              }
-              return effectiveBackgroundColor; // Use the component's default.
-            },
-          ),
+    // Merge with provided style if any
+    ButtonStyle effectiveStyle = baseStyle;
+    if (style != null) {
+      effectiveStyle = baseStyle.merge(style);
+    }
+    
+    // Override text style color if loading, to ensure progress indicator visibility
+    // M3 themes should handle disabled state opacity for text and background.
+    final progressIndicatorColor = effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ?? theme.colorScheme.onSurface.withValues(alpha: 0.38);
+
+
+    Widget buttonChild;
+    if (isLoading) {
+      buttonChild = SizedBox(
+        width: 20.r, // Standard size for CircularProgressIndicator in buttons
+        height: 20.r,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5.w,
+          valueColor: AlwaysStoppedAnimation<Color>(progressIndicatorColor),
         ),
-        onPressed: isLoading ? null : onPressed, // Disable button when loading
-        child: isLoading
-            ? SizedBox(
-          width: 24.r,
-          height: 24.r,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5.w,
-            valueColor: AlwaysStoppedAnimation<Color>(effectiveTextColor),
-          ),
-        )
-            : (icon != null
-            ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon!,
-            SizedBox(width: 8.w),
-            Text(text),
-          ],
-        )
-            : Text(text)),
-      ),
+      );
+    } else if (icon != null) {
+      buttonChild = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon!,
+          SizedBox(width: 8.w),
+          Text(text),
+        ],
+      );
+    } else {
+      buttonChild = Text(text);
+    }
+
+    final button = FilledButton(
+      style: effectiveStyle,
+      onPressed: isLoading ? null : onPressed,
+      child: buttonChild,
     );
+
+    if (width != null || height != null) {
+      return SizedBox(
+        width: width,
+        height: height, // If height is provided, SizedBox forces it.
+        child: button,
+      );
+    }
+
+    return button;
   }
 }
