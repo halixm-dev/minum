@@ -14,7 +14,8 @@ import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
+import 'package:minum/src/data/repositories/local/local_hydration_repository.dart'
+    show guestUserId;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -52,41 +53,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _getGenderDisplayString(Gender? gender) {
     if (gender == null) return "Prefer not to say";
     switch (gender) {
-      case Gender.male: return "Male";
-      case Gender.female: return "Female";
+      case Gender.male:
+        return "Male";
+      case Gender.female:
+        return "Female";
     }
   }
 
   String _getActivityLevelDisplayString(ActivityLevel? level) {
     if (level == null) return "Not Set";
     switch (level) {
-      case ActivityLevel.sedentary: return "Sedentary";
-      case ActivityLevel.light: return "Light";
-      case ActivityLevel.moderate: return "Moderate";
-      case ActivityLevel.active: return "Active";
-      case ActivityLevel.extraActive: return "Extra Active";
+      case ActivityLevel.sedentary:
+        return "Sedentary (little or no exercise)";
+      case ActivityLevel.light:
+        return "Light (exercise 1-3 days/week)";
+      case ActivityLevel.moderate:
+        return "Moderate (exercise 3-5 days/week)";
+      case ActivityLevel.active:
+        return "Active (exercise 6-7 days/week)";
+      case ActivityLevel.extraActive:
+        return "Extra Active (exercise 1+ times/day)";
     }
   }
 
   String _getHealthConditionDisplayString(HealthCondition condition) {
     switch (condition) {
-      case HealthCondition.none: return "None";
-      case HealthCondition.pregnancy: return "Pregnancy";
-      case HealthCondition.breastfeeding: return "Breastfeeding";
-      case HealthCondition.kidneyIssues: return "Kidney Issues";
-      case HealthCondition.heartConditions: return "Heart Conditions";
+      case HealthCondition.none:
+        return "None";
+      case HealthCondition.pregnancy:
+        return "Pregnancy";
+      case HealthCondition.breastfeeding:
+        return "Breastfeeding";
+      case HealthCondition.kidneyIssues:
+        return "Kidney Issues";
+      case HealthCondition.heartConditions:
+        return "Heart Conditions";
     }
   }
 
   String _getWeatherConditionDisplayString(WeatherCondition weather) {
     switch (weather) {
-      case WeatherCondition.temperate: return "Temperate";
-      case WeatherCondition.hot: return "Hot";
-      case WeatherCondition.hotAndHumid: return "Hot & Humid";
-      case WeatherCondition.cold: return "Cold";
+      case WeatherCondition.temperate:
+        return "Temperate";
+      case WeatherCondition.hot:
+        return "Hot";
+      case WeatherCondition.hotAndHumid:
+        return "Hot & Humid";
+      case WeatherCondition.cold:
+        return "Cold";
     }
   }
-
 
   @override
   void initState() {
@@ -110,15 +126,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _loadInitialProfileData() {
     if (!mounted) return;
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final UserModel? userProfile = userProvider.userProfile; // Get the current profile from provider
+    final UserModel? userProfile =
+        userProvider.userProfile; // Get the current profile from provider
 
     // Populate controllers and state variables from userProfile
     if (userProfile != null) {
       _displayNameController.text = userProfile.displayName ?? '';
       _emailController.text = userProfile.email ?? 'Not available';
-      
+
       if (userProfile.preferredUnit == MeasurementUnit.oz) {
-        _dailyGoalController.text = unit_converter.convertMlToOz(userProfile.dailyGoalMl).toStringAsFixed(1);
+        _dailyGoalController.text = unit_converter
+            .convertMlToOz(userProfile.dailyGoalMl)
+            .toStringAsFixed(1);
       } else {
         _dailyGoalController.text = userProfile.dailyGoalMl.toInt().toString();
       }
@@ -128,15 +147,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedActivityLevel = userProfile.activityLevel;
       _selectedDateOfBirth = userProfile.dateOfBirth;
       _selectedGender = userProfile.gender;
-      
-      List<HealthCondition> initialHealthConditions = List.from(userProfile.healthConditions ?? [HealthCondition.none]);
-      if (initialHealthConditions.isEmpty) initialHealthConditions = [HealthCondition.none];
+
+      List<HealthCondition> initialHealthConditions =
+          List.from(userProfile.healthConditions ?? [HealthCondition.none]);
+      if (initialHealthConditions.isEmpty)
+        initialHealthConditions = [HealthCondition.none];
       if (_selectedGender != Gender.female) {
-        initialHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
-        if (initialHealthConditions.isEmpty) initialHealthConditions = [HealthCondition.none];
+        initialHealthConditions.removeWhere((c) =>
+            c == HealthCondition.pregnancy ||
+            c == HealthCondition.breastfeeding);
+        if (initialHealthConditions.isEmpty)
+          initialHealthConditions = [HealthCondition.none];
       }
       _selectedHealthConditions = initialHealthConditions;
-      _selectedWeatherCondition = userProfile.selectedWeatherCondition ?? WeatherCondition.temperate;
+      _selectedWeatherCondition =
+          userProfile.selectedWeatherCondition ?? WeatherCondition.temperate;
     } else {
       // Set default template data if no profile
       _displayNameController.text = '';
@@ -151,8 +176,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedWeatherCondition = WeatherCondition.temperate;
     }
 
-    _lastProcessedUserProfile = userProfile; // Store the user profile instance that was just used to set the data
-    _isDirty = false; 
+    _lastProcessedUserProfile =
+        userProfile; // Store the user profile instance that was just used to set the data
+    _isDirty = false;
   }
 
   void _setupControllerListeners() {
@@ -193,7 +219,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _selectDateOfBirth(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
-        initialDate: _selectedDateOfBirth ?? DateTime.now().subtract(const Duration(days: 365 * 25)),
+        initialDate: _selectedDateOfBirth ??
+            DateTime.now().subtract(const Duration(days: 365 * 25)),
         firstDate: DateTime(1900),
         lastDate: DateTime.now(),
         helpText: "Select Date of Birth",
@@ -204,17 +231,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final currentTheme = Theme.of(context);
           return Theme(
             data: currentTheme.copyWith(
-              // DatePicker uses colorScheme.primary for selected day, header background
-              // colorScheme.onPrimary for text on selected day, header text
-              // colorScheme.surface for dialog background (already themed)
-              // colorScheme.onSurface for text on dialog background
-              // textButtonTheme for OK/Cancel buttons (already themed)
-              // Ensure these are M3 defaults or app-specific.
-            ),
+                // DatePicker uses colorScheme.primary for selected day, header background
+                // colorScheme.onPrimary for text on selected day, header text
+                // colorScheme.surface for dialog background (already themed)
+                // colorScheme.onSurface for text on dialog background
+                // textButtonTheme for OK/Cancel buttons (already themed)
+                // Ensure these are M3 defaults or app-specific.
+                ),
             child: child!,
           );
-        }
-    );
+        });
     if (picked != null && picked != _selectedDateOfBirth) {
       if (mounted) {
         setState(() {
@@ -228,14 +254,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _calculateAndSuggestGoal() async {
     if (!mounted) return;
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final hydrationService = Provider.of<HydrationService>(context, listen: false);
+    final hydrationService =
+        Provider.of<HydrationService>(context, listen: false);
 
     List<HealthCondition> conditionsForCalc = _selectedHealthConditions;
-    if (_selectedHealthConditions.contains(HealthCondition.none) && _selectedHealthConditions.length > 1) {
-      conditionsForCalc = _selectedHealthConditions.where((c) => c != HealthCondition.none).toList();
+    if (_selectedHealthConditions.contains(HealthCondition.none) &&
+        _selectedHealthConditions.length > 1) {
+      conditionsForCalc = _selectedHealthConditions
+          .where((c) => c != HealthCondition.none)
+          .toList();
     }
     if (conditionsForCalc.isEmpty) conditionsForCalc = [HealthCondition.none];
-
 
     final tempUserForCalc = UserModel(
       id: userProvider.userProfile?.id ?? guestUserId,
@@ -248,16 +277,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       activityLevel: _selectedActivityLevel,
       healthConditions: conditionsForCalc,
       selectedWeatherCondition: _selectedWeatherCondition,
-      preferredUnit: userProvider.userProfile?.preferredUnit ?? MeasurementUnit.ml,
+      preferredUnit:
+          userProvider.userProfile?.preferredUnit ?? MeasurementUnit.ml,
       dailyGoalMl: double.tryParse(_dailyGoalController.text.trim()) ?? 2000.0,
-      favoriteIntakeVolumes: userProvider.userProfile?.favoriteIntakeVolumes ?? const ['250','500','750'],
+      favoriteIntakeVolumes: userProvider.userProfile?.favoriteIntakeVolumes ??
+          const ['250', '500', '750'],
     );
 
-    if (tempUserForCalc.weightKg == null || tempUserForCalc.weightKg! <=0 ||
+    if (tempUserForCalc.weightKg == null ||
+        tempUserForCalc.weightKg! <= 0 ||
         tempUserForCalc.age == null ||
         tempUserForCalc.gender == null ||
         tempUserForCalc.activityLevel == null) {
-      if (mounted) AppUtils.showSnackBar(context, "Please fill in Weight, Date of Birth, Gender, and Activity Level to calculate a suggestion.", isError: true);
+      if (mounted)
+        AppUtils.showSnackBar(context,
+            "Please fill in Weight, Date of Birth, Gender, and Activity Level to calculate a suggestion.",
+            isError: true);
       return;
     }
 
@@ -267,7 +302,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     double suggestedGoal = 0;
     bool calculationSuccess = false;
     try {
-      suggestedGoal = await hydrationService.calculateRecommendedDailyIntake(user: tempUserForCalc);
+      suggestedGoal = await hydrationService.calculateRecommendedDailyIntake(
+          user: tempUserForCalc);
       calculationSuccess = true;
     } catch (e) {
       logger.e("Error calculating suggested goal: $e");
@@ -277,7 +313,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     AppUtils.hideLoadingDialog(mainScreenContext);
 
     if (!calculationSuccess) {
-      if (mainScreenContext.mounted) AppUtils.showSnackBar(mainScreenContext, "Could not calculate suggested goal. Please try again.", isError: true);
+      if (mainScreenContext.mounted)
+        AppUtils.showSnackBar(mainScreenContext,
+            "Could not calculate suggested goal. Please try again.",
+            isError: true);
       return;
     }
 
@@ -285,25 +324,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final bool? apply = await AppUtils.showConfirmationDialog(
         confirmationDialogContext,
         title: "Suggested Goal",
-        content: "Based on your profile, we suggest a daily goal of ${suggestedGoal.toInt()} mL. Would you like to apply this to your daily goal field?",
+        content:
+            "Based on your profile, we suggest a daily goal of ${suggestedGoal.toInt()} mL. Would you like to apply this to your daily goal field?",
         confirmText: "Apply to Field",
-        cancelText: "Not Now"
-    );
+        cancelText: "Not Now");
 
     if (apply == true) {
       // Ensure context captured before await is still valid
-      if (!confirmationDialogContext.mounted) return; // Added check for captured context
-      if (mounted) { // Check for the State's mounted status
+      if (!confirmationDialogContext.mounted)
+        return; // Added check for captured context
+      if (mounted) {
+        // Check for the State's mounted status
         setState(() {
           _dailyGoalController.text = suggestedGoal.toInt().toString();
           _isDirty = true;
         });
         // confirmationDialogContext is used here, its mounted status was checked above.
-        AppUtils.showSnackBar(confirmationDialogContext, "Suggested goal applied to form. Remember to save your profile.");
+        AppUtils.showSnackBar(confirmationDialogContext,
+            "Suggested goal applied to form. Remember to save your profile.");
       }
     }
   }
-
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
@@ -315,7 +356,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentUser = userProvider.userProfile;
 
     if (currentUser == null) {
-      if (mounted) AppUtils.showSnackBar(context, "User not found. Cannot save profile.", isError: true);
+      if (mounted)
+        AppUtils.showSnackBar(context, "User not found. Cannot save profile.",
+            isError: true);
       if (mounted) setState(() => _isLoading = false);
       return;
     }
@@ -333,20 +376,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         newDailyGoal = enteredGoal;
       }
     } else {
-      newDailyGoal = currentUser.dailyGoalMl; // Fallback to current if input is invalid
+      newDailyGoal =
+          currentUser.dailyGoalMl; // Fallback to current if input is invalid
     }
-    final double? newWeight = _weightController.text.trim().isEmpty ? null : double.tryParse(_weightController.text.trim());
-    final double? newHeight = _heightController.text.trim().isEmpty ? null : double.tryParse(_heightController.text.trim());
+    final double? newWeight = _weightController.text.trim().isEmpty
+        ? null
+        : double.tryParse(_weightController.text.trim());
+    final double? newHeight = _heightController.text.trim().isEmpty
+        ? null
+        : double.tryParse(_heightController.text.trim());
 
     List<HealthCondition> finalHealthConditions = _selectedHealthConditions;
-    if (finalHealthConditions.contains(HealthCondition.none) && finalHealthConditions.length > 1) {
-      finalHealthConditions = finalHealthConditions.where((c) => c != HealthCondition.none).toList();
+    if (finalHealthConditions.contains(HealthCondition.none) &&
+        finalHealthConditions.length > 1) {
+      finalHealthConditions = finalHealthConditions
+          .where((c) => c != HealthCondition.none)
+          .toList();
     }
     if (finalHealthConditions.isEmpty) {
       finalHealthConditions = [HealthCondition.none];
     }
     if (_selectedGender != Gender.female) {
-      finalHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+      finalHealthConditions.removeWhere((c) =>
+          c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
       if (finalHealthConditions.isEmpty) {
         finalHealthConditions = [HealthCondition.none];
       }
@@ -361,55 +413,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
         heightCm: newHeight,
         clearHeightCm: _heightController.text.trim().isEmpty,
         dateOfBirth: _selectedDateOfBirth,
-        clearDateOfBirth: _selectedDateOfBirth == null && currentUser.dateOfBirth != null,
+        clearDateOfBirth:
+            _selectedDateOfBirth == null && currentUser.dateOfBirth != null,
         gender: _selectedGender,
         clearGender: _selectedGender == null && currentUser.gender != null,
         activityLevel: _selectedActivityLevel,
-        clearActivityLevel: _selectedActivityLevel == null && currentUser.activityLevel != null,
+        clearActivityLevel:
+            _selectedActivityLevel == null && currentUser.activityLevel != null,
         healthConditions: finalHealthConditions,
         selectedWeatherCondition: _selectedWeatherCondition,
-        favoriteIntakeVolumes: currentUser.favoriteIntakeVolumes
-    );
+        favoriteIntakeVolumes: currentUser.favoriteIntakeVolumes);
 
     try {
       await userProvider.updateUserProfile(updatedUser);
       // ... (inside the try block, after await userProvider.updateUserProfile(updatedUser);)
-    if (mounted) {
-      String messageToShow = "Profile updated successfully!"; // Default success message
-      bool isPresentationError = false; // Determines if the snackbar should be styled as an error
+      if (mounted) {
+        String messageToShow =
+            "Profile updated successfully!"; // Default success message
+        bool isPresentationError =
+            false; // Determines if the snackbar should be styled as an error
 
-      // Check provider status and potential message
-      if (userProvider.status == UserProfileStatus.loaded) {
-        if (userProvider.errorMessage != null && userProvider.errorMessage == "Profile saved locally. Will sync when online.") {
-          messageToShow = userProvider.errorMessage!;
-          // For this specific informational message, it's not an error presentation.
-          isPresentationError = false;
-        } else if (userProvider.errorMessage != null) {
-          // If status is loaded but there's an unexpected error message from the provider.
-          messageToShow = userProvider.errorMessage!;
+        // Check provider status and potential message
+        if (userProvider.status == UserProfileStatus.loaded) {
+          if (userProvider.errorMessage != null &&
+              userProvider.errorMessage ==
+                  "Profile saved locally. Will sync when online.") {
+            messageToShow = userProvider.errorMessage!;
+            // For this specific informational message, it's not an error presentation.
+            isPresentationError = false;
+          } else if (userProvider.errorMessage != null) {
+            // If status is loaded but there's an unexpected error message from the provider.
+            messageToShow = userProvider.errorMessage!;
+            isPresentationError = true;
+          }
+          // If errorMessage is null, messageToShow remains "Profile updated successfully!"
+        } else if (userProvider.status == UserProfileStatus.error) {
+          // This case handles if updateUserProfile resolves but ended in an error state internally.
+          messageToShow =
+              userProvider.errorMessage ?? "Failed to update profile.";
           isPresentationError = true;
         }
-        // If errorMessage is null, messageToShow remains "Profile updated successfully!"
-      } else if (userProvider.status == UserProfileStatus.error) {
-        // This case handles if updateUserProfile resolves but ended in an error state internally.
-        messageToShow = userProvider.errorMessage ?? "Failed to update profile.";
-        isPresentationError = true;
-      }
-      // Default case: if status is neither loaded nor error (e.g. idle), it might imply an issue.
-      // However, updateUserProfile should ideally always transition to loaded or error.
-      // For simplicity, we'll rely on the above conditions.
+        // Default case: if status is neither loaded nor error (e.g. idle), it might imply an issue.
+        // However, updateUserProfile should ideally always transition to loaded or error.
+        // For simplicity, we'll rely on the above conditions.
 
-      AppUtils.showSnackBar(context, messageToShow, isError: isPresentationError);
-      
-      if (!isPresentationError) { 
-        setState(() {
-          _isDirty = false;
-        });
+        AppUtils.showSnackBar(context, messageToShow,
+            isError: isPresentationError);
+
+        if (!isPresentationError) {
+          setState(() {
+            _isDirty = false;
+          });
+        }
       }
-    }
     } catch (e) {
       logger.e("Error updating profile: $e");
-      if (mounted) AppUtils.showSnackBar(context, userProvider.errorMessage ?? "Failed to update profile.", isError: true);
+      if (mounted)
+        AppUtils.showSnackBar(
+            context, userProvider.errorMessage ?? "Failed to update profile.",
+            isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -427,22 +489,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final UserModel? user = userProvider.userProfile;
         final UserProfileStatus status = userProvider.status;
 
-        if (status == UserProfileStatus.loading || (status == UserProfileStatus.idle && user == null)) {
+        if (status == UserProfileStatus.loading ||
+            (status == UserProfileStatus.idle && user == null)) {
           return Scaffold(
             appBar: AppBar(title: const Text(AppStrings.profile)),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
 
-        if (user == null) { // Handles error or unexpected null user after loading attempt
+        if (user == null) {
+          // Handles error or unexpected null user after loading attempt
           return Scaffold(
             appBar: AppBar(title: const Text(AppStrings.profile)),
-            body: Center(child: Text(userProvider.errorMessage ?? "User data unavailable.")),
+            body: Center(
+                child: Text(
+                    userProvider.errorMessage ?? "User data unavailable.")),
           );
         }
 
         // Conditional call to _loadInitialProfileData based on object instance change
-        if (userProvider.status == UserProfileStatus.loaded && user != _lastProcessedUserProfile) {
+        if (userProvider.status == UserProfileStatus.loaded &&
+            user != _lastProcessedUserProfile) {
           // This condition is true if:
           // 1. Initially _lastProcessedUserProfile is null and user is not (first load).
           // 2. User logs out (user becomes null, _lastProcessedUserProfile was not).
@@ -454,18 +521,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
           });
         }
-        
-        List<HealthCondition> availableHealthConditions = List.from(HealthCondition.values);
+
+        List<HealthCondition> availableHealthConditions =
+            List.from(HealthCondition.values);
         if (_selectedGender != Gender.female) {
-          availableHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+          availableHealthConditions.removeWhere((c) =>
+              c == HealthCondition.pregnancy ||
+              c == HealthCondition.breastfeeding);
         }
 
         bool isOz = user.preferredUnit == MeasurementUnit.oz;
-        TextInputType goalKeyboardType = isOz 
-            ? const TextInputType.numberWithOptions(decimal: true) 
+        TextInputType goalKeyboardType = isOz
+            ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.number;
-        List<TextInputFormatter> goalInputFormatters = isOz 
-            ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))] 
+        List<TextInputFormatter> goalInputFormatters = isOz
+            ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
             : [FilteringTextInputFormatter.digitsOnly];
 
         return Scaffold(
@@ -479,8 +549,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: TextButton(
                     onPressed: _isLoading ? null : _saveProfile,
                     child: _isLoading
-                        ? SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary)) // Use primary for TextButton loader
-                        : Text("SAVE", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: Theme.of(context).textTheme.labelLarge?.fontWeight)), // M3 TextButton uses labelLarge
+                        ? SizedBox(
+                            width: 20.r,
+                            height: 20.r,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary)) // Use primary for TextButton loader
+                        : Text("SAVE",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.fontWeight)), // M3 TextButton uses labelLarge
                   ),
                 )
             ],
@@ -493,14 +576,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   _buildSectionTitle('Personal Information'),
-                  CustomTextField( controller: _displayNameController, focusNode: _displayNameFocusNode, labelText: 'Display Name', prefixIcon: Icons.person_outline, validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name"), textInputAction: TextInputAction.next),
+                  CustomTextField(
+                      controller: _displayNameController,
+                      focusNode: _displayNameFocusNode,
+                      labelText: 'Display Name',
+                      prefixIcon: Icons.person_outline,
+                      validator: (value) => AppUtils.validateNotEmpty(value,
+                          fieldName: "Display name"),
+                      textInputAction: TextInputAction.next),
                   SizedBox(height: 16.h),
-                  CustomTextField( controller: _emailController, focusNode: _emailFocusNode, labelText: AppStrings.email, prefixIcon: Icons.email_outlined, readOnly: true, enabled: false ), // Email is not editable
+                  CustomTextField(
+                      controller: _emailController,
+                      focusNode: _emailFocusNode,
+                      labelText: AppStrings.email,
+                      prefixIcon: Icons.email_outlined,
+                      readOnly: true,
+                      enabled: false), // Email is not editable
                   SizedBox(height: 16.h),
-                  _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth, (date) {
-                        if (mounted) { setState(() { _selectedDateOfBirth = date; _isDirty = true;}); }
-                      }
-                  ),
+                  _buildDatePickerField(
+                      context, "Birthday", _selectedDateOfBirth, (date) {
+                    if (mounted) {
+                      setState(() {
+                        _selectedDateOfBirth = date;
+                        _isDirty = true;
+                      });
+                    }
+                  }),
                   SizedBox(height: 16.h),
                   _buildDropdown<Gender?>(
                     label: "Gender",
@@ -509,10 +610,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onChanged: (Gender? newValue) {
                       if (mounted) {
                         setState(() {
-                          _selectedGender = newValue; _isDirty = true;
+                          _selectedGender = newValue;
+                          _isDirty = true;
                           if (newValue != Gender.female) {
-                            _selectedHealthConditions.removeWhere((c) => c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
-                            if (_selectedHealthConditions.isEmpty) _selectedHealthConditions = [HealthCondition.none];
+                            _selectedHealthConditions.removeWhere((c) =>
+                                c == HealthCondition.pregnancy ||
+                                c == HealthCondition.breastfeeding);
+                            if (_selectedHealthConditions.isEmpty)
+                              _selectedHealthConditions = [
+                                HealthCondition.none
+                              ];
                           }
                         });
                       }
@@ -521,36 +628,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     prefixIcon: Icons.wc, // Changed from Icons.wc_outlined
                   ),
                   SizedBox(height: 16.h),
-                  CustomTextField( controller: _heightController, focusNode: _heightFocusNode, labelText: 'Height (cm)', prefixIcon: Icons.height_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true), onChanged: (_) => _setIsDirty(), textInputAction: TextInputAction.next ),
+                  CustomTextField(
+                      controller: _heightController,
+                      focusNode: _heightFocusNode,
+                      labelText: 'Height (cm)',
+                      prefixIcon: Icons.height_outlined,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                      ],
+                      validator: (val) => (val == null || val.isEmpty)
+                          ? null
+                          : AppUtils.validateNumber(val, allowDecimal: true),
+                      onChanged: (_) => _setIsDirty(),
+                      textInputAction: TextInputAction.next),
                   SizedBox(height: 16.h),
-                  CustomTextField( controller: _weightController, focusNode: _weightFocusNode, labelText: '${AppStrings.weight} (${AppStrings.kg})', prefixIcon: Icons.monitor_weight_outlined, keyboardType: const TextInputType.numberWithOptions(decimal: true), validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))], onChanged: (_) => _setIsDirty(), textInputAction: TextInputAction.next ),
+                  CustomTextField(
+                      controller: _weightController,
+                      focusNode: _weightFocusNode,
+                      labelText: '${AppStrings.weight} (${AppStrings.kg})',
+                      prefixIcon: Icons.monitor_weight_outlined,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? null
+                          : AppUtils.validateNumber(value, allowDecimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                      ],
+                      onChanged: (_) => _setIsDirty(),
+                      textInputAction: TextInputAction.next),
                   SizedBox(height: 24.h),
 
                   _buildSectionTitle('Lifestyle & Environment'),
                   _buildDropdown<ActivityLevel?>(
-                    label: AppStrings.activityLevel, value: _selectedActivityLevel, items: [null, ...ActivityLevel.values],
-                    onChanged: (ActivityLevel? newValue) { if (mounted) setState(() { _selectedActivityLevel = newValue; _isDirty = true; }); },
-                    itemAsString: _getActivityLevelDisplayString, prefixIcon: Icons.directions_run_outlined,
+                    label: AppStrings.activityLevel,
+                    value: _selectedActivityLevel,
+                    items: [null, ...ActivityLevel.values],
+                    onChanged: (ActivityLevel? newValue) {
+                      if (mounted)
+                        setState(() {
+                          _selectedActivityLevel = newValue;
+                          _isDirty = true;
+                        });
+                    },
+                    itemAsString: _getActivityLevelDisplayString,
+                    prefixIcon: Icons.directions_run_outlined,
                   ),
                   SizedBox(height: 16.h),
                   _buildMultiSelectChipGroup<HealthCondition>(
-                    label: "Health Conditions (Optional)", allOptions: availableHealthConditions, selectedOptions: _selectedHealthConditions,
+                    label: "Health Conditions (Optional)",
+                    allOptions: availableHealthConditions,
+                    selectedOptions: _selectedHealthConditions,
                     optionAsString: _getHealthConditionDisplayString,
-                    onSelectionChanged: (selected) { if (mounted) setState(() { _selectedHealthConditions = selected; _isDirty = true; }); },
+                    onSelectionChanged: (selected) {
+                      if (mounted)
+                        setState(() {
+                          _selectedHealthConditions = selected;
+                          _isDirty = true;
+                        });
+                    },
                   ),
                   SizedBox(height: 16.h),
                   _buildDropdown<WeatherCondition>(
-                    label: "Typical Weather", value: _selectedWeatherCondition, items: WeatherCondition.values,
-                    onChanged: (WeatherCondition? newValue) { if (newValue != null && mounted) setState(() { _selectedWeatherCondition = newValue; _isDirty = true; }); },
-                    itemAsString: _getWeatherConditionDisplayString, prefixIcon: Icons.thermostat, // Changed from Icons.thermostat_outlined
+                    label: "Typical Weather", value: _selectedWeatherCondition,
+                    items: WeatherCondition.values,
+                    onChanged: (WeatherCondition? newValue) {
+                      if (newValue != null && mounted)
+                        setState(() {
+                          _selectedWeatherCondition = newValue;
+                          _isDirty = true;
+                        });
+                    },
+                    itemAsString: _getWeatherConditionDisplayString,
+                    prefixIcon: Icons
+                        .thermostat, // Changed from Icons.thermostat_outlined
                   ),
                   SizedBox(height: 24.h),
 
                   _buildSectionTitle('Hydration Goal'),
-                  CustomTextField( controller: _dailyGoalController, focusNode: _dailyGoalFocusNode, labelText: 'Daily Goal (${user.preferredUnit.displayName})', prefixIcon: Icons.flag_outlined, keyboardType: goalKeyboardType, inputFormatters: goalInputFormatters, validator: (val) => AppUtils.validateNumber(val, allowDecimal: isOz), onChanged: (_) => _setIsDirty(), textInputAction: TextInputAction.done, onFieldSubmitted: (_) => _saveProfile() ),
+                  CustomTextField(
+                      controller: _dailyGoalController,
+                      focusNode: _dailyGoalFocusNode,
+                      labelText:
+                          'Daily Goal (${user.preferredUnit.displayName})',
+                      prefixIcon: Icons.flag_outlined,
+                      keyboardType: goalKeyboardType,
+                      inputFormatters: goalInputFormatters,
+                      validator: (val) =>
+                          AppUtils.validateNumber(val, allowDecimal: isOz),
+                      onChanged: (_) => _setIsDirty(),
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _saveProfile()),
                   SizedBox(height: 12.h),
-                  FilledButton.tonal( // Changed from CustomButton to FilledButton.tonal for M3 style
-                    onPressed: _calculateAndSuggestGoal, 
+                  FilledButton.tonal(
+                    // Changed from CustomButton to FilledButton.tonal for M3 style
+                    onPressed: _calculateAndSuggestGoal,
                     child: const Text("Calculate Suggested Goal"),
                     // FilledButton.tonal uses secondaryContainer and onSecondaryContainer by default from theme
                   ),
@@ -570,7 +744,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: EdgeInsets.only(bottom: 12.h, top: 16.h),
       child: Text(
         title,
-        style: theme.textTheme.titleLarge?.copyWith( // Changed to titleLarge for section headers
+        style: theme.textTheme.titleLarge?.copyWith(
+          // Changed to titleLarge for section headers
           color: theme.colorScheme.primary,
           // fontWeight removed, rely on M3 theme's definition
         ),
@@ -578,78 +753,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildDatePickerField(BuildContext context, String label, DateTime? selectedDate, Function(DateTime) onDateSelected) {
+  Widget _buildDatePickerField(BuildContext context, String label,
+      DateTime? selectedDate, Function(DateTime) onDateSelected) {
     final theme = Theme.of(context);
     final inputTheme = theme.inputDecorationTheme;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
+        Text(label,
+            style: theme.textTheme.labelLarge?.copyWith(
+                color: theme
+                    .colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
         SizedBox(height: 8.h),
-        Builder( // Use Builder to get a new context if needed, though theme access is fine
-          builder: (context) {
-            final BorderRadius defaultRadius = BorderRadius.circular(4.r);
-            BorderRadius inkWellRadius = defaultRadius;
-            BorderRadius containerRadius = defaultRadius;
+        Builder(
+            // Use Builder to get a new context if needed, though theme access is fine
+            builder: (context) {
+          final BorderRadius defaultRadius = BorderRadius.circular(4.r);
+          BorderRadius inkWellRadius = defaultRadius;
+          BorderRadius containerRadius = defaultRadius;
 
-            if (inputTheme.border is OutlineInputBorder) {
-              final outlineBorder = inputTheme.border as OutlineInputBorder;
-              inkWellRadius = outlineBorder.borderRadius;
-              containerRadius = outlineBorder.borderRadius;
-            } else if (inputTheme.enabledBorder is OutlineInputBorder) {
-              // Fallback to enabledBorder if the main border isn't OutlineInputBorder
-              final outlineEnabledBorder = inputTheme.enabledBorder as OutlineInputBorder;
-              inkWellRadius = outlineEnabledBorder.borderRadius;
-              containerRadius = outlineEnabledBorder.borderRadius;
-            }
-            // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
-            // In that case, defaultRadius (4.r) is used.
+          if (inputTheme.border is OutlineInputBorder) {
+            final outlineBorder = inputTheme.border as OutlineInputBorder;
+            inkWellRadius = outlineBorder.borderRadius;
+            containerRadius = outlineBorder.borderRadius;
+          } else if (inputTheme.enabledBorder is OutlineInputBorder) {
+            // Fallback to enabledBorder if the main border isn't OutlineInputBorder
+            final outlineEnabledBorder =
+                inputTheme.enabledBorder as OutlineInputBorder;
+            inkWellRadius = outlineEnabledBorder.borderRadius;
+            containerRadius = outlineEnabledBorder.borderRadius;
+          }
+          // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
+          // In that case, defaultRadius (4.r) is used.
 
-            return InkWell(
-              onTap: () => _selectDateOfBirth(context),
-              borderRadius: inkWellRadius,
-              child: Container(
-                width: double.infinity,
-                padding: inputTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
-                decoration: BoxDecoration(
-                  color: inputTheme.fillColor ?? theme.colorScheme.surfaceContainerHighest,
-                  border: Border.all(color: inputTheme.enabledBorder?.borderSide.color ?? theme.colorScheme.outline),
-                  borderRadius: containerRadius,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+          return InkWell(
+            onTap: () => _selectDateOfBirth(context),
+            borderRadius: inkWellRadius,
+            child: Container(
+              width: double.infinity,
+              padding: inputTheme.contentPadding ??
+                  EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
+              decoration: BoxDecoration(
+                color: inputTheme.fillColor ??
+                    theme.colorScheme.surfaceContainerHighest,
+                border: Border.all(
+                    color: inputTheme.enabledBorder?.borderSide.color ??
+                        theme.colorScheme.outline),
+                borderRadius: containerRadius,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text(
-                    selectedDate != null ? DateFormat.yMMMd().format(selectedDate) : 'Select Date',
+                    selectedDate != null
+                        ? DateFormat.yMMMd().format(selectedDate)
+                        : 'Select Date',
                     style: theme.textTheme.bodyLarge, // Use M3 text style
                   ),
-                  Icon(Icons.calendar_today_outlined, size: 20.sp, color: theme.colorScheme.onSurfaceVariant), // Use onSurfaceVariant
+                  Icon(Icons.calendar_today_outlined,
+                      size: 20.sp,
+                      color: theme.colorScheme
+                          .onSurfaceVariant), // Use onSurfaceVariant
                 ],
               ),
             ),
           );
-          }
-        ),
+        }),
       ],
     );
   }
 
-  Widget _buildDropdown<T>({ required String label, required T value, required List<T> items, required ValueChanged<T?> onChanged, required String Function(T item) itemAsString, IconData? prefixIcon, }) {
+  Widget _buildDropdown<T>({
+    required String label,
+    required T value,
+    required List<T> items,
+    required ValueChanged<T?> onChanged,
+    required String Function(T item) itemAsString,
+    IconData? prefixIcon,
+  }) {
     final theme = Theme.of(context);
     return DropdownButtonFormField<T>(
       // Decoration should largely come from inputDecorationTheme in AppTheme.
       // Specific overrides like prefixIcon are fine.
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp, color: theme.colorScheme.onSurfaceVariant) : null,
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon,
+                size: 20.sp, color: theme.colorScheme.onSurfaceVariant)
+            : null,
         // border, contentPadding, fillColor, filled will be from theme.
       ),
       value: value,
       items: items.map((T item) {
         return DropdownMenuItem<T>(
           value: item,
-          child: Text(itemAsString(item), style: theme.textTheme.bodyLarge), // Use M3 text style
+          child: Text(itemAsString(item),
+              style: theme.textTheme.bodyLarge), // Use M3 text style
         );
       }).toList(),
       onChanged: onChanged,
@@ -657,7 +857,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Dropdown specific styles like iconColor, dropdownColor can be set here if needed
       // or ideally via DropdownMenuThemeData in AppTheme.
       iconSize: 24.sp,
-      dropdownColor: theme.colorScheme.surfaceContainerHighest, // M3 dropdown menu background
+      dropdownColor: theme
+          .colorScheme.surfaceContainerHighest, // M3 dropdown menu background
     );
   }
 
@@ -674,7 +875,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
+        Text(label,
+            style: theme.textTheme.labelLarge?.copyWith(
+                color: theme
+                    .colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
         SizedBox(height: 8.h),
         Wrap(
           spacing: 8.w,
@@ -682,7 +886,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: allOptions.map((option) {
             final bool isSelected = selectedOptions.contains(option);
             return FilterChip(
-              label: Text(optionAsString(option)), // Style from chipTheme.labelStyle
+              label: Text(
+                  optionAsString(option)), // Style from chipTheme.labelStyle
               selected: isSelected,
               onSelected: (bool selected) {
                 List<T> newSelection = List.from(selectedOptions);
@@ -690,13 +895,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (option == HealthCondition.none) {
                     newSelection = [option];
                   } else {
-                    newSelection.removeWhere((item) => item == HealthCondition.none);
-                    if (!newSelection.contains(option)) newSelection.add(option);
+                    newSelection
+                        .removeWhere((item) => item == HealthCondition.none);
+                    if (!newSelection.contains(option))
+                      newSelection.add(option);
                   }
                 } else {
                   if (option != HealthCondition.none) {
                     newSelection.remove(option);
-                    if (newSelection.isEmpty) newSelection.add(HealthCondition.none as T);
+                    if (newSelection.isEmpty)
+                      newSelection.add(HealthCondition.none as T);
                   }
                 }
                 onSelectionChanged(newSelection);
