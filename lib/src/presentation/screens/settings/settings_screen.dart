@@ -16,7 +16,6 @@ import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
-import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String prefsRemindersEnabled = 'prefs_reminders_enabled';
@@ -1090,12 +1089,14 @@ class _EditFavoriteVolumesDialogContentState
                 child: Row(
                   children: [
                     Expanded(
-                      child: CustomTextField(
+                      child: TextFormField(
                         controller: _volumeControllers[index],
                         focusNode: _volumeFocusNodes[index],
-                        labelText: "Volume ${index + 1}",
-                        hintText:
-                            "e.g., ${widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz ? unit_converter.convertMlToOz(250).toStringAsFixed(1) : '250'}",
+                        decoration: InputDecoration(
+                          labelText: "Volume ${index + 1}",
+                          hintText:
+                              "e.g., ${widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz ? unit_converter.convertMlToOz(250).toStringAsFixed(1) : '250'}",
+                        ),
                         keyboardType: TextInputType.numberWithOptions(
                             decimal: widget
                                     .userProvider.userProfile?.preferredUnit ==
@@ -1230,10 +1231,12 @@ class _EditDailyGoalDialogContentState
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          CustomTextField(
+          TextFormField(
             controller: _goalController,
             focusNode: _goalFocusNode,
-            labelText: "Goal (${AppStrings.ml})",
+            decoration: const InputDecoration(
+              labelText: "Goal (${AppStrings.ml})",
+            ),
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             validator: (val) => AppUtils.validateNumber(val),

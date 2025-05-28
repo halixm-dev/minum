@@ -8,7 +8,6 @@ import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
-import 'package:minum/src/presentation/widgets/common/custom_text_field.dart';
 import 'package:minum/src/presentation/widgets/common/social_login_button.dart';
 import 'package:provider/provider.dart';
 // For logger
@@ -124,58 +123,66 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   SizedBox(height: 28.h),
 
-                  CustomTextField(
+                  TextFormField(
                     controller: _displayNameController,
-                    labelText: 'Display Name',
-                    hintText: 'Your Name',
-                    prefixIcon: Icons.person_outline,
+                    decoration: const InputDecoration(
+                      labelText: 'Display Name',
+                      hintText: 'Your Name',
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
                     validator: (value) => AppUtils.validateNotEmpty(value,
                         fieldName: "Display name"),
                     textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 16.h),
 
-                  CustomTextField(
+                  TextFormField(
                     controller: _emailController,
-                    labelText: AppStrings.email,
-                    hintText: 'you@example.com',
+                    decoration: const InputDecoration(
+                      labelText: AppStrings.email,
+                      hintText: 'you@example.com',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
                     validator: AppUtils.validateEmail,
                     textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 16.h),
 
-                  CustomTextField(
+                  TextFormField(
                     controller: _passwordController,
-                    labelText: AppStrings.password,
-                    hintText: 'Create a password (min. 6 characters)',
+                    decoration: InputDecoration(
+                      labelText: AppStrings.password,
+                      hintText: 'Create a password (min. 6 characters)',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                          icon: Icon(_obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword)),
+                    ),
                     obscureText: _obscurePassword,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
-                        onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword)),
                     validator: AppUtils.validatePassword,
                     textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 16.h),
 
-                  CustomTextField(
+                  TextFormField(
                     controller: _confirmPasswordController,
-                    labelText: AppStrings.confirmPassword,
-                    hintText: 'Re-enter your password',
+                    decoration: InputDecoration(
+                      labelText: AppStrings.confirmPassword,
+                      hintText: 'Re-enter your password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                          icon: Icon(_obscureConfirmPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined),
+                          onPressed: () => setState(() =>
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword)),
+                    ),
                     obscureText: _obscureConfirmPassword,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: IconButton(
-                        icon: Icon(_obscureConfirmPassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
-                        onPressed: () => setState(() =>
-                            _obscureConfirmPassword =
-                                !_obscureConfirmPassword)),
                     validator: (value) => AppUtils.validateConfirmPassword(
                         _passwordController.text, value),
                     textInputAction: TextInputAction.done,
