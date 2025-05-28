@@ -213,27 +213,48 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
               Text('Date & Time', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
-              InkWell(
-                onTap: () => _selectDateTime(context),
-                borderRadius: inputTheme.border?.borderRadius ?? BorderRadius.circular(4.r),
-                child: Container(
-                  padding: inputTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
-                  decoration: BoxDecoration(
-                    color: inputTheme.fillColor ?? theme.colorScheme.surfaceContainerHighest,
-                    border: Border.all(color: inputTheme.enabledBorder?.borderSide.color ?? theme.colorScheme.outline),
-                    borderRadius: inputTheme.border?.borderRadius ?? BorderRadius.circular(4.r),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime),
-                        style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface),
+              Builder( // Use Builder to get a new context if needed, though theme access is fine
+                builder: (context) {
+                  final BorderRadius defaultRadius = BorderRadius.circular(4.r);
+                  BorderRadius inkWellRadius = defaultRadius;
+                  BorderRadius containerRadius = defaultRadius;
+
+                  if (inputTheme.border is OutlineInputBorder) {
+                    final outlineBorder = inputTheme.border as OutlineInputBorder;
+                    inkWellRadius = outlineBorder.borderRadius;
+                    containerRadius = outlineBorder.borderRadius;
+                  } else if (inputTheme.enabledBorder is OutlineInputBorder) {
+                    // Fallback to enabledBorder if the main border isn't OutlineInputBorder
+                    final outlineEnabledBorder = inputTheme.enabledBorder as OutlineInputBorder;
+                    inkWellRadius = outlineEnabledBorder.borderRadius;
+                    containerRadius = outlineEnabledBorder.borderRadius;
+                  }
+                  // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
+                  // In that case, defaultRadius (4.r) is used.
+
+                  return InkWell(
+                    onTap: () => _selectDateTime(context),
+                    borderRadius: inkWellRadius,
+                    child: Container(
+                      padding: inputTheme.contentPadding ?? EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+                      decoration: BoxDecoration(
+                        color: inputTheme.fillColor ?? theme.colorScheme.surfaceContainerHighest,
+                        border: Border.all(color: inputTheme.enabledBorder?.borderSide.color ?? theme.colorScheme.outline),
+                        borderRadius: containerRadius,
                       ),
-                      Icon(Icons.calendar_today_outlined, size: 20.sp, color: theme.colorScheme.onSurfaceVariant),
-                    ],
-                  ),
-                ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime),
+                            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface),
+                          ),
+                          Icon(Icons.calendar_today_outlined, size: 20.sp, color: theme.colorScheme.onSurfaceVariant),
+                        ],
+                      ),
+                    ),
+                  );
+                }
               ),
               SizedBox(height: 20.h),
 

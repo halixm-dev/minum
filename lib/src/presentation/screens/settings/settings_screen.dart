@@ -718,10 +718,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.format_list_numbered_outlined,
               title: "Favorite Quick Add Volumes",
               subtitle: userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty
-                  ? userProfile.favoriteIntakeVolumes.map((volStr) {
-                double volMl = double.tryParse(volStr) ?? 0;
-                return unit_converter.formatVolume(volMl, userProfile.preferredUnit, includeUnitString: false);
-              }).join(', ') + ' ${userProfile.preferredUnit.displayName}'
+                  ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
+                      double volMl = double.tryParse(volStr) ?? 0;
+                      return unit_converter.formatVolume(volMl, userProfile.preferredUnit, includeUnitString: false);
+                    }).join(', ')} ${userProfile.preferredUnit.displayName}'
                   : "N/A",
               onTap: () => _showEditFavoriteVolumesDialog(context, userProvider),
             ),
