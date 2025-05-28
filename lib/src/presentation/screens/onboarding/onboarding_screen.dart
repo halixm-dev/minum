@@ -51,14 +51,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       logger.i("Onboarding marked as completed.");
       if (mounted) {
         // Navigate to the simplified LoginScreen
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Changed from AppRoutes.welcome
+        Navigator.of(context).pushReplacementNamed(
+            AppRoutes.login); // Changed from AppRoutes.welcome
         logger.i("OnboardingScreen: Navigating to LoginScreen.");
       }
     } catch (e) {
       logger.e("Error saving onboarding status or navigating: $e");
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
-        logger.w("OnboardingScreen: Fallback navigation to LoginScreen due to error.");
+        Navigator.of(context)
+            .pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
+        logger.w(
+            "OnboardingScreen: Fallback navigation to LoginScreen due to error.");
       }
     }
   }
@@ -80,7 +83,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: TextButton(
                   onPressed: _completeOnboarding,
                   // TextButton style comes from TextButtonThemeData
-                  child: Text(AppStrings.skip, style: TextStyle(fontSize: 16.sp)), // Color will be colorScheme.primary
+                  child: Text(AppStrings.skip,
+                      style: TextStyle(
+                          fontSize:
+                              16.sp)), // Color will be colorScheme.primary
                 ),
               ),
             ),
@@ -89,7 +95,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageController,
                 itemCount: _onboardingPages.length,
                 onPageChanged: (int page) {
-                  setState(() { _currentPage = page; });
+                  setState(() {
+                    _currentPage = page;
+                  });
                 },
                 itemBuilder: (context, index) {
                   return _buildOnboardingPage(
@@ -102,7 +110,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h), // Adjusted vertical padding
+              padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 32.h), // Adjusted vertical padding
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -110,13 +120,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       _onboardingPages.length,
-                          (idx) => _buildDot(idx, context, colorScheme), // Pass colorScheme
+                      (idx) => _buildDot(
+                          idx, context, colorScheme), // Pass colorScheme
                     ),
                   ),
                   SizedBox(
-                    width: 150.w, // Slightly wider for potentially longer "Get Started" text
+                    width: 150
+                        .w, // Slightly wider for potentially longer "Get Started" text
                     height: 48.h, // M3 typical height for FilledButton
-                    child: FilledButton( // Replaced CustomButton
+                    child: FilledButton(
+                      // Replaced CustomButton
                       // Style comes from FilledButtonThemeData
                       onPressed: () {
                         if (_currentPage == _onboardingPages.length - 1) {
@@ -167,8 +180,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               logger.e("Onboarding image error: $error for path $imagePath");
               return Container(
                 height: 280.h,
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3), // Use M3 color
-                child: Center(child: Icon(Icons.image_not_supported_outlined, size: 100.sp, color: colorScheme.onSurfaceVariant)), // Use M3 color
+                color: colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.3), // Use M3 color
+                child: Center(
+                    child: Icon(Icons.image_not_supported_outlined,
+                        size: 100.sp,
+                        color: colorScheme.onSurfaceVariant)), // Use M3 color
               );
             },
           ),
@@ -195,14 +212,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildDot(int index, BuildContext context, ColorScheme colorScheme) { // Added colorScheme
+  Widget _buildDot(int index, BuildContext context, ColorScheme colorScheme) {
+    // Added colorScheme
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: EdgeInsets.only(right: 8.w),
       height: 10.h,
       width: _currentPage == index ? 24.w : 10.w,
       decoration: BoxDecoration(
-        color: _currentPage == index ? colorScheme.primary : colorScheme.surfaceContainerHighest, // Use M3 colors
+        color: _currentPage == index
+            ? colorScheme.primary
+            : colorScheme.surfaceContainerHighest, // Use M3 colors
         borderRadius: BorderRadius.circular(5.r),
       ),
     );

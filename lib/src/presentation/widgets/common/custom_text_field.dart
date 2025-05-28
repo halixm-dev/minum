@@ -67,7 +67,9 @@ class CustomTextField extends StatelessWidget {
         // No need for ?? fallbacks if the theme is comprehensive.
         labelStyle: inputDecorationTheme.labelStyle,
         hintStyle: inputDecorationTheme.hintStyle,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp) : null, // Icon size can be themed via IconThemeData if needed
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, size: 20.sp)
+            : null, // Icon size can be themed via IconThemeData if needed
         suffixIcon: suffixIcon,
         border: inputDecorationTheme.border,
         enabledBorder: inputDecorationTheme.enabledBorder,
@@ -76,11 +78,14 @@ class CustomTextField extends StatelessWidget {
         focusedErrorBorder: inputDecorationTheme.focusedErrorBorder,
         disabledBorder: inputDecorationTheme.disabledBorder,
         filled: inputDecorationTheme.filled, // Should be true in M3 theme
-        fillColor: inputDecorationTheme.fillColor, // Should be defined in M3 theme
-        contentPadding: inputDecorationTheme.contentPadding, // Should be defined in M3 theme
+        fillColor:
+            inputDecorationTheme.fillColor, // Should be defined in M3 theme
+        contentPadding: inputDecorationTheme
+            .contentPadding, // Should be defined in M3 theme
         // Ensure floatingLabelBehavior is consistent with M3, usually 'auto' or 'always'
         floatingLabelBehavior: inputDecorationTheme.floatingLabelBehavior,
-        errorStyle: inputDecorationTheme.errorStyle, // Ensure this is also themed
+        errorStyle:
+            inputDecorationTheme.errorStyle, // Ensure this is also themed
       ),
       obscureText: obscureText,
       keyboardType: keyboardType,

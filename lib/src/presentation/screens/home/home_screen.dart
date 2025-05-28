@@ -20,7 +20,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   final List<Widget> _screens = [
     const MainHydrationView(),
     const HydrationHistoryScreen(),
@@ -37,10 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    if (userProvider.userProfile == null && userProvider.status != UserProfileStatus.loading) {
-      final authUser = Provider.of<AuthProvider>(context, listen: false).currentUser;
+    if (userProvider.userProfile == null &&
+        userProvider.status != UserProfileStatus.loading) {
+      final authUser =
+          Provider.of<AuthProvider>(context, listen: false).currentUser;
       if (authUser != null) {
-        logger.i("HomeScreen initState: User profile is null, UserProvider should fetch it via auth state changes.");
+        logger.i(
+            "HomeScreen initState: User profile is null, UserProvider should fetch it via auth state changes.");
       }
     }
   }
@@ -67,10 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               // backgroundColor and foregroundColor will be handled by floatingActionButtonTheme
               tooltip: "Log Water Intake",
-              child: Icon(Icons.add, size: 28.sp), // Icon color will also be from theme
+              child: Icon(Icons.add,
+                  size: 28.sp), // Icon color will also be from theme
             )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // M3 default is often .centerFloat with BottomAppBar, or .endFloat
+      floatingActionButtonLocation: FloatingActionButtonLocation
+          .endFloat, // M3 default is often .centerFloat with BottomAppBar, or .endFloat
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: (index) {
@@ -86,7 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
         destinations: const <Widget>[
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home), // M3 often uses filled icons for selected state
+            selectedIcon: Icon(
+                Icons.home), // M3 often uses filled icons for selected state
             label: 'Home',
           ),
           NavigationDestination(

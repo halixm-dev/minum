@@ -11,7 +11,8 @@ class CustomButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
-  final double? height; // Note: M3 button height is typically controlled by padding and text style.
+  final double?
+      height; // Note: M3 button height is typically controlled by padding and text style.
   final Widget? icon;
   final ButtonStyle? style; // Allow full style override if needed
 
@@ -37,11 +38,12 @@ class CustomButton extends StatelessWidget {
     if (style != null) {
       effectiveStyle = baseStyle.merge(style);
     }
-    
+
     // Override text style color if loading, to ensure progress indicator visibility
     // M3 themes should handle disabled state opacity for text and background.
-    final progressIndicatorColor = effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ?? theme.colorScheme.onSurface.withValues(alpha: 0.38);
-
+    final progressIndicatorColor =
+        effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ??
+            theme.colorScheme.onSurface.withValues(alpha: 0.38);
 
     Widget buttonChild;
     if (isLoading) {
