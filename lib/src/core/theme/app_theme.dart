@@ -334,7 +334,7 @@ class AppTheme {
           // 8. Ensure disabledBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
           borderSide: BorderSide(
-              color: colorScheme.onSurface.withValues(alpha: 0.12),
+              color: colorScheme.onSurface.withOpacity(0.12),
               width: 1.0), // onSurface with opacity, 1.0 width
         ),
         labelStyle: m3BaseTextTheme.bodyLarge?.copyWith(
