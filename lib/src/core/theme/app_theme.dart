@@ -293,51 +293,56 @@ class AppTheme {
 
       // --- InputDecorationTheme (for TextFields) ---
       inputDecorationTheme: InputDecorationTheme(
-        filled: true, // M3 Filled TextFields are the default
-        fillColor: colorScheme
-            .surfaceContainerHighest, // M3 Filled TextField fill color
+        filled: false, // 1. Set filled to false
+        // 2. Remove fillColor property
         contentPadding: EdgeInsets.symmetric(
-            horizontal: 16.w, vertical: 12.h), // Padding inside the TextField
+            horizontal: 16.w, vertical: 12.h), // 9. Reviewed contentPadding
         border: OutlineInputBorder(
-          // Default border (usually not visible for enabled state)
+          // 4. Default border
           borderRadius:
               BorderRadius.all(Radius.circular(4.r)), // M3 "ExtraSmall" radius
-          borderSide:
-              BorderSide.none, // No border for enabled filled text fields
+          borderSide: BorderSide(
+              color: colorScheme.outline,
+              width: 1.0), // colorScheme.outline, 1.0 width
         ),
         enabledBorder: OutlineInputBorder(
+          // 3. Update enabledBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
-          borderSide:
-              BorderSide.none, // No border for enabled filled text fields
+          borderSide: BorderSide(
+              color: colorScheme.outline,
+              width: 1.0), // colorScheme.outline, 1.0 width
         ),
-        // M3 uses an underline for active indicator on Filled, but Outline is also acceptable.
-        // Sticking to Outline for consistency with previous setup, but with specific M3 styling.
         focusedBorder: OutlineInputBorder(
+          // 5. Ensure focusedBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
           borderSide: BorderSide(
               color: colorScheme.primary,
               width: 2.0), // Primary color, 2px width
         ),
         errorBorder: OutlineInputBorder(
+          // 6. Ensure errorBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
           borderSide: BorderSide(
-              color: colorScheme.error, width: 2.0), // Error color, 2px width
+              color: colorScheme.error, width: 1.0), // Error color, 1.0px width
         ),
         focusedErrorBorder: OutlineInputBorder(
+          // 7. Ensure focusedErrorBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
           borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
         disabledBorder: OutlineInputBorder(
-          // Filled text field has different look when disabled
+          // 8. Ensure disabledBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(
+              color: colorScheme.onSurface.withValues(alpha: 0.12),
+              width: 1.0), // onSurface with opacity, 1.0 width
         ),
-        labelStyle: m3BaseTextTheme.bodyLarge
-            ?.copyWith(color: colorScheme.onSurfaceVariant),
-        hintStyle: m3BaseTextTheme.bodyLarge
-            ?.copyWith(color: colorScheme.onSurfaceVariant),
+        labelStyle: m3BaseTextTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurfaceVariant), // 10. Ensure labelStyle
+        hintStyle: m3BaseTextTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurfaceVariant), // 11. Ensure hintStyle
         errorStyle: m3BaseTextTheme.bodySmall
-            ?.copyWith(color: colorScheme.error), // M3 error text style
+            ?.copyWith(color: colorScheme.error), // 12. Ensure errorStyle
       ),
 
       // --- CardTheme ---
