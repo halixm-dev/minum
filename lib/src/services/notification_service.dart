@@ -232,19 +232,12 @@ class NotificationService {
       return;
     }
 
-    final String? lastScheduledDateStr = prefs.getString(prefsLastScheduledDate);
     final String todayDateStr = DateTime.now().toIso8601String().substring(0, 10);
-
-    if (!forceReschedule && lastScheduledDateStr == todayDateStr) { // <-- Check !forceReschedule
-      logger.i("Notifications have already been scheduled for today ($todayDateStr) and forceReschedule is false. No rescheduling needed.");
-      return;
-    }
 
     if (forceReschedule) {
       logger.i("forceReschedule is true. Proceeding with rescheduling for today ($todayDateStr).");
     }
-    // This log is still useful
-    logger.i("Proceeding with notification scheduling check for today ($todayDateStr). Last scheduled: $lastScheduledDateStr, Force: $forceReschedule");
+    logger.i("Proceeding with notification scheduling for today ($todayDateStr). Force reschedule: $forceReschedule");
 
     final double intervalHours = prefs.getDouble(prefsReminderIntervalHours) ?? 1.0;
     final int startTimeHour = prefs.getInt(prefsReminderStartTimeHour) ?? 8;
@@ -326,7 +319,7 @@ class NotificationService {
       int intervalInMinutes = (intervalHours * 60).toInt();
       if (intervalInMinutes <= 0) {
         logger.w("Interval is <= 0 minutes. Cannot schedule. Interval Hours: $intervalHours");
-        await prefs.setString(prefsLastScheduledDate, todayDateStr); // Mark as "processed" for today.
+        // Removed: await prefs.setString(prefsLastScheduledDate, todayDateStr); 
         return;
       }
       nextReminderTime = scheduleStart;
@@ -372,7 +365,7 @@ class NotificationService {
     } else {
       logger.i("No reminders were scheduled for today ($todayDateStr). This might be because the time window has passed or due to settings.");
     }
-    await prefs.setString(prefsLastScheduledDate, todayDateStr);
+    // Removed: await prefs.setString(prefsLastScheduledDate, todayDateStr);
   }
 
 
