@@ -9,6 +9,7 @@ import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
 import 'package:minum/src/presentation/providers/theme_provider.dart'; // ThemeProvider is here
 import 'package:minum/src/presentation/providers/user_provider.dart';
+import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
@@ -166,8 +167,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) { // Ensure context is valid before using Provider
       Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
         logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed after saving settings.");
+        // Notify that settings have changed AFTER rescheduling is attempted
+        Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged(); // <-- ADD THIS LINE
       }).catchError((e) {
         logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(): $e");
+        // Optionally, you might still want to notify if there's an error,
+        // or perhaps handle this state differently in the listener.
+        // For now, we'll notify even if rescheduling had an error,
+        // as the settings themselves *were* saved.
+        Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged(); // <-- ADD THIS LINE (or decide if only on success)
       });
     }
   }
