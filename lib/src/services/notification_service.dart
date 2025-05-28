@@ -220,8 +220,8 @@ class NotificationService {
     return scheduledNotifications;
   }
 
-  Future<void> scheduleDailyRemindersIfNeeded() async {
-    logger.i("NotificationService: scheduleDailyRemindersIfNeeded() called.");
+  Future<void> scheduleDailyRemindersIfNeeded({bool forceReschedule = false}) async {
+    logger.i("NotificationService: scheduleDailyRemindersIfNeeded() called. forceReschedule: $forceReschedule");
     final prefs = await SharedPreferences.getInstance();
 
     final bool remindersEnabled = prefs.getBool(prefsRemindersEnabled) ?? false;
@@ -235,12 +235,16 @@ class NotificationService {
     final String? lastScheduledDateStr = prefs.getString(prefsLastScheduledDate);
     final String todayDateStr = DateTime.now().toIso8601String().substring(0, 10);
 
-    if (lastScheduledDateStr == todayDateStr) {
-      logger.i("Notifications have already been scheduled for today ($todayDateStr). No rescheduling needed.");
+    if (!forceReschedule && lastScheduledDateStr == todayDateStr) { // <-- Check !forceReschedule
+      logger.i("Notifications have already been scheduled for today ($todayDateStr) and forceReschedule is false. No rescheduling needed.");
       return;
     }
 
-    logger.i("Need to schedule notifications for today ($todayDateStr). Last scheduled: $lastScheduledDateStr");
+    if (forceReschedule) {
+      logger.i("forceReschedule is true. Proceeding with rescheduling for today ($todayDateStr).");
+    }
+    // This log is still useful
+    logger.i("Proceeding with notification scheduling check for today ($todayDateStr). Last scheduled: $lastScheduledDateStr, Force: $forceReschedule");
 
     final double intervalHours = prefs.getDouble(prefsReminderIntervalHours) ?? 1.0;
     final int startTimeHour = prefs.getInt(prefsReminderStartTimeHour) ?? 8;

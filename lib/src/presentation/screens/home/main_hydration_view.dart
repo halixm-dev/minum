@@ -7,6 +7,7 @@ import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
+import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart'; // Added import
 import 'package:minum/src/presentation/widgets/home/daily_progress_card.dart';
 import 'package:minum/src/presentation/widgets/home/hydration_log_list_item.dart';
 import 'package:minum/src/presentation/widgets/home/quick_add_buttons.dart';
@@ -29,17 +30,34 @@ class MainHydrationView extends StatefulWidget {
 class _MainHydrationViewState extends State<MainHydrationView> with WidgetsBindingObserver {
   NotificationModel? _nextReminder;
   bool _isLoadingReminder = true;
+  ReminderSettingsNotifier? _reminderSettingsNotifier; // Added field
+
+  // Added listener method
+  void _onReminderSettingsChanged() {
+    // Optional: Add a logger call here if you want to see when it's triggered.
+    // logger.d("MainHydrationView: Reminder settings changed, fetching next reminder.");
+    _fetchNextReminder();
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _fetchNextReminder();
+    _fetchNextReminder(); // Initial fetch
+
+    // Add listener after the first frame to ensure context is fully available for Provider.of
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _reminderSettingsNotifier = Provider.of<ReminderSettingsNotifier>(context, listen: false);
+        _reminderSettingsNotifier?.addListener(_onReminderSettingsChanged);
+      }
+    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _reminderSettingsNotifier?.removeListener(_onReminderSettingsChanged); // Remove listener
     super.dispose();
   }
 

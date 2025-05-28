@@ -30,6 +30,7 @@ import 'package:minum/src/presentation/providers/theme_provider.dart';
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart'; // Import BottomNavProvider
+import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
 
 
 // Global logger instance
@@ -102,6 +103,7 @@ void main() async {
 
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BottomNavProvider()), // Add BottomNavProvider
+        ChangeNotifierProvider(create: (_) => ReminderSettingsNotifier()), // <-- ADD THIS LINE
         ChangeNotifierProvider<AuthProvider>(
           create: (context) => AuthProvider(
             context.read<AuthService>(),

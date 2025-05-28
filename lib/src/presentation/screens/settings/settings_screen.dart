@@ -9,6 +9,7 @@ import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
 import 'package:minum/src/presentation/providers/theme_provider.dart'; // ThemeProvider is here
 import 'package:minum/src/presentation/providers/user_provider.dart';
+import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
@@ -164,10 +165,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // _rescheduleNotifications(); // This will now be called by the service method triggered below.
     // Instead, directly call the new service method to handle scheduling logic.
     if (mounted) { // Ensure context is valid before using Provider
-      Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
-        logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed after saving settings.");
+      Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded(forceReschedule: true).then((_) { // <-- forceReschedule: true
+        logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded(forceReschedule: true) call completed after saving settings.");
+        if (mounted) { // Ensure widget is still mounted
+          Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged();
+        }
       }).catchError((e) {
-        logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(): $e");
+        logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(forceReschedule: true): $e");
+        if (mounted) { // Ensure widget is still mounted
+          Provider.of<ReminderSettingsNotifier>(context, listen: false).notifySettingsChanged();
+        }
       });
     }
   }
