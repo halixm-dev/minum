@@ -814,7 +814,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context: context,
                 icon: Icons.hourglass_empty_outlined,
                 title: "Reminder Interval",
-                subtitle: () {/* ... existing subtitle logic ... */}(),
+                subtitle: () {
+                  if (_selectedIntervalHours <= 0)
+                    return "N/A"; // Should not happen with min interval logic
+                  int totalMinutes = (_selectedIntervalHours * 60).round();
+                  int hours = totalMinutes ~/ 60;
+                  int minutes = totalMinutes % 60;
+
+                  if (hours > 0 && minutes > 0) {
+                    return "${hours}h ${minutes}m";
+                  } else if (hours > 0 && minutes == 0) {
+                    return "${hours}h";
+                  } else if (hours == 0 && minutes > 0) {
+                    return "${minutes}m";
+                  } else {
+                    // Fallback, though minimum interval logic should prevent 0h 0m.
+                    // If _selectedIntervalHours is 0.25 (15 mins), this will be 15m.
+                    return "${minutes}m";
+                  }
+                }(),
                 onTap: () => _showIntervalPicker(context),
               ),
               _buildSettingsTile(

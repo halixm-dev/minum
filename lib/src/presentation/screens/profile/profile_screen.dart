@@ -61,15 +61,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (level == null) return "Not Set";
     switch (level) {
       case ActivityLevel.sedentary:
-        return "Sedentary";
+        return "Sedentary (little or no exercise)";
       case ActivityLevel.light:
-        return "Light";
+        return "Light (exercise 1-3 days/week)";
       case ActivityLevel.moderate:
-        return "Moderate";
+        return "Moderate (exercise 3-5 days/week)";
       case ActivityLevel.active:
-        return "Active";
+        return "Active (exercise 6-7 days/week)";
       case ActivityLevel.extraActive:
-        return "Extra Active";
+        return "Extra Active (exercise 1+ times/day)";
     }
   }
 

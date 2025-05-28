@@ -349,7 +349,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         // Defaulting to M3 Filled Card style
         elevation: 0.0, // M3 Filled cards have no elevation
-        color: colorScheme.surfaceContainerLow, // M3 Filled Card color
+        color: colorScheme.surfaceContainer, // M3 Filled Card color
         surfaceTintColor: Colors.transparent, // M3 Filled cards don't show tint
         shape: RoundedRectangleBorder(
             borderRadius:
@@ -458,8 +458,8 @@ class AppTheme {
           return style.copyWith(
               color: colorScheme.onSurfaceVariant); // Text color for unselected
         }),
-        height: 80.h, // M3 standard height
-        elevation: 2.0, // M3 standard elevation
+        height: 64.h,
+        elevation: 2.0,
       ),
       // Add other component themes as needed...
     );

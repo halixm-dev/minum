@@ -132,11 +132,11 @@ class AppStrings {
   static const String kg = "kg";
   static const String lbs = "lbs";
   static const String activityLevel = "Activity Level";
-  static const String sedentary = "Sedentary";
-  static const String light = "Light";
-  static const String moderate = "Moderate";
-  static const String active = "Active";
-  static const String veryActive = "Very Active";
+  static const String sedentary = "Sedentary (little or no exercise)";
+  static const String light = "Light (light exercise/sports 1-3 days/week)";
+  static const String moderate = "Moderate (moderate exercise/sports 3-5 days/week)";
+  static const String active = "Active (hard exercise/sports 6-7 days a week)";
+  static const String veryActive = "Very Active (very hard exercise/sports & physical job or 2x training)";
   static const String weather = "Weather"; // Conceptual
   static const String caloriesBurned = "Calories Burned"; // Conceptual
 }
