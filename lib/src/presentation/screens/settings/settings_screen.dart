@@ -192,23 +192,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // _rescheduleNotifications is now effectively replaced by NotificationService.scheduleDailyRemindersIfNeeded
-  // However, if we want a direct way to trigger it from UI that might show a specific SnackBar,
-  // we can keep a simplified version or just rely on _saveReminderSettings.
-  // For now, let's assume direct calls to the service method are sufficient.
-  // If a manual "refresh schedule" button were added, it would call the service method.
-  // void _rescheduleNotifications() {
-  //   if (!mounted) return;
-  //   logger.i("SettingsScreen: Manual reschedule trigger initiated.");
-  //   Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
-  //     AppUtils.showSnackBar(context, "Attempted to refresh notification schedule for today.");
-  //     logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed from manual trigger.");
-  //   }).catchError((e) {
-  //     logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded() from manual trigger: $e");
-  //     AppUtils.showSnackBar(context, "Error refreshing schedule. Check logs.", isError: true);
-  //   });
-  // }
-
   Future<void> _selectTime(BuildContext context, bool isStartTime) async {
     final TimeOfDay initialTime =
         isStartTime ? _selectedStartTime : _selectedEndTime;
@@ -221,8 +204,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           : "Select Reminder End Time",
     );
 
-    // Check context.mounted after await before using it for UI (SnackBar)
-    // Also check if the State itself is still mounted for setState
     if (!context.mounted) return;
     if (picked == null) return;
 
