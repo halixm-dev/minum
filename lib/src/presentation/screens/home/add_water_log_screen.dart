@@ -25,6 +25,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _notesController = TextEditingController();
+  late TextEditingController _dateTimeController; // Added for date/time picker
 
   DateTime _selectedDateTime = DateTime.now();
   MeasurementUnit _currentUnit = MeasurementUnit.ml;
@@ -33,6 +34,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   @override
   void initState() {
     super.initState();
+    _dateTimeController = TextEditingController(); // Initialize controller
     _isEditMode = widget.entryToEdit != null;
     final userProfile =
         Provider.of<UserProvider>(context, listen: false).userProfile;
@@ -53,12 +55,16 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       _notesController.text = entry.notes ?? '';
       _selectedDateTime = entry.timestamp;
     }
+    // Set initial text for the date/time controller
+    _dateTimeController.text =
+        DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
   }
 
   @override
   void dispose() {
     _amountController.dispose();
     _notesController.dispose();
+    _dateTimeController.dispose(); // Dispose controller
     super.dispose();
   }
 
@@ -86,6 +92,9 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
             pickedTime.hour,
             pickedTime.minute,
           );
+          // Update the controller's text
+          _dateTimeController.text =
+              DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
         });
       }
     }
@@ -255,64 +264,19 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 textInputAction: TextInputAction.next,
               ),
               SizedBox(height: 20.h),
-              Text('Date & Time',
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              SizedBox(height: 8.h),
-              Builder(
-                  // Use Builder to get a new context if needed, though theme access is fine
-                  builder: (context) {
-                final BorderRadius defaultRadius = BorderRadius.circular(4.r);
-                BorderRadius inkWellRadius = defaultRadius;
-                BorderRadius containerRadius = defaultRadius;
-
-                if (inputTheme.border is OutlineInputBorder) {
-                  final outlineBorder = inputTheme.border as OutlineInputBorder;
-                  inkWellRadius = outlineBorder.borderRadius;
-                  containerRadius = outlineBorder.borderRadius;
-                } else if (inputTheme.enabledBorder is OutlineInputBorder) {
-                  // Fallback to enabledBorder if the main border isn't OutlineInputBorder
-                  final outlineEnabledBorder =
-                      inputTheme.enabledBorder as OutlineInputBorder;
-                  inkWellRadius = outlineEnabledBorder.borderRadius;
-                  containerRadius = outlineEnabledBorder.borderRadius;
-                }
-                // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
-                // In that case, defaultRadius (4.r) is used.
-
-                return InkWell(
-                  onTap: () => _selectDateTime(context),
-                  borderRadius: inkWellRadius,
-                  child: Container(
-                    padding: inputTheme.contentPadding ??
-                        EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
-                    decoration: BoxDecoration(
-                      color: inputTheme.fillColor ??
-                          theme.colorScheme.surfaceContainerHighest,
-                      border: Border.all(
-                          color: inputTheme.enabledBorder?.borderSide.color ??
-                              theme.colorScheme.outline),
-                      borderRadius: containerRadius,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          DateFormat('EEE, MMM d, hh:mm a')
-                              .format(_selectedDateTime),
-                          style: theme.textTheme.bodyLarge
-                              ?.copyWith(color: theme.colorScheme.onSurface),
-                        ),
-                        Icon(Icons.calendar_today_outlined,
-                            size: 20.sp,
-                            color: theme.colorScheme.onSurfaceVariant),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+              // The Text widget for "Date & Time" label is removed as it's now part of InputDecoration
+              TextFormField(
+                controller: _dateTimeController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Date & Time', // Label integrated here
+                  prefixIcon: Icon(Icons.edit_calendar_outlined),
+                  // Styling (border, fillColor, contentPadding) from app's InputDecorationTheme
+                ),
+                onTap: () => _selectDateTime(context),
+              ),
               SizedBox(height: 20.h),
-              Text('Notes (Optional)',
+              Text('Notes (Optional)', // This label is kept as it's for a different field
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),

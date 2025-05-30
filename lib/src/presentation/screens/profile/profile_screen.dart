@@ -28,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _dailyGoalController;
   late TextEditingController _weightController;
   late TextEditingController _heightController;
+  late TextEditingController _dateOfBirthController; // Added for date picker
 
   // FocusNodes for CustomTextFields
   late FocusNode _displayNameFocusNode;
@@ -109,6 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _dailyGoalController = TextEditingController();
     _weightController = TextEditingController();
     _heightController = TextEditingController();
+    _dateOfBirthController = TextEditingController(); // Initialize date controller
 
     // Initialize FocusNodes
     _displayNameFocusNode = FocusNode();
@@ -143,6 +145,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       _selectedActivityLevel = userProfile.activityLevel;
       _selectedDateOfBirth = userProfile.dateOfBirth;
+      _dateOfBirthController.text = _selectedDateOfBirth != null
+          ? DateFormat.yMMMd().format(_selectedDateOfBirth!)
+          : '';
       _selectedGender = userProfile.gender;
 
       List<HealthCondition> initialHealthConditions =
@@ -168,6 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _heightController.text = '';
       _selectedActivityLevel = null;
       _selectedDateOfBirth = null;
+      _dateOfBirthController.text = '';
       _selectedGender = null;
       _selectedHealthConditions = [HealthCondition.none];
       _selectedWeatherCondition = WeatherCondition.temperate;
@@ -202,6 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _dailyGoalController.dispose();
     _weightController.dispose();
     _heightController.dispose();
+    _dateOfBirthController.dispose(); // Dispose date controller
 
     // Dispose FocusNodes
     _displayNameFocusNode.dispose();
@@ -220,28 +227,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             DateTime.now().subtract(const Duration(days: 365 * 25)),
         firstDate: DateTime(1900),
         lastDate: DateTime.now(),
-        helpText: "Select Date of Birth",
-        // M3 DatePicker should pick up colors from the main theme's colorScheme.
-        // Custom builder might not be necessary if the global theme is set up correctly.
-        // If specific overrides are still needed for the picker:
-        builder: (context, child) {
-          final currentTheme = Theme.of(context);
-          return Theme(
-            data: currentTheme.copyWith(
-                // DatePicker uses colorScheme.primary for selected day, header background
-                // colorScheme.onPrimary for text on selected day, header text
-                // colorScheme.surface for dialog background (already themed)
-                // colorScheme.onSurface for text on dialog background
-                // textButtonTheme for OK/Cancel buttons (already themed)
-                // Ensure these are M3 defaults or app-specific.
-                ),
-            child: child!,
-          );
-        });
+        helpText: "Select Date of Birth");
+    // Removed custom builder to allow default M3 styling
     if (picked != null && picked != _selectedDateOfBirth) {
       if (mounted) {
         setState(() {
           _selectedDateOfBirth = picked;
+          _dateOfBirthController.text = DateFormat.yMMMd().format(picked);
           _isDirty = true;
         });
       }
@@ -776,11 +768,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSectionTitle(String title) {
     final theme = Theme.of(context);
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h, top: 16.h),
+      padding: EdgeInsets.only(top: 16.h, bottom: 8.h), // Standardized padding
       child: Text(
         title,
         style: theme.textTheme.titleLarge?.copyWith(
-          color: theme.colorScheme.primary,
+          color: theme.colorScheme.secondary, // Changed to secondary color
         ),
       ),
     );
@@ -788,72 +780,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildDatePickerField(BuildContext context, String label,
       DateTime? selectedDate, Function(DateTime) onDateSelected) {
-    final theme = Theme.of(context);
-    final inputTheme = theme.inputDecorationTheme;
+    // final theme = Theme.of(context); // Not strictly needed if relying on InputDecorationTheme
+    // final inputTheme = theme.inputDecorationTheme; // Not strictly needed
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: theme.textTheme.labelLarge?.copyWith(
-                color: theme
-                    .colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
-        SizedBox(height: 8.h),
-        Builder(
-            // Use Builder to get a new context if needed, though theme access is fine
-            builder: (context) {
-          final BorderRadius defaultRadius = BorderRadius.circular(4.r);
-          BorderRadius inkWellRadius = defaultRadius;
-          BorderRadius containerRadius = defaultRadius;
-
-          if (inputTheme.border is OutlineInputBorder) {
-            final outlineBorder = inputTheme.border as OutlineInputBorder;
-            inkWellRadius = outlineBorder.borderRadius;
-            containerRadius = outlineBorder.borderRadius;
-          } else if (inputTheme.enabledBorder is OutlineInputBorder) {
-            // Fallback to enabledBorder if the main border isn't OutlineInputBorder
-            final outlineEnabledBorder =
-                inputTheme.enabledBorder as OutlineInputBorder;
-            inkWellRadius = outlineEnabledBorder.borderRadius;
-            containerRadius = outlineEnabledBorder.borderRadius;
-          }
-          // It's also possible that inputTheme.border is UnderlineInputBorder, which has no borderRadius.
-          // In that case, defaultRadius (4.r) is used.
-
-          return InkWell(
-            onTap: () => _selectDateOfBirth(context),
-            borderRadius: inkWellRadius,
-            child: Container(
-              width: double.infinity,
-              padding: inputTheme.contentPadding ??
-                  EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.w),
-              decoration: BoxDecoration(
-                color: inputTheme.fillColor ??
-                    theme.colorScheme.surfaceContainerHighest,
-                border: Border.all(
-                    color: inputTheme.enabledBorder?.borderSide.color ??
-                        theme.colorScheme.outline),
-                borderRadius: containerRadius,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    selectedDate != null
-                        ? DateFormat.yMMMd().format(selectedDate)
-                        : 'Select Date',
-                    style: theme.textTheme.bodyLarge, // Use M3 text style
-                  ),
-                  Icon(Icons.calendar_today_outlined,
-                      size: 20.sp,
-                      color: theme.colorScheme
-                          .onSurfaceVariant), // Use onSurfaceVariant
-                ],
-              ),
-            ),
-          );
-        }),
-      ],
+    return TextFormField(
+      controller: _dateOfBirthController,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: const Icon(Icons.calendar_today_outlined),
+        // The rest of the styling (border, fillColor, filled, contentPadding)
+        // should come from the app's InputDecorationTheme.
+      ),
+      onTap: () => _selectDateOfBirth(context),
+      // The validator is removed as the field is read-only and date is picked.
+      // If validation is needed (e.g. required field), it can be added here.
     );
   }
 
@@ -865,33 +806,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String Function(T item) itemAsString,
     IconData? prefixIcon,
   }) {
-    final theme = Theme.of(context);
-    return DropdownButtonFormField<T>(
-      // Decoration should largely come from inputDecorationTheme in AppTheme.
-      // Specific overrides like prefixIcon are fine.
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon,
-                size: 20.sp, color: theme.colorScheme.onSurfaceVariant)
-            : null,
-        // border, contentPadding, fillColor, filled will be from theme.
-      ),
-      value: value,
-      items: items.map((T item) {
-        return DropdownMenuItem<T>(
+    final theme = Theme.of(context); // Keep theme for icon color if needed
+    return DropdownMenu<T>(
+      initialSelection: value,
+      label: Text(label),
+      leadingIcon: prefixIcon != null
+          ? Icon(prefixIcon,
+              size: 20.sp, color: theme.colorScheme.onSurfaceVariant)
+          : null,
+      dropdownMenuEntries: items.map((T item) {
+        return DropdownMenuEntry<T>(
           value: item,
-          child: Text(itemAsString(item),
-              style: theme.textTheme.bodyLarge), // Use M3 text style
+          label: itemAsString(item),
+          // Style for menu items can be themed globally via DropdownMenuThemeData.
+          // If specific styling is needed here, it can be applied to the label Text widget.
+          // style: MenuItemButton.styleFrom( ... )
         );
       }).toList(),
-      onChanged: onChanged,
-      isExpanded: true,
-      // Dropdown specific styles like iconColor, dropdownColor can be set here if needed
-      // or ideally via DropdownMenuThemeData in AppTheme.
-      iconSize: 24.sp,
-      dropdownColor: theme
-          .colorScheme.surfaceContainerHighest, // M3 dropdown menu background
+      onSelected: onChanged,
+      // DropdownMenu expands by default to fit its parent or the widest item.
+      // To ensure it fills the width like DropdownButtonFormField with isExpanded:true:
+      width: MediaQuery.of(context).size.width - (40.w), // Screen width minus padding
+      // Alternatively, wrap in a SizedBox(width: double.infinity) if parent allows for it,
+      // or rely on Expanded if in a Row.
+      // The menuStyle can be used for extensive customization (e.g., background color)
+      // but ideally, this is handled by the global DropdownMenuThemeData.
+      // menuStyle: MenuStyle(
+      //   backgroundColor: MaterialStateProperty.all(theme.colorScheme.surfaceContainerHighest),
+      // ),
     );
   }
 
@@ -943,16 +885,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onSelectionChanged(newSelection);
               },
               // Styling from chipTheme in AppTheme:
-              // backgroundColor (unselected), selectedColor, checkmarkColor, labelStyle, shape, side.
-              // Ensure the global chipTheme is set for M3 FilterChip.
-              // If specific overrides are needed here:
-              // selectedColor: theme.colorScheme.secondaryContainer,
-              // checkmarkColor: theme.colorScheme.onSecondaryContainer,
-              // labelStyle: chipTheme.labelStyle?.copyWith(
-              //   color: isSelected ? theme.colorScheme.onSecondaryContainer : chipTheme.labelStyle?.color
-              // ),
-              // shape: chipTheme.shape,
-              // side: chipTheme.side,
+              // backgroundColor (unselected), selectedColor, checkmarkColor, labelStyle, shape, side
+              // are expected to be defined in the global ChipThemeData for M3 compliance.
             );
           }).toList(),
         ),

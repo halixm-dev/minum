@@ -896,41 +896,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSettingsTile({
-    required BuildContext context, // Pass context
+    required BuildContext context,
     required IconData icon,
     required String title,
     String? subtitle,
     required VoidCallback onTap,
-    Color?
-        tileColor, // Kept for specific cases like login/logout buttons if needed
-    Color? textColor,
-    Color? iconColor,
+    Color? textColor, // For specific cases like error or primary colored text
+    Color? iconColor, // For specific cases like error or primary colored icon
   }) {
-    final theme = Theme.of(context); // Get theme from context
+    final theme = Theme.of(context);
+
+    // Determine colors based on M3 defaults and overrides
+    final Color finalIconColor = iconColor ?? theme.colorScheme.onSurfaceVariant;
+    final Color finalTitleColor = textColor ?? theme.colorScheme.onSurface;
+    final Color finalSubtitleColor = textColor?.withOpacity(0.7) ?? theme.colorScheme.onSurfaceVariant;
 
     return ListTile(
-      leading: Icon(icon,
-          color: iconColor ??
-              textColor ??
-              theme.colorScheme.onSurfaceVariant), // M3 icon color
+      leading: Icon(icon, color: finalIconColor),
       title: Text(title,
-          style: theme.textTheme.titleMedium
-              ?.copyWith(color: textColor)), // M3 titleMedium
+          style: theme.textTheme.titleMedium?.copyWith(color: finalTitleColor)),
       subtitle: subtitle != null
           ? Text(subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                  color: textColor?.withValues(alpha: 0.7) ??
-                      theme.colorScheme.onSurfaceVariant)) // M3 bodyMedium
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: finalSubtitleColor))
           : null,
       onTap: onTap,
-      tileColor:
-          tileColor, // Use with caution, prefer surface colors from theme
-      contentPadding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 4.h), // Adjusted horizontal padding for M3 standard
-      shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(8.r)), // M3 ListTile shape (optional)
+      // Removed tileColor to use default transparent background
+      // Removed contentPadding to use M3 default adaptive padding
+      // Removed shape to use default rectangular shape
     );
   }
 }
