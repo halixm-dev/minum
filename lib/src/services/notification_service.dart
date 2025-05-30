@@ -1,7 +1,7 @@
 // lib/src/services/notification_service.dart
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
+import 'package:minum/src/core/theme/app_theme.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +37,7 @@ class NotificationService {
           channelKey: _basicChannelKey,
           channelName: _basicChannelName,
           channelDescription: _basicChannelDescription,
-          defaultColor: AppColors.primaryColor,
+          defaultColor: MaterialTheme.lightScheme().primary,
           ledColor: Colors.white,
           importance: NotificationImportance.Default,
           soundSource: 'resource://raw/res_custom_sound',
@@ -49,7 +49,7 @@ class NotificationService {
           channelKey: _scheduledChannelKey,
           channelName: _scheduledChannelName,
           channelDescription: _scheduledChannelDescription,
-          defaultColor: AppColors.primaryColor,
+          defaultColor: MaterialTheme.lightScheme().primary,
           ledColor: Colors.white,
           importance: NotificationImportance.High,
           soundSource: 'resource://raw/res_custom_sound',
