@@ -34,8 +34,7 @@ class AppTheme {
         surfaceContainerLow: AppColors.surfaceContainerLowLight, // M3: surfaceContainerLow (matches lightScaffoldBackground)
         surfaceContainer: AppColors.surfaceContainerLight, // M3: surfaceContainer (for cards - using lightSurface)
         surfaceContainerHigh: AppColors.surfaceContainerHighLight, // M3: surfaceContainerHigh
-        surfaceContainerHighest: AppColors.surfaceContainerHighestLight, // M3: surfaceContainerHighest (using specific AppColor E3E6E9)
-        surfaceVariant: AppColors.surfaceVariantLight, // M3: surfaceVariant (using AppColor E0E4E8)
+        surfaceContainerHighest: AppColors.surfaceContainerHighestLight, // M3: surfaceVariant (using AppColor E0E4E8)
         onSurfaceVariant: AppColors.onSurfaceVariantLight, // M3: onSurfaceVariant
         outline: AppColors.outlineLight, // M3: outline
         outlineVariant: AppColors.outlineVariantLight, // M3: outlineVariant
@@ -75,8 +74,7 @@ class AppTheme {
         surfaceContainerLow: AppColors.surfaceContainerLowDark, // M3: surfaceContainerLow (using darkBackground)
         surfaceContainer: AppColors.surfaceContainerDark, // M3: surfaceContainer (for cards - using darkSurface)
         surfaceContainerHigh: AppColors.surfaceContainerHighDark, // M3: surfaceContainerHigh
-        surfaceContainerHighest: AppColors.surfaceContainerHighestDark, // M3: surfaceContainerHighest
-        surfaceVariant: AppColors.surfaceVariantDark, // M3: surfaceVariant
+        surfaceContainerHighest: AppColors.surfaceContainerHighestDark, // M3: surfaceVariant
         onSurfaceVariant: AppColors.onSurfaceVariantDark, // M3: onSurfaceVariant
         outline: AppColors.outlineDark, // M3: outline
         outlineVariant: AppColors.outlineVariantDark, // M3: outlineVariant
@@ -263,13 +261,13 @@ class AppTheme {
           textStyle: WidgetStateProperty.all(m3TextTheme.labelLarge?.copyWith(color: colorScheme.primary)),
           backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withOpacity(0.12);
+              return colorScheme.onSurface.withValues(alpha:0.12);
             }
             return colorScheme.surface; // Enabled
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withOpacity(0.38);
+              return colorScheme.onSurface.withValues(alpha:0.38);
             }
             return colorScheme.primary; // Enabled
           }),
@@ -293,13 +291,13 @@ class AppTheme {
           textStyle: WidgetStateProperty.all(m3TextTheme.labelLarge), // labelLarge color is onPrimary
           backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withOpacity(0.12);
+              return colorScheme.onSurface.withValues(alpha:0.12);
             }
             return colorScheme.primary; // Enabled
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withOpacity(0.38);
+              return colorScheme.onSurface.withValues(alpha:0.38);
             }
             return colorScheme.onPrimary; // Enabled
           }),
@@ -318,13 +316,13 @@ class AppTheme {
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withOpacity(0.38);
+              return colorScheme.onSurface.withValues(alpha:0.38);
             }
             return colorScheme.primary; // Enabled
           }),
           side: WidgetStateProperty.resolveWith<BorderSide?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return BorderSide(color: colorScheme.onSurface.withOpacity(0.12));
+              return BorderSide(color: colorScheme.onSurface.withValues(alpha:0.12));
             }
             if (states.contains(WidgetState.focused)) { // M3 focus indicator for outlined can be stronger border
               return BorderSide(color: colorScheme.primary, width: 1.0); // Example, M3 might use a thicker outline or an overlay
@@ -341,7 +339,7 @@ class AppTheme {
           textStyle: WidgetStateProperty.all(m3TextTheme.labelLarge?.copyWith(color: colorScheme.primary)),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withOpacity(0.38);
+              return colorScheme.onSurface.withValues(alpha:0.38);
             }
             return colorScheme.primary; // Enabled
           }),
@@ -374,7 +372,7 @@ class AppTheme {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
-          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.12), width: 1.0),
+          borderSide: BorderSide(color: colorScheme.onSurface.withValues(alpha:0.12), width: 1.0),
         ),
         labelStyle: m3TextTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
         hintStyle: m3TextTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -382,7 +380,7 @@ class AppTheme {
       ),
 
       // --- CardTheme (Defaulting to M3 Filled Card style) ---
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0.0,
         color: colorScheme.surfaceContainer, // M3 Filled Card color
         surfaceTintColor: Colors.transparent, // M3 Filled cards often don't show tint
