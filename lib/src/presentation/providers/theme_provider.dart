@@ -27,6 +27,13 @@ class ThemeProvider with ChangeNotifier {
 
   bool _isDisposed = false; // Flag to track disposal
 
+  // Cache variables for dynamic themes
+  ThemeData? _cachedLightDynamicThemeData;
+  ColorScheme? _lastLightDynamicScheme;
+
+  ThemeData? _cachedDarkDynamicThemeData;
+  ColorScheme? _lastDarkDynamicScheme;
+
   ThemeMode get themeMode => _themeMode;
   ThemeSource get themeSource => _themeSource; // Expose for UI if needed
   Color? get customSeedColor => _customSeedColor; // Expose for UI if needed
@@ -44,32 +51,19 @@ class ThemeProvider with ChangeNotifier {
         return AppTheme.lightHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_lightDynamicScheme != null) {
-          logger.i("Using dynamic system scheme for light theme.");
-          // Accessing AppTheme._lightTextTheme is not ideal from outside.
-          // However, themeFromSeed creates a new TextTheme, buildThemeDataFromScheme expects one.
-          // For dynamic themes, we need a base TextTheme.
-          // Let's assume AppTheme exposes a static lightTextTheme getter if this pattern is preferred.
-          // For now, we pass Brightness.light and let buildThemeDataFromScheme handle it IF
-          // it were to still accept Brightness. But it doesn't.
-          // The previous subtask changed buildThemeDataFromScheme to accept (ColorScheme, TextTheme).
-          // So, we need to provide a base TextTheme.
-          // AppTheme._lightTextTheme was made static final in AppTheme.
-          // To access it cleanly, AppTheme should expose it or a copy.
-          // For now, this direct access (if possible in Dart, it's private) or a placeholder:
-          // This will require AppTheme._lightTextTheme to be made public or a getter provided.
-          // For the purpose of this change, let's assume a way to get the base light text theme.
-          // The previous change was: static final TextTheme _lightTextTheme = GoogleFonts.robotoTextTheme(ThemeData.light().textTheme);
-          // This isn't directly accessible.
-          // A simple way is to call AppTheme.lightTheme.textTheme - this is already the fully processed one.
-          // The instruction was: "ensure they use AppTheme.buildThemeDataFromScheme or AppTheme.themeFromSeed with Brightness.light"
-          // This implies we might need to adjust how buildThemeDataFromScheme is called or it needs to be more flexible.
-          // Given buildThemeDataFromScheme(ColorScheme, TextTheme) from previous step:
-          // We need a base TextTheme. The simplest is the one from the standard AppTheme.lightTheme itself.
-          return AppTheme.buildThemeDataFromScheme(_lightDynamicScheme!, AppTheme.lightTheme.textTheme);
+          if (identical(_lightDynamicScheme, _lastLightDynamicScheme) && _cachedLightDynamicThemeData != null) {
+            logger.i("Using cached dynamic system light theme.");
+            return _cachedLightDynamicThemeData!;
+          }
+          logger.i("Rebuilding dynamic system light theme.");
+          _lastLightDynamicScheme = _lightDynamicScheme;
+          _cachedLightDynamicThemeData = AppTheme.buildThemeDataFromScheme(
+              _lightDynamicScheme!, AppTheme.lightTheme.textTheme); // Assuming AppTheme.lightTheme.textTheme is the correct base
+          return _cachedLightDynamicThemeData!;
         }
         logger.w(
             "Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to baseline.");
-        return AppTheme.lightTheme; // Fallback to baseline
+        return AppTheme.lightTheme; // Fallback
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger
@@ -96,12 +90,19 @@ class ThemeProvider with ChangeNotifier {
         return AppTheme.darkHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_darkDynamicScheme != null) {
-          logger.i("Using dynamic system scheme for dark theme.");
-          return AppTheme.buildThemeDataFromScheme(_darkDynamicScheme!, AppTheme.darkTheme.textTheme);
+          if (identical(_darkDynamicScheme, _lastDarkDynamicScheme) && _cachedDarkDynamicThemeData != null) {
+            logger.i("Using cached dynamic system dark theme.");
+            return _cachedDarkDynamicThemeData!;
+          }
+          logger.i("Rebuilding dynamic system dark theme.");
+          _lastDarkDynamicScheme = _darkDynamicScheme;
+          _cachedDarkDynamicThemeData = AppTheme.buildThemeDataFromScheme(
+              _darkDynamicScheme!, AppTheme.darkTheme.textTheme); // Assuming AppTheme.darkTheme.textTheme is the correct base
+          return _cachedDarkDynamicThemeData!;
         }
         logger.w(
             "Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to baseline.");
-        return AppTheme.darkTheme; // Fallback to baseline
+        return AppTheme.darkTheme; // Fallback
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger.i("Using custom seed color for dark theme: $_customSeedColor");
@@ -170,15 +171,32 @@ class ThemeProvider with ChangeNotifier {
 
   void setDynamicColorSchemes(ColorScheme? light, ColorScheme? dark) {
     if (_isDisposed) return;
-    _lightDynamicScheme = light;
-    _darkDynamicScheme = dark;
-    if (_themeSource == ThemeSource.dynamicSystem) {
+
+    bool lightChanged = !identical(light, _lightDynamicScheme);
+    bool darkChanged = !identical(dark, _darkDynamicScheme);
+
+    if (lightChanged) {
+      _cachedLightDynamicThemeData = null; // Invalidate cache
+      _lightDynamicScheme = light;
+      logger.i("New light dynamic scheme set. Cache invalidated.");
+    }
+
+    if (darkChanged) {
+      _cachedDarkDynamicThemeData = null; // Invalidate cache
+      _darkDynamicScheme = dark;
+      logger.i("New dark dynamic scheme set. Cache invalidated.");
+    }
+
+    if ((lightChanged || darkChanged) && _themeSource == ThemeSource.dynamicSystem) {
       logger.i(
-          "Dynamic ColorSchemes updated. Notifying listeners as current source is dynamic.");
+          "Dynamic ColorSchemes updated and current source is dynamic. Notifying listeners.");
       _safeNotifyListeners();
+    } else if (lightChanged || darkChanged) {
+      logger.i(
+          "Dynamic ColorSchemes updated but current source is not dynamic, no immediate notification unless source changes.");
     } else {
       logger.i(
-          "Dynamic ColorSchemes updated. Current source is not dynamic, no immediate notification.");
+          "Dynamic ColorSchemes received, but identical to current. No changes made, no notification.");
     }
   }
 
