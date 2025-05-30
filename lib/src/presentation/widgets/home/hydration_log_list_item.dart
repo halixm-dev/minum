@@ -25,10 +25,12 @@ class HydrationLogListItem extends StatelessWidget {
   IconData _getSourceIcon() {
     if (entry.source == null) return Icons.water_drop_outlined;
     if (entry.source!.startsWith('quick_add')) return Icons.bolt_outlined;
-    if (entry.source!.contains('google_fit'))
+    if (entry.source!.contains('google_fit')) {
       return Icons.fitness_center_outlined;
-    if (entry.source!.contains('health_connect'))
+    }
+    if (entry.source!.contains('health_connect')) {
       return Icons.health_and_safety_outlined;
+    }
     return Icons.water_drop_outlined; // Default
   }
 

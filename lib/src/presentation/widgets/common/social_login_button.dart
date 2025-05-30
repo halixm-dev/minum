@@ -8,8 +8,7 @@ class SocialLoginButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
-  final double?
-      height; // Note: M3 button height is controlled by theme padding & text style.
+  // final double? height; // Removed height, M3 buttons derive height from theme/content
   final ButtonStyle? style; // Allow full style override if needed
 
   const SocialLoginButton({
@@ -19,7 +18,7 @@ class SocialLoginButton extends StatelessWidget {
     this.onPressed,
     this.isLoading = false,
     this.width,
-    this.height,
+    // this.height, // Removed height
     this.style,
   });
 
@@ -84,10 +83,11 @@ class SocialLoginButton extends StatelessWidget {
       child: buttonChild,
     );
 
-    if (width != null || height != null) {
+    // If width is specified, wrap in SizedBox to control width.
+    // Height is now determined by the button's content and theme.
+    if (width != null) {
       return SizedBox(
-        width: width ?? (width == double.infinity ? double.infinity : null),
-        height: height,
+        width: width == double.infinity ? double.infinity : width,
         child: button,
       );
     }

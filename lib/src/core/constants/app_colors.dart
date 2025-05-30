@@ -45,7 +45,8 @@ class AppColors {
       Color(0xFFFFA000); // Standard orange for warnings
 
   // --- On-Color (Text/icons on colored backgrounds) ---
-  static const Color onPrimary = Colors.white; // For primaryColor (Light & Dark if primary is dark enough)
+  static const Color onPrimary =
+      Colors.white; // For primaryColor (Light & Dark if primary is dark enough)
   static const Color onSecondary =
       Colors.black; // For M3 secondary (Light - accentColor)
   static const Color onError =

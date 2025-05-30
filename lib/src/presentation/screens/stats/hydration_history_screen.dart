@@ -131,12 +131,13 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
     if (dataScopeIdForFetch == null ||
         dataScopeIdForFetch.isEmpty ||
         _selectedDateRange == null) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _historyEntries = [];
           _isLoadingHistory = false;
           _processEntriesForSummaries();
         });
+      }
       return;
     }
 
@@ -170,9 +171,10 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
           _isLoadingHistory = false;
           _processEntriesForSummaries();
         });
-        if (mounted)
+        if (mounted) {
           AppUtils.showSnackBar(context, "Failed to load history.",
               isError: true);
+        }
       }
     });
   }
@@ -283,8 +285,9 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
                 size: 28.sp, color: theme.colorScheme.onSurfaceVariant),
             onPressed: () {
               if (_selectedViewType == HistoryViewType.weekly) _changeWeek(-1);
-              if (_selectedViewType == HistoryViewType.monthly)
+              if (_selectedViewType == HistoryViewType.monthly) {
                 _changeMonth(-1);
+              }
             },
           ),
           Expanded(
@@ -448,8 +451,9 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
   }
 
   Widget _buildChartSection(MeasurementUnit unit, ThemeData theme) {
-    if (_historyEntries.isEmpty && _selectedDateRange == null)
+    if (_historyEntries.isEmpty && _selectedDateRange == null) {
       return const SizedBox.shrink();
+    }
 
     List<BarChartGroupData> barGroups = [];
     double maxY = 0;
@@ -480,23 +484,27 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
       DateTime currentDay = _selectedDateRange!.start;
       while (currentDay.isBefore(_selectedDateRange!.end) ||
           currentDay.isAtSameMomentAs(_selectedDateRange!.end)) {
-        if (currentDay.weekday == DateTime.monday || weekStartDays.isEmpty)
+        if (currentDay.weekday == DateTime.monday || weekStartDays.isEmpty) {
           weekStartDays.add(currentDay);
+        }
         currentDay = currentDay.add(const Duration(days: 1));
       }
-      if (weekStartDays.isEmpty && _historyEntries.isNotEmpty)
+      if (weekStartDays.isEmpty && _historyEntries.isNotEmpty) {
         weekStartDays.add(_selectedDateRange!.start);
+      }
 
       for (int i = 0; i < weekStartDays.length; i++) {
         double totalForWeek = 0;
         DateTime weekStart = weekStartDays[i];
         DateTime weekEnd = weekStart.add(const Duration(days: 6));
-        if (weekEnd.isAfter(_selectedDateRange!.end))
+        if (weekEnd.isAfter(_selectedDateRange!.end)) {
           weekEnd = _selectedDateRange!.end;
+        }
 
         _dailyTotals.forEach((day, total) {
-          if (!day.isBefore(weekStart) && !day.isAfter(weekEnd))
+          if (!day.isBefore(weekStart) && !day.isAfter(weekEnd)) {
             totalForWeek += total;
+          }
         });
         if (totalForWeek > maxY) maxY = totalForWeek;
         barGroups.add(
@@ -514,11 +522,12 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
       }
     }
 
-    if (barGroups.isEmpty)
+    if (barGroups.isEmpty) {
       return Padding(
           padding: EdgeInsets.all(16.w),
           child: Text("Not enough data to plot for this period.",
               style: theme.textTheme.bodyMedium));
+    }
     maxY = (maxY == 0)
         ? (unit == MeasurementUnit.ml ? 2000 : 64)
         : AppUtils.convertToPreferredUnit(maxY, unit);
@@ -572,8 +581,9 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
                   showTitles: true,
                   reservedSize: 48.w, // Adjusted for potentially larger numbers
                   getTitlesWidget: (double value, TitleMeta meta) {
-                    if (value == 0 || value == meta.max)
+                    if (value == 0 || value == meta.max) {
                       return const SizedBox.shrink();
+                    }
                     return SideTitleWidget(
                       meta: meta,
                       space: 8.0,
@@ -647,8 +657,9 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
 
   Widget _buildWeeklySummaryList(
       BuildContext context, MeasurementUnit unit, ThemeData theme) {
-    if (_selectedDateRange == null)
+    if (_selectedDateRange == null) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     List<Widget> dayTiles = [];
     for (int i = 0; i < 7; i++) {
@@ -699,15 +710,18 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               currentWeekEnd.year, currentWeekEnd.month, currentWeekEnd.day)
           .add(const Duration(days: 1));
       if (currentWeekStart.month != monthStart.month &&
-          currentWeekStart.isAfter(monthEnd)) break;
+          currentWeekStart.isAfter(monthEnd)) {
+        break;
+      }
     }
     return weeks;
   }
 
   Widget _buildMonthlySummaryList(
       BuildContext context, MeasurementUnit unit, ThemeData theme) {
-    if (_selectedDateRange == null)
+    if (_selectedDateRange == null) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     final List<DateTimeRange> weeksInMonth =
         _getWeeksInMonth(_selectedDateRange!.start, _selectedDateRange!.end);
