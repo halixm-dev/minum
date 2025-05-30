@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart'; // For time formatting
-// AppColors import removed
 import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
 import 'package:minum/src/core/utils/app_utils.dart'; // For formatting amount
