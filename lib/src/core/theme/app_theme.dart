@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:minum/src/core/constants/app_colors.dart'; // Removed as per instructions
 
 class AppTheme {
   AppTheme._(); // Private constructor
@@ -159,12 +158,12 @@ class AppTheme {
           letterSpacing: 0.4.sp,
           height: 16.0 / 12.0,
           color: colorScheme.onSurfaceVariant),
-      labelLarge: baseTheme.labelLarge?.copyWith( // Used for buttons etc.
+      labelLarge: baseTheme.labelLarge?.copyWith(
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1.sp,
           height: 20.0 / 14.0,
-          color: colorScheme.onPrimary), // Example, check if this is always onPrimary or varies
+          color: colorScheme.onPrimary),
       labelMedium: baseTheme.labelMedium?.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,

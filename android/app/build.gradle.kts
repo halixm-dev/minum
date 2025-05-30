@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
 	    minSdk = 33
-        targetSdk = 35
+        targetSdk = 36
 	    applicationId = "com.halixm.minum"
         signingConfig = signingConfigs.getByName("debug")
         // You can update the following values to match your application needs.
