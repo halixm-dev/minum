@@ -889,9 +889,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Text(
         title,
         style: theme.textTheme.titleLarge?.copyWith(
-          // Using titleLarge for section headers
           color: theme.colorScheme.primary,
-          // fontWeight removed, rely on M3 theme's definition
         ),
       ),
     );

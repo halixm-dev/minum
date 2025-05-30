@@ -774,13 +774,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    // theme parameter removed as it's already passed to the section builders
-    // and this method is now only called from within them or can use Theme.of(context)
-    // For consistency, let's assume it will use Theme.of(context) if needed,
-    // or be passed `theme` if called from a method that receives `theme`.
-    // Since the section builders now get `theme`, they can pass it here.
-    // However, the original _buildSectionTitle did not take `theme` as a parameter
-    // but accessed it via `Theme.of(context)`. We'll stick to that.
     final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h, top: 16.h),
