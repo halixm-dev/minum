@@ -459,7 +459,91 @@ class AppTheme {
         height: 80.h, // M3 Navigation Bar height is 80dp
         elevation: 2.0, // M3 Navigation Bar default elevation (level 2 = 3dp, but Flutter M3 default is 2.0)
       ),
-      // Add other component themes as needed...
+
+      // --- ListTileTheme ---
+      listTileTheme: ListTileThemeData(
+        iconColor: colorScheme.onSurfaceVariant,
+        titleTextStyle: m3TextTheme.bodyLarge, // M3 default for main text in a ListTile
+        subtitleTextStyle: m3TextTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+        dense: false,
+        shape: null, // Standard is rectangular
+        contentPadding: null, // Use M3 defaults (typically EdgeInsets.symmetric(horizontal: 16.0))
+      ),
+
+      // --- DropdownMenuTheme ---
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: m3TextTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), // Text in the field itself
+        // inputDecorationTheme: a specific one if needed, else global is used.
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStateProperty.all(colorScheme.surfaceContainer),
+          elevation: WidgetStateProperty.all(3.0), // M3 menu elevation
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.r))),
+          // Minimum width of the menu should match the width of the DropdownMenu.
+          // Maximum height could be constrained too.
+        ),
+      ),
+
+      // --- DatePickerTheme ---
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        headerBackgroundColor: colorScheme.surfaceContainerHigh, // M3 often uses surface for header
+        headerForegroundColor: colorScheme.onSurfaceVariant, // For "Select date" text
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28.r)),
+        dayStyle: m3TextTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+        weekdayStyle: m3TextTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+        yearStyle: m3TextTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+        todayBorder: BorderSide(color: colorScheme.primary),
+        todayForegroundColor: WidgetStateProperty.all(colorScheme.primary),
+        dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.onPrimary;
+          }
+          if (states.contains(WidgetState.disabled)) {
+            return colorScheme.onSurface.withOpacity(0.38);
+          }
+          // Today's date, not selected
+          if (states.contains(WidgetState.today) && !states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return colorScheme.onSurface; // Default
+        }),
+        dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return Colors.transparent; // Default
+        }),
+        // Other properties like `dayOverlayColor`, `yearForegroundColor`, `yearBackgroundColor` can be set if needed.
+      ),
+
+      // --- TimePickerTheme ---
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28.r)),
+        hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+        hourMinuteColor: colorScheme.surfaceContainerHighest, // M3 uses a slightly different surface for time inputs
+        hourMinuteTextColor: colorScheme.onSurface,
+        dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+        dayPeriodColor: colorScheme.surfaceContainerHighest, // Background for AM/PM
+        dayPeriodTextColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.onPrimaryContainer; // Or onPrimary if dayPeriodColor was primary
+          }
+          return colorScheme.onSurfaceVariant; // Unselected
+        }),
+        dayPeriodBorderSide: BorderSide.none, // M3 often has no border for day period toggle
+        dialHandColor: colorScheme.primary,
+        dialBackgroundColor: colorScheme.surfaceContainerHighest, // Background of the dial
+        dialTextColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.onPrimary; // Text on the selected dial item (on hand)
+          }
+          return colorScheme.onSurface; // Text on unselected dial items
+        }),
+        // `dialItemColor` might be needed for the inner circle of selected item on dial
+        helpTextStyle: m3TextTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant), // For "Select time" or "Enter time"
+        // inputDecorationTheme for TimePickerEntryMode.input can be inherited or specified
+      ),
     );
   }
 }
