@@ -492,28 +492,32 @@ class AppTheme {
         dayStyle: m3TextTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
         weekdayStyle: m3TextTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         yearStyle: m3TextTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-        todayBorder: BorderSide(color: colorScheme.primary),
-        todayForegroundColor: WidgetStateProperty.all(colorScheme.primary),
+        todayBorder: BorderSide(color: colorScheme.primary), // Styles today's date border
+        todayForegroundColor: WidgetStateProperty.all(colorScheme.primary), // Styles today's date text color if not selected
+        todayBackgroundColor: WidgetStateProperty.all(Colors.transparent), // Ensure today (not selected) has no specific background unless desired
         dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
           if (states.contains(WidgetState.selected)) {
+            // For selected days (including if today is selected)
             return colorScheme.onPrimary;
           }
           if (states.contains(WidgetState.disabled)) {
             return colorScheme.onSurface.withOpacity(0.38);
           }
-          // Today's date, not selected
-          if (states.contains(WidgetState.today) && !states.contains(WidgetState.selected)) {
-            return colorScheme.primary;
-          }
-          return colorScheme.onSurface; // Default
+          // For "today" specifically when it's not selected, todayForegroundColor handles it.
+          // This is for other, non-today, non-selected, non-disabled days.
+          return colorScheme.onSurface; // Default text color for other days
         }),
         dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
           if (states.contains(WidgetState.selected)) {
+            // For selected days (including if today is selected)
             return colorScheme.primary;
           }
-          return Colors.transparent; // Default
+          // No specific background for other days (including today if not selected)
+          return Colors.transparent;
         }),
-        // Other properties like `dayOverlayColor`, `yearForegroundColor`, `yearBackgroundColor` can be set if needed.
+        // Ensure other properties like headerForegroundColor, backgroundColor etc. are direct Color values:
+        // headerForegroundColor: colorScheme.onSurfaceVariant, // Already correct from previous step
+        // backgroundColor: colorScheme.surfaceContainerHigh, // Already correct
       ),
 
       // --- TimePickerTheme ---
