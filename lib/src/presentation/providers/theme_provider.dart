@@ -222,7 +222,7 @@ class ThemeProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_isDisposed) return;
-      await prefs.setInt(_customSeedColorKey, color.value); // Fixed: use .value instead of .toARGB32()
+      await prefs.setInt(_customSeedColorKey, color.toARGB32());
       logger.i("CustomSeedColor preference saved: $_customSeedColor");
       if (_themeSource == ThemeSource.customSeed) {
         logger.i(

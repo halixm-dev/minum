@@ -328,7 +328,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
                     },
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -816,7 +816,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _buildSettingsTile(
           context: context,
           icon: Icons.format_list_numbered_outlined,
-          title: "Favorite Quick Add Volumes",
+          title: "Quick Add Volumes",
           subtitle: userProfile != null &&
                   userProfile.favoriteIntakeVolumes.isNotEmpty
               ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
