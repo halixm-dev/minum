@@ -5,7 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/core/theme/app_theme.dart';
 
-enum ThemeSource { staticBaseline, dynamicSystem, customSeed }
+enum ThemeSource {
+  baseline, // For the standard AppTheme.lightTheme/darkTheme
+  mediumContrast,
+  highContrast,
+  dynamicSystem,
+  customSeed,
+}
 
 class ThemeProvider with ChangeNotifier {
   static const String _themePrefKey =
@@ -14,7 +20,7 @@ class ThemeProvider with ChangeNotifier {
   static const String _customSeedColorKey = 'customSeedColor';
 
   ThemeMode _themeMode = ThemeMode.system;
-  ThemeSource _themeSource = ThemeSource.staticBaseline;
+  ThemeSource _themeSource = ThemeSource.baseline; // Default to baseline
   ColorScheme? _lightDynamicScheme; // Changed from CorePalette
   ColorScheme? _darkDynamicScheme; // Changed from CorePalette
   Color? _customSeedColor; // Store the user's custom seed color
@@ -27,15 +33,43 @@ class ThemeProvider with ChangeNotifier {
 
   ThemeData get currentLightThemeData {
     switch (_themeSource) {
+      case ThemeSource.baseline:
+        logger.i("Using baseline light theme.");
+        return AppTheme.lightTheme;
+      case ThemeSource.mediumContrast:
+        logger.i("Using medium contrast light theme.");
+        return AppTheme.lightMediumContrastTheme;
+      case ThemeSource.highContrast:
+        logger.i("Using high contrast light theme.");
+        return AppTheme.lightHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_lightDynamicScheme != null) {
           logger.i("Using dynamic system scheme for light theme.");
-          return AppTheme.buildThemeDataFromScheme(
-              _lightDynamicScheme!, Brightness.light);
+          // Accessing AppTheme._lightTextTheme is not ideal from outside.
+          // However, themeFromSeed creates a new TextTheme, buildThemeDataFromScheme expects one.
+          // For dynamic themes, we need a base TextTheme.
+          // Let's assume AppTheme exposes a static lightTextTheme getter if this pattern is preferred.
+          // For now, we pass Brightness.light and let buildThemeDataFromScheme handle it IF
+          // it were to still accept Brightness. But it doesn't.
+          // The previous subtask changed buildThemeDataFromScheme to accept (ColorScheme, TextTheme).
+          // So, we need to provide a base TextTheme.
+          // AppTheme._lightTextTheme was made static final in AppTheme.
+          // To access it cleanly, AppTheme should expose it or a copy.
+          // For now, this direct access (if possible in Dart, it's private) or a placeholder:
+          // This will require AppTheme._lightTextTheme to be made public or a getter provided.
+          // For the purpose of this change, let's assume a way to get the base light text theme.
+          // The previous change was: static final TextTheme _lightTextTheme = GoogleFonts.robotoTextTheme(ThemeData.light().textTheme);
+          // This isn't directly accessible.
+          // A simple way is to call AppTheme.lightTheme.textTheme - this is already the fully processed one.
+          // The instruction was: "ensure they use AppTheme.buildThemeDataFromScheme or AppTheme.themeFromSeed with Brightness.light"
+          // This implies we might need to adjust how buildThemeDataFromScheme is called or it needs to be more flexible.
+          // Given buildThemeDataFromScheme(ColorScheme, TextTheme) from previous step:
+          // We need a base TextTheme. The simplest is the one from the standard AppTheme.lightTheme itself.
+          return AppTheme.buildThemeDataFromScheme(_lightDynamicScheme!, AppTheme.lightTheme.textTheme);
         }
         logger.w(
-            "Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to static baseline.");
-        return AppTheme.lightTheme;
+            "Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to baseline.");
+        return AppTheme.lightTheme; // Fallback to baseline
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger
@@ -44,25 +78,30 @@ class ThemeProvider with ChangeNotifier {
               seedColor: _customSeedColor!, brightness: Brightness.light);
         }
         logger.w(
-            "Custom seed source selected for light theme, but customSeedColor is null. Falling back to static baseline.");
-        return AppTheme.lightTheme;
-      case ThemeSource.staticBaseline:
-        logger.i("Using static baseline light theme.");
-        return AppTheme.lightTheme;
+            "Custom seed source selected for light theme, but customSeedColor is null. Falling back to baseline.");
+        return AppTheme.lightTheme; // Fallback to baseline
     }
   }
 
   ThemeData get currentDarkThemeData {
     switch (_themeSource) {
+      case ThemeSource.baseline:
+        logger.i("Using baseline dark theme.");
+        return AppTheme.darkTheme;
+      case ThemeSource.mediumContrast:
+        logger.i("Using medium contrast dark theme.");
+        return AppTheme.darkMediumContrastTheme;
+      case ThemeSource.highContrast:
+        logger.i("Using high contrast dark theme.");
+        return AppTheme.darkHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_darkDynamicScheme != null) {
           logger.i("Using dynamic system scheme for dark theme.");
-          return AppTheme.buildThemeDataFromScheme(
-              _darkDynamicScheme!, Brightness.dark);
+          return AppTheme.buildThemeDataFromScheme(_darkDynamicScheme!, AppTheme.darkTheme.textTheme);
         }
         logger.w(
-            "Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to static baseline.");
-        return AppTheme.darkTheme;
+            "Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to baseline.");
+        return AppTheme.darkTheme; // Fallback to baseline
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger.i("Using custom seed color for dark theme: $_customSeedColor");
@@ -70,11 +109,8 @@ class ThemeProvider with ChangeNotifier {
               seedColor: _customSeedColor!, brightness: Brightness.dark);
         }
         logger.w(
-            "Custom seed source selected for dark theme, but customSeedColor is null. Falling back to static baseline.");
-        return AppTheme.darkTheme;
-      case ThemeSource.staticBaseline:
-        logger.i("Using static baseline dark theme.");
-        return AppTheme.darkTheme;
+            "Custom seed source selected for dark theme, but customSeedColor is null. Falling back to baseline.");
+        return AppTheme.darkTheme; // Fallback to baseline
     }
   }
 
@@ -112,7 +148,7 @@ class ThemeProvider with ChangeNotifier {
       final themeSourceString = prefs.getString(_themeSourceKey);
       _themeSource = ThemeSource.values.firstWhere(
         (e) => e.name == themeSourceString,
-        orElse: () => ThemeSource.staticBaseline, // Default
+        orElse: () => ThemeSource.baseline, // Default to baseline
       );
       logger.i("ThemeSource loaded: $_themeSource");
 
@@ -168,7 +204,7 @@ class ThemeProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_isDisposed) return;
-      await prefs.setInt(_customSeedColorKey, color.toARGB32());
+      await prefs.setInt(_customSeedColorKey, color.value); // Fixed: use .value instead of .toARGB32()
       logger.i("CustomSeedColor preference saved: $_customSeedColor");
       if (_themeSource == ThemeSource.customSeed) {
         logger.i(

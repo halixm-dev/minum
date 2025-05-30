@@ -2,137 +2,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
+import 'package:minum/src/core/theme/app_colors.dart';
 
 class AppTheme {
   AppTheme._(); // Private constructor
 
-  static final ThemeData lightTheme = buildThemeDataFromScheme(
-      ColorScheme.light(
-        brightness: Brightness.light,
-        primary: AppColors.primaryColor, // M3: primary
-        onPrimary: AppColors.onPrimary, // M3: onPrimary
-        primaryContainer:
-            AppColors.primaryContainerLight, // M3: primaryContainer
-        onPrimaryContainer:
-            AppColors.onPrimaryContainerLight, // M3: onPrimaryContainer
-        secondary: AppColors.secondaryLight, // M3: secondary (from accentColor)
-        onSecondary: AppColors.onSecondaryLight, // M3: onSecondary
-        secondaryContainer:
-            AppColors.secondaryContainerLight, // M3: secondaryContainer
-        onSecondaryContainer:
-            AppColors.onSecondaryContainerLight, // M3: onSecondaryContainer
-        tertiary: AppColors.tertiaryLight, // M3: tertiary
-        onTertiary: AppColors.onTertiaryLight, // M3: onTertiary
-        tertiaryContainer:
-            AppColors.tertiaryContainerLight, // M3: tertiaryContainer
-        onTertiaryContainer:
-            AppColors.onTertiaryContainerLight, // M3: onTertiaryContainer
-        error: AppColors.errorColor, // M3: error (Updated to #BA1A1A)
-        onError: AppColors.onError, // M3: onError
-        errorContainer: AppColors
-            .errorContainerLight, // M3: errorContainer (Updated to #FFDAD6)
-        onErrorContainer: AppColors
-            .onErrorContainerLight, // M3: onErrorContainer (Updated to #410002)
-        surface: AppColors
-            .lightScaffoldBackground, // M3: surface (main background - using lightScaffoldBackground)
-        onSurface: AppColors.lightText, // M3: onSurface
-        surfaceDim: AppColors.surfaceDimLight, // M3: surfaceDim
-        surfaceBright: AppColors.surfaceBrightLight, // M3: surfaceBright
-        surfaceContainerLowest:
-            AppColors.surfaceContainerLowestLight, // M3: surfaceContainerLowest
-        surfaceContainerLow: AppColors
-            .surfaceContainerLowLight, // M3: surfaceContainerLow (matches lightScaffoldBackground)
-        surfaceContainer: AppColors
-            .surfaceContainerLight, // M3: surfaceContainer (for cards - using lightSurface)
-        surfaceContainerHigh:
-            AppColors.surfaceContainerHighLight, // M3: surfaceContainerHigh
-        surfaceContainerHighest: AppColors
-            .surfaceContainerHighestLight, // M3: surfaceVariant (using AppColor E0E4E8)
-        onSurfaceVariant:
-            AppColors.onSurfaceVariantLight, // M3: onSurfaceVariant
-        outline: AppColors.outlineLight, // M3: outline
-        outlineVariant: AppColors.outlineVariantLight, // M3: outlineVariant
-        inverseSurface: AppColors
-            .darkScaffoldBackground, // M3: inverseSurface (dark theme's scaffold)
-        onInverseSurface:
-            AppColors.darkText, // M3: onInverseSurface (dark theme's text)
-        inversePrimary: AppColors
-            .primaryColorDark, // M3: inversePrimary (dark theme's primary)
-        shadow: AppColors.shadowColor, // M3: shadow
-        scrim: Colors.black
-            .withAlpha(82), // M3: scrim (Standard ~32% opacity black)
-        surfaceTint:
-            AppColors.primaryColor, // M3: surfaceTint (typically primary color)
-      ),
-      Brightness.light);
+  // Define base TextThemes
+  static final TextTheme _lightTextTheme = GoogleFonts.robotoTextTheme(ThemeData.light().textTheme);
+  static final TextTheme _darkTextTheme = GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
 
-  static final ThemeData darkTheme = buildThemeDataFromScheme(
-      ColorScheme.dark(
-        brightness: Brightness.dark,
-        primary: AppColors.primaryColorDark, // M3: primary
-        onPrimary: AppColors.onPrimaryDark, // M3: onPrimary
-        primaryContainer:
-            AppColors.primaryContainerDark, // M3: primaryContainer
-        onPrimaryContainer:
-            AppColors.onPrimaryContainerDark, // M3: onPrimaryContainer
-        secondary:
-            AppColors.secondaryDark, // M3: secondary (from accentColorDark)
-        onSecondary: AppColors.onSecondaryDark, // M3: onSecondary
-        secondaryContainer:
-            AppColors.secondaryContainerDark, // M3: secondaryContainer
-        onSecondaryContainer:
-            AppColors.onSecondaryContainerDark, // M3: onSecondaryContainer
-        tertiary: AppColors.tertiaryDark, // M3: tertiary
-        onTertiary: AppColors.onTertiaryDark, // M3: onTertiary
-        tertiaryContainer:
-            AppColors.tertiaryContainerDark, // M3: tertiaryContainer
-        onTertiaryContainer:
-            AppColors.onTertiaryContainerDark, // M3: onTertiaryContainer
-        error: AppColors.errorDarkM3, // M3: error (#FFB4AB)
-        onError: AppColors.onErrorDarkM3, // M3: onError (#690005)
-        errorContainer:
-            AppColors.errorContainerDark, // M3: errorContainer (#93000A)
-        onErrorContainer:
-            AppColors.onErrorContainerDark, // M3: onErrorContainer (#FFDAD6)
-        surface: AppColors
-            .darkScaffoldBackground, // M3: surface (main background - using darkScaffoldBackground)
-        onSurface: AppColors.darkText, // M3: onSurface
-        surfaceDim: AppColors.surfaceDimDark, // M3: surfaceDim
-        surfaceBright: AppColors.surfaceBrightDark, // M3: surfaceBright
-        surfaceContainerLowest:
-            AppColors.surfaceContainerLowestDark, // M3: surfaceContainerLowest
-        surfaceContainerLow: AppColors
-            .surfaceContainerLowDark, // M3: surfaceContainerLow (using darkBackground)
-        surfaceContainer: AppColors
-            .surfaceContainerDark, // M3: surfaceContainer (for cards - using darkSurface)
-        surfaceContainerHigh:
-            AppColors.surfaceContainerHighDark, // M3: surfaceContainerHigh
-        surfaceContainerHighest:
-            AppColors.surfaceContainerHighestDark, // M3: surfaceVariant
-        onSurfaceVariant:
-            AppColors.onSurfaceVariantDark, // M3: onSurfaceVariant
-        outline: AppColors.outlineDark, // M3: outline
-        outlineVariant: AppColors.outlineVariantDark, // M3: outlineVariant
-        inverseSurface: AppColors
-            .lightScaffoldBackground, // M3: inverseSurface (light theme's scaffold)
-        onInverseSurface:
-            AppColors.lightText, // M3: onInverseSurface (light theme's text)
-        inversePrimary: AppColors
-            .primaryColor, // M3: inversePrimary (light theme's primary)
-        shadow: AppColors.shadowColor, // M3: shadow
-        scrim: Colors.black
-            .withAlpha(102), // M3: scrim (Standard ~40% opacity black for dark)
-        surfaceTint: AppColors
-            .primaryColorDark, // M3: surfaceTint (typically primary color for dark theme)
-      ),
-      Brightness.dark);
+  // Create MaterialTheme instances
+  static final MaterialTheme _lightMaterialTheme = MaterialTheme(_lightTextTheme);
+  static final MaterialTheme _darkMaterialTheme = MaterialTheme(_darkTextTheme);
+
+  // Static ThemeData getters using MaterialTheme
+  static ThemeData get lightTheme => _lightMaterialTheme.light();
+  static ThemeData get darkTheme => _darkMaterialTheme.dark();
+
+  static ThemeData get lightMediumContrastTheme => _lightMaterialTheme.lightMediumContrast();
+  static ThemeData get lightHighContrastTheme => _lightMaterialTheme.lightHighContrast();
+  static ThemeData get darkMediumContrastTheme => _darkMaterialTheme.darkMediumContrast();
+  static ThemeData get darkHighContrastTheme => _darkMaterialTheme.darkHighContrast();
+  
 
   static ThemeData themeFromSeed(
       {required Color seedColor, required Brightness brightness}) {
-    final colorScheme =
-        ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
-    return buildThemeDataFromScheme(colorScheme, brightness);
+    final colorScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
+    // Create a base TextTheme based on brightness for themeFromSeed
+    final baseTextTheme = brightness == Brightness.light
+        ? GoogleFonts.robotoTextTheme(ThemeData.light().textTheme)
+        : GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
+    return buildThemeDataFromScheme(colorScheme, baseTextTheme);
   }
 
   // Static style for Filled Tonal Button
@@ -177,105 +77,101 @@ class AppTheme {
   // (using AppTheme.themeFromSeed if necessary, or directly creating ColorScheme objects)
   // and then calling buildThemeDataFromScheme or themeFromSeed.
 
+  // Updated to accept a TextTheme instead of Brightness
   static ThemeData buildThemeDataFromScheme(
-      ColorScheme colorScheme, Brightness brightness) {
-    final baseTextTheme = brightness == Brightness.light
-        ? ThemeData.light().textTheme
-        : ThemeData.dark().textTheme;
-    final m3BaseTextTheme =
-        GoogleFonts.robotoTextTheme(baseTextTheme); // Using Roboto as specified
-
-    // Create the M3 TextTheme with updated font sizes, weights, letter spacing, and line heights
-    final TextTheme m3TextTheme = m3BaseTextTheme.copyWith(
-      displayLarge: m3BaseTextTheme.displayLarge?.copyWith(
-          fontSize: 57.sp,
+      ColorScheme colorScheme, TextTheme baseTheme) {
+    // Brightness can be derived from the colorScheme
+    final brightness = colorScheme.brightness;
+    
+    // The provided baseTheme is already a GoogleFonts.robotoTextTheme via MaterialTheme instance
+    // or explicitly created in themeFromSeed.
+    // So, m3BaseTextTheme is effectively the passed 'baseTheme'.
+    final TextTheme m3TextTheme = baseTheme.copyWith( // Apply color scheme specific colors to the passed text theme
+      displayLarge: baseTheme.displayLarge?.copyWith(
+          fontSize: 57.sp, // These sizes are examples, ensure they match your m3BaseTextTheme
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 64.0 / 57.0,
           color: colorScheme.onSurface),
-      displayMedium: m3BaseTextTheme.displayMedium?.copyWith(
+      displayMedium: baseTheme.displayMedium?.copyWith(
           fontSize: 45.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 52.0 / 45.0,
           color: colorScheme.onSurface),
-      displaySmall: m3BaseTextTheme.displaySmall?.copyWith(
+      displaySmall: baseTheme.displaySmall?.copyWith(
           fontSize: 36.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 44.0 / 36.0,
           color: colorScheme.onSurface),
-      headlineLarge: m3BaseTextTheme.headlineLarge?.copyWith(
+      headlineLarge: baseTheme.headlineLarge?.copyWith(
           fontSize: 32.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 40.0 / 32.0,
           color: colorScheme.onSurface),
-      headlineMedium: m3BaseTextTheme.headlineMedium?.copyWith(
+      headlineMedium: baseTheme.headlineMedium?.copyWith(
           fontSize: 28.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 36.0 / 28.0,
           color: colorScheme.onSurface),
-      headlineSmall: m3BaseTextTheme.headlineSmall?.copyWith(
+      headlineSmall: baseTheme.headlineSmall?.copyWith(
           fontSize: 24.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 32.0 / 24.0,
           color: colorScheme.onSurface),
-      titleLarge: m3BaseTextTheme.titleLarge?.copyWith(
+      titleLarge: baseTheme.titleLarge?.copyWith(
           fontSize: 22.sp,
-          fontWeight:
-              FontWeight.w400, // M3 spec can vary; 400 is common for titles.
+          fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 28.0 / 22.0,
-          color: colorScheme.onSurface), // Often used for AppBars
-      titleMedium: m3BaseTextTheme.titleMedium?.copyWith(
+          color: colorScheme.onSurface),
+      titleMedium: baseTheme.titleMedium?.copyWith(
           fontSize: 16.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.15.sp,
           height: 24.0 / 16.0,
           color: colorScheme.onSurface),
-      titleSmall: m3BaseTextTheme.titleSmall?.copyWith(
+      titleSmall: baseTheme.titleSmall?.copyWith(
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1.sp,
           height: 20.0 / 14.0,
           color: colorScheme.onSurface),
-      bodyLarge: m3BaseTextTheme.bodyLarge?.copyWith(
+      bodyLarge: baseTheme.bodyLarge?.copyWith(
           fontSize: 16.sp,
           fontWeight: FontWeight.w400,
-          letterSpacing: 0.5
-              .sp, // Current: 0.5sp, M3 spec also shows 0.15 for some. Kept 0.5.
+          letterSpacing: 0.5.sp,
           height: 24.0 / 16.0,
           color: colorScheme.onSurface),
-      bodyMedium: m3BaseTextTheme.bodyMedium?.copyWith(
+      bodyMedium: baseTheme.bodyMedium?.copyWith(
           fontSize: 14.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0.25.sp,
           height: 20.0 / 14.0,
-          color: colorScheme
-              .onSurfaceVariant), // M3 bodyMedium is often onSurfaceVariant
-      bodySmall: m3BaseTextTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant),
+      bodySmall: baseTheme.bodySmall?.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0.4.sp,
           height: 16.0 / 12.0,
-          color: colorScheme
-              .onSurfaceVariant), // M3 bodySmall is often onSurfaceVariant
-      labelLarge: m3BaseTextTheme.labelLarge?.copyWith(
+          color: colorScheme.onSurfaceVariant),
+      labelLarge: baseTheme.labelLarge?.copyWith( // Used for buttons etc.
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1.sp,
           height: 20.0 / 14.0,
-          color: colorScheme.onPrimary), // Used in ElevatedButtons
-      labelMedium: m3BaseTextTheme.labelMedium?.copyWith(
+          color: colorScheme.onPrimary), // Example, check if this is always onPrimary or varies
+      labelMedium: baseTheme.labelMedium?.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.5.sp,
           height: 16.0 / 12.0,
           color: colorScheme.onSurfaceVariant),
-      labelSmall: m3BaseTextTheme.labelSmall?.copyWith(
+      labelSmall: baseTheme.labelSmall?.copyWith(
           fontSize: 11.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.5.sp,
@@ -285,7 +181,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      brightness: brightness,
+      brightness: brightness, // Derived from colorScheme
       colorScheme: colorScheme,
       primaryColor: colorScheme.primary, // M2 compatibility
       scaffoldBackgroundColor: colorScheme.surface,

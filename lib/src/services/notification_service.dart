@@ -1,7 +1,7 @@
 // lib/src/services/notification_service.dart
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
+import 'package:minum/src/core/theme/app_colors.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
