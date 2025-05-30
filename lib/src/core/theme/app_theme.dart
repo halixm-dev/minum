@@ -10,103 +10,82 @@ class AppTheme {
   static final ThemeData lightTheme = buildThemeDataFromScheme(
       ColorScheme.light(
         brightness: Brightness.light,
-        primary: AppColors.primaryColor,
-        onPrimary: AppColors.onPrimary,
-        primaryContainer: AppColors.primaryContainerLight,
-        onPrimaryContainer: AppColors.onPrimaryContainerLight,
-        secondary: AppColors.secondaryLight,
-        onSecondary: AppColors.onSecondaryLight,
-        secondaryContainer: AppColors.secondaryContainerLight,
-        onSecondaryContainer: AppColors.onSecondaryContainerLight,
-        tertiary: AppColors.tertiaryLight,
-        onTertiary: AppColors.onTertiaryLight,
-        tertiaryContainer: AppColors.tertiaryContainerLight,
-        onTertiaryContainer: AppColors.onTertiaryContainerLight,
-        error: AppColors.errorColor,
-        onError: AppColors.onError,
-        errorContainer: AppColors.errorContainerLight,
-        onErrorContainer: AppColors.onErrorContainerLight,
-        surface:
-            AppColors.lightScaffoldBackground, // Typically the main background
-        onSurface: AppColors.lightText,
-        surfaceDim: AppColors.surfaceDimLight,
-        surfaceBright: AppColors.surfaceBrightLight,
-        surfaceContainerLowest: AppColors.surfaceContainerLowestLight,
-        surfaceContainerLow: AppColors
-            .surfaceContainerLowLight, // Existing lightScaffoldBackground
-        surfaceContainer: AppColors
-            .surfaceContainerLight, // Existing lightSurface (for cards)
-        surfaceContainerHigh: AppColors.surfaceContainerHighLight,
-        // Assigning the color previously used for 'surfaceVariant' (AppColors.surfaceVariantLight)
-        // to 'surfaceContainerHighest' as per the deprecation message's suggestion.
-        surfaceContainerHighest: AppColors.surfaceVariantLight,
-        // The 'surfaceVariant' parameter itself is removed from this constructor call.
-        // The ColorScheme will still have a 'surfaceVariant' property, but it will be Flutter's default.
-        onSurfaceVariant: AppColors
-            .onSurfaceVariantLight, // This will pair with Flutter's default surfaceVariant.
-        outline: AppColors.outlineLight,
-        outlineVariant: AppColors.outlineVariantLight, // M3 Outline Variant
-        inverseSurface: AppColors.darkScaffoldBackground, // M3 Inverse Surface
-        onInverseSurface: AppColors.darkText, // M3 On Inverse Surface
-        inversePrimary: AppColors.primaryColorDark, // M3 Inverse Primary
-        shadow: AppColors.shadowColor, // M3 Shadow
-        scrim: Colors.black.withAlpha(82), // Replaced withValues(alpha: 0.32)
-        surfaceTint:
-            AppColors.primaryColor, // M3 Surface Tint (usually primary)
+        primary: AppColors.primaryColor, // M3: primary
+        onPrimary: AppColors.onPrimary, // M3: onPrimary
+        primaryContainer: AppColors.primaryContainerLight, // M3: primaryContainer
+        onPrimaryContainer: AppColors.onPrimaryContainerLight, // M3: onPrimaryContainer
+        secondary: AppColors.secondaryLight, // M3: secondary (from accentColor)
+        onSecondary: AppColors.onSecondaryLight, // M3: onSecondary
+        secondaryContainer: AppColors.secondaryContainerLight, // M3: secondaryContainer
+        onSecondaryContainer: AppColors.onSecondaryContainerLight, // M3: onSecondaryContainer
+        tertiary: AppColors.tertiaryLight, // M3: tertiary
+        onTertiary: AppColors.onTertiaryLight, // M3: onTertiary
+        tertiaryContainer: AppColors.tertiaryContainerLight, // M3: tertiaryContainer
+        onTertiaryContainer: AppColors.onTertiaryContainerLight, // M3: onTertiaryContainer
+        error: AppColors.errorColor, // M3: error (Updated to #BA1A1A)
+        onError: AppColors.onError, // M3: onError
+        errorContainer: AppColors.errorContainerLight, // M3: errorContainer (Updated to #FFDAD6)
+        onErrorContainer: AppColors.onErrorContainerLight, // M3: onErrorContainer (Updated to #410002)
+        surface: AppColors.lightScaffoldBackground, // M3: surface (main background - using lightScaffoldBackground)
+        onSurface: AppColors.lightText, // M3: onSurface
+        surfaceDim: AppColors.surfaceDimLight, // M3: surfaceDim
+        surfaceBright: AppColors.surfaceBrightLight, // M3: surfaceBright
+        surfaceContainerLowest: AppColors.surfaceContainerLowestLight, // M3: surfaceContainerLowest
+        surfaceContainerLow: AppColors.surfaceContainerLowLight, // M3: surfaceContainerLow (matches lightScaffoldBackground)
+        surfaceContainer: AppColors.surfaceContainerLight, // M3: surfaceContainer (for cards - using lightSurface)
+        surfaceContainerHigh: AppColors.surfaceContainerHighLight, // M3: surfaceContainerHigh
+        surfaceContainerHighest: AppColors.surfaceContainerHighestLight, // M3: surfaceContainerHighest (using specific AppColor E3E6E9)
+        surfaceVariant: AppColors.surfaceVariantLight, // M3: surfaceVariant (using AppColor E0E4E8)
+        onSurfaceVariant: AppColors.onSurfaceVariantLight, // M3: onSurfaceVariant
+        outline: AppColors.outlineLight, // M3: outline
+        outlineVariant: AppColors.outlineVariantLight, // M3: outlineVariant
+        inverseSurface: AppColors.darkScaffoldBackground, // M3: inverseSurface (dark theme's scaffold)
+        onInverseSurface: AppColors.darkText, // M3: onInverseSurface (dark theme's text)
+        inversePrimary: AppColors.primaryColorDark, // M3: inversePrimary (dark theme's primary)
+        shadow: AppColors.shadowColor, // M3: shadow
+        scrim: Colors.black.withAlpha(82), // M3: scrim (Standard ~32% opacity black)
+        surfaceTint: AppColors.primaryColor, // M3: surfaceTint (typically primary color)
       ),
       Brightness.light);
 
   static final ThemeData darkTheme = buildThemeDataFromScheme(
       ColorScheme.dark(
         brightness: Brightness.dark,
-        primary: AppColors.primaryColorDark, // M3 Primary
-        onPrimary: AppColors.onPrimaryDark, // M3 On Primary
-        primaryContainer:
-            AppColors.primaryContainerDark, // M3 Primary Container
-        onPrimaryContainer:
-            AppColors.onPrimaryContainerDark, // M3 On Primary Container
-        secondary: AppColors.secondaryDark, // M3 Secondary
-        onSecondary: AppColors.onSecondaryDark, // M3 On Secondary
-        secondaryContainer:
-            AppColors.secondaryContainerDark, // M3 Secondary Container
-        onSecondaryContainer: AppColors.onSecondaryContainerDark,
-        tertiary: AppColors.tertiaryDark,
-        onTertiary: AppColors.onTertiaryDark,
-        tertiaryContainer: AppColors.tertiaryContainerDark,
-        onTertiaryContainer: AppColors.onTertiaryContainerDark,
-        error: AppColors.errorDarkM3, // Using M3 standard dark error color
-        onError:
-            AppColors.onErrorDarkM3, // Using M3 standard dark onError color
-        errorContainer:
-            AppColors.errorContainerDark, // This is already M3 compliant
-        onErrorContainer:
-            AppColors.onErrorContainerDark, // This is already M3 compliant
-        surface:
-            AppColors.darkScaffoldBackground, // Typically the main background
-        onSurface: AppColors.darkText,
-        surfaceDim: AppColors.surfaceDimDark,
-        surfaceBright: AppColors.surfaceBrightDark,
-        surfaceContainerLowest: AppColors
-            .surfaceContainerLowestDark, // Existing darkScaffoldBackground
-        surfaceContainerLow:
-            AppColors.surfaceContainerLowDark, // Existing darkBackground
-        surfaceContainer:
-            AppColors.surfaceContainerDark, // Existing darkSurface (for cards)
-        surfaceContainerHigh: AppColors.surfaceContainerHighDark,
-        surfaceContainerHighest: AppColors.surfaceContainerHighestDark,
-        onSurfaceVariant: AppColors.onSurfaceVariantDark,
-        outline: AppColors.outlineDark,
-        outlineVariant: AppColors.outlineVariantDark,
-        inverseSurface: AppColors
-            .lightScaffoldBackground, // M3 Inverse Surface (using light theme's scaffold)
-        onInverseSurface: AppColors
-            .lightText, // M3 On Inverse Surface (using light theme's text)
-        inversePrimary: AppColors.primaryColor, // M3 Inverse Primary
-        shadow: AppColors
-            .shadowColor, // M3 Shadow (might need adjustment for dark theme)
-        scrim: Colors.black.withAlpha(102), // Replaced withValues(alpha: 0.4)
-        surfaceTint: AppColors
-            .primaryColorDark, // M3 Surface Tint (usually primary for dark)
+        primary: AppColors.primaryColorDark, // M3: primary
+        onPrimary: AppColors.onPrimaryDark, // M3: onPrimary
+        primaryContainer: AppColors.primaryContainerDark, // M3: primaryContainer
+        onPrimaryContainer: AppColors.onPrimaryContainerDark, // M3: onPrimaryContainer
+        secondary: AppColors.secondaryDark, // M3: secondary (from accentColorDark)
+        onSecondary: AppColors.onSecondaryDark, // M3: onSecondary
+        secondaryContainer: AppColors.secondaryContainerDark, // M3: secondaryContainer
+        onSecondaryContainer: AppColors.onSecondaryContainerDark, // M3: onSecondaryContainer
+        tertiary: AppColors.tertiaryDark, // M3: tertiary
+        onTertiary: AppColors.onTertiaryDark, // M3: onTertiary
+        tertiaryContainer: AppColors.tertiaryContainerDark, // M3: tertiaryContainer
+        onTertiaryContainer: AppColors.onTertiaryContainerDark, // M3: onTertiaryContainer
+        error: AppColors.errorDarkM3, // M3: error (#FFB4AB)
+        onError: AppColors.onErrorDarkM3, // M3: onError (#690005)
+        errorContainer: AppColors.errorContainerDark, // M3: errorContainer (#93000A)
+        onErrorContainer: AppColors.onErrorContainerDark, // M3: onErrorContainer (#FFDAD6)
+        surface: AppColors.darkScaffoldBackground, // M3: surface (main background - using darkScaffoldBackground)
+        onSurface: AppColors.darkText, // M3: onSurface
+        surfaceDim: AppColors.surfaceDimDark, // M3: surfaceDim
+        surfaceBright: AppColors.surfaceBrightDark, // M3: surfaceBright
+        surfaceContainerLowest: AppColors.surfaceContainerLowestDark, // M3: surfaceContainerLowest
+        surfaceContainerLow: AppColors.surfaceContainerLowDark, // M3: surfaceContainerLow (using darkBackground)
+        surfaceContainer: AppColors.surfaceContainerDark, // M3: surfaceContainer (for cards - using darkSurface)
+        surfaceContainerHigh: AppColors.surfaceContainerHighDark, // M3: surfaceContainerHigh
+        surfaceContainerHighest: AppColors.surfaceContainerHighestDark, // M3: surfaceContainerHighest
+        surfaceVariant: AppColors.surfaceVariantDark, // M3: surfaceVariant
+        onSurfaceVariant: AppColors.onSurfaceVariantDark, // M3: onSurfaceVariant
+        outline: AppColors.outlineDark, // M3: outline
+        outlineVariant: AppColors.outlineVariantDark, // M3: outlineVariant
+        inverseSurface: AppColors.lightScaffoldBackground, // M3: inverseSurface (light theme's scaffold)
+        onInverseSurface: AppColors.lightText, // M3: onInverseSurface (light theme's text)
+        inversePrimary: AppColors.primaryColor, // M3: inversePrimary (light theme's primary)
+        shadow: AppColors.shadowColor, // M3: shadow
+        scrim: Colors.black.withAlpha(102), // M3: scrim (Standard ~40% opacity black for dark)
+        surfaceTint: AppColors.primaryColorDark, // M3: surfaceTint (typically primary color for dark theme)
       ),
       Brightness.dark);
 
@@ -115,6 +94,40 @@ class AppTheme {
     final colorScheme =
         ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
     return buildThemeDataFromScheme(colorScheme, brightness);
+  }
+
+  // Static style for Filled Tonal Button
+  static ButtonStyle filledButtonTonalStyle(ColorScheme colorScheme, TextTheme textTheme) {
+    return FilledButton.styleFrom(
+      backgroundColor: colorScheme.secondaryContainer,
+      foregroundColor: colorScheme.onSecondaryContainer,
+      textStyle: textTheme.labelLarge,
+      minimumSize: Size(0, 40.h),
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+    );
+  }
+
+  // Static CardTheme for Elevated Card
+  static CardTheme cardThemeElevated(ColorScheme colorScheme) {
+    return CardTheme(
+      elevation: 1.0,
+      color: colorScheme.surface,
+      surfaceTintColor: colorScheme.surfaceTint,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.r))),
+    );
+  }
+
+  // Static CardTheme for Outlined Card
+  static CardTheme cardThemeOutlined(ColorScheme colorScheme) {
+    return CardTheme(
+      elevation: 0.0,
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12.r)),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+    );
   }
 
   // The themeFromCorePalette method has been removed because this file should no longer
@@ -131,6 +144,100 @@ class AppTheme {
     final m3BaseTextTheme =
         GoogleFonts.robotoTextTheme(baseTextTheme); // Using Roboto as specified
 
+    // Create the M3 TextTheme with updated font sizes, weights, letter spacing, and line heights
+    final TextTheme m3TextTheme = m3BaseTextTheme.copyWith(
+      displayLarge: m3BaseTextTheme.displayLarge?.copyWith(
+          fontSize: 57.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          height: 64.0 / 57.0,
+          color: colorScheme.onSurface),
+      displayMedium: m3BaseTextTheme.displayMedium?.copyWith(
+          fontSize: 45.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          height: 52.0 / 45.0,
+          color: colorScheme.onSurface),
+      displaySmall: m3BaseTextTheme.displaySmall?.copyWith(
+          fontSize: 36.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          height: 44.0 / 36.0,
+          color: colorScheme.onSurface),
+      headlineLarge: m3BaseTextTheme.headlineLarge?.copyWith(
+          fontSize: 32.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          height: 40.0 / 32.0,
+          color: colorScheme.onSurface),
+      headlineMedium: m3BaseTextTheme.headlineMedium?.copyWith(
+          fontSize: 28.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          height: 36.0 / 28.0,
+          color: colorScheme.onSurface),
+      headlineSmall: m3BaseTextTheme.headlineSmall?.copyWith(
+          fontSize: 24.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          height: 32.0 / 24.0,
+          color: colorScheme.onSurface),
+      titleLarge: m3BaseTextTheme.titleLarge?.copyWith(
+          fontSize: 22.sp,
+          fontWeight: FontWeight.w400, // M3 spec can vary; 400 is common for titles.
+          letterSpacing: 0,
+          height: 28.0 / 22.0,
+          color: colorScheme.onSurface), // Often used for AppBars
+      titleMedium: m3BaseTextTheme.titleMedium?.copyWith(
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.15.sp,
+          height: 24.0 / 16.0,
+          color: colorScheme.onSurface),
+      titleSmall: m3BaseTextTheme.titleSmall?.copyWith(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1.sp,
+          height: 20.0 / 14.0,
+          color: colorScheme.onSurface),
+      bodyLarge: m3BaseTextTheme.bodyLarge?.copyWith(
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.5.sp, // Current: 0.5sp, M3 spec also shows 0.15 for some. Kept 0.5.
+          height: 24.0 / 16.0,
+          color: colorScheme.onSurface),
+      bodyMedium: m3BaseTextTheme.bodyMedium?.copyWith(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.25.sp,
+          height: 20.0 / 14.0,
+          color: colorScheme.onSurfaceVariant), // M3 bodyMedium is often onSurfaceVariant
+      bodySmall: m3BaseTextTheme.bodySmall?.copyWith(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.4.sp,
+          height: 16.0 / 12.0,
+          color: colorScheme.onSurfaceVariant), // M3 bodySmall is often onSurfaceVariant
+      labelLarge: m3BaseTextTheme.labelLarge?.copyWith(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1.sp,
+          height: 20.0 / 14.0,
+          color: colorScheme.onPrimary), // Used in ElevatedButtons
+      labelMedium: m3BaseTextTheme.labelMedium?.copyWith(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5.sp,
+          height: 16.0 / 12.0,
+          color: colorScheme.onSurfaceVariant),
+      labelSmall: m3BaseTextTheme.labelSmall?.copyWith(
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5.sp,
+          height: 16.0 / 11.0,
+          color: colorScheme.onSurfaceVariant),
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -144,233 +251,144 @@ class AppTheme {
         surfaceTintColor: colorScheme.surfaceTint,
         iconTheme: IconThemeData(
             color: colorScheme.onSurfaceVariant), // Icons on app bar
-        titleTextStyle: m3BaseTextTheme.titleLarge?.copyWith(
-            color: colorScheme.onSurface), // M3 titleLarge, color onSurface
+        titleTextStyle: m3TextTheme.titleLarge, // Use fully defined M3 titleLarge
       ),
-      textTheme: m3BaseTextTheme.copyWith(
-        // M3 Type Scale (approximated where specific Flutter values differ slightly or due to lack of direct access to specs)
-        // Values from https://m3.material.io/styles/typography/type-scale-tokens
-        // Note: letterSpacing and lineHeight are often critical for M3 feel but are omitted here due to access constraints.
-        // ScreenUtil (.sp) is used for font sizes.
-        displayLarge: m3BaseTextTheme.displayLarge?.copyWith(
-            fontSize: 57.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface),
-        displayMedium: m3BaseTextTheme.displayMedium?.copyWith(
-            fontSize: 45.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface),
-        displaySmall: m3BaseTextTheme.displaySmall?.copyWith(
-            fontSize: 36.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface),
-        headlineLarge: m3BaseTextTheme.headlineLarge?.copyWith(
-            fontSize: 32.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface),
-        headlineMedium: m3BaseTextTheme.headlineMedium?.copyWith(
-            fontSize: 28.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface),
-        headlineSmall: m3BaseTextTheme.headlineSmall?.copyWith(
-            fontSize: 24.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface),
-        titleLarge: m3BaseTextTheme.titleLarge?.copyWith(
-            fontSize: 22.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface), // Often used for AppBars
-        titleMedium: m3BaseTextTheme.titleMedium?.copyWith(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w500,
-            color: colorScheme.onSurface,
-            letterSpacing: 0.15.sp),
-        titleSmall: m3BaseTextTheme.titleSmall?.copyWith(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w500,
-            color: colorScheme.onSurface,
-            letterSpacing: 0.1.sp),
-        bodyLarge: m3BaseTextTheme.bodyLarge?.copyWith(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurface,
-            letterSpacing: 0.5.sp),
-        bodyMedium: m3BaseTextTheme.bodyMedium?.copyWith(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurfaceVariant,
-            letterSpacing: 0.25.sp), // M3 bodyMedium is often onSurfaceVariant
-        bodySmall: m3BaseTextTheme.bodySmall?.copyWith(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w400,
-            color: colorScheme.onSurfaceVariant,
-            letterSpacing: 0.4.sp), // M3 bodySmall is often onSurfaceVariant
-        labelLarge: m3BaseTextTheme.labelLarge?.copyWith(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w500,
-            color: colorScheme.onPrimary,
-            letterSpacing: 0.1.sp), // Used in ElevatedButtons
-        labelMedium: m3BaseTextTheme.labelMedium?.copyWith(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            color: colorScheme.onSurfaceVariant,
-            letterSpacing: 0.5.sp),
-        labelSmall: m3BaseTextTheme.labelSmall?.copyWith(
-            fontSize: 11.sp,
-            fontWeight: FontWeight.w500,
-            color: colorScheme.onSurfaceVariant,
-            letterSpacing: 0.5.sp),
-      ),
+      textTheme: m3TextTheme, // Assign the fully M3-compliant textTheme
       // --- Button Themes ---
       elevatedButtonTheme: ElevatedButtonThemeData(
-        // M3 ElevatedButton: surface background, primary text
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.surface,
-          foregroundColor: colorScheme.primary,
-          surfaceTintColor: colorScheme.primary, // For elevation tint
-          elevation: 1, // M3 Elevated buttons have a small shadow
-          textStyle:
-              m3BaseTextTheme.labelLarge?.copyWith(color: colorScheme.primary),
-          padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w),
-          shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(20.r)), // M3 "Full" or large radius
+        style: ButtonStyle(
+          minimumSize: WidgetStateProperty.all(Size(0, 40.h)),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r))),
+          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w)),
+          textStyle: WidgetStateProperty.all(m3TextTheme.labelLarge?.copyWith(color: colorScheme.primary)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withOpacity(0.12);
+            }
+            return colorScheme.surface; // Enabled
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withOpacity(0.38);
+            }
+            return colorScheme.primary; // Enabled
+          }),
+          surfaceTintColor: WidgetStateProperty.all(colorScheme.primary),
+          elevation: WidgetStateProperty.resolveWith<double?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.hovered)) {
+              return 2.0; // M3 spec suggests a slight increase on hover for elevated
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return 1.0; // M3 spec often has same or slightly different for pressed
+            }
+            return 1.0; // Default enabled elevation
+          }),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        // M3 FilledButton: primary background, onPrimary text
-        style: FilledButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          disabledBackgroundColor:
-              colorScheme.onSurface.withValues(alpha: 0.12),
-          disabledForegroundColor:
-              colorScheme.onSurface.withValues(alpha: 0.38),
-          textStyle: m3BaseTextTheme.labelLarge,
-          padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        style: ButtonStyle(
+          minimumSize: WidgetStateProperty.all(Size(0, 40.h)),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r))),
+          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w)),
+          textStyle: WidgetStateProperty.all(m3TextTheme.labelLarge), // labelLarge color is onPrimary
+          backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withOpacity(0.12);
+            }
+            return colorScheme.primary; // Enabled
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withOpacity(0.38);
+            }
+            return colorScheme.onPrimary; // Enabled
+          }),
         ),
       ),
-      // For Filled Tonal Button (secondary container background)
-      // A common way to do this is to define a style and apply it where needed,
-      // or create a custom widget. For now, this is how you'd define the style:
-      // filledButtonTonalStyle: FilledButton.styleFrom(
-      //   backgroundColor: colorScheme.secondaryContainer,
-      //   foregroundColor: colorScheme.onSecondaryContainer,
-      //   textStyle: m3BaseTextTheme.labelLarge,
-      //   padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w),
-      //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-      // ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: colorScheme.primary,
-          backgroundColor: Colors.transparent,
-          disabledForegroundColor:
-              colorScheme.onSurface.withValues(alpha: 0.38),
-          textStyle:
-              m3BaseTextTheme.labelLarge?.copyWith(color: colorScheme.primary),
-          padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w),
-          side: BorderSide(color: colorScheme.outline),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        style: ButtonStyle(
+          minimumSize: WidgetStateProperty.all(Size(0, 40.h)),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r))),
+          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 10.h, horizontal: 24.w)),
+          textStyle: WidgetStateProperty.all(m3TextTheme.labelLarge?.copyWith(color: colorScheme.primary)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            // Outlined buttons typically don't change background color with states like hover/pressed
+            // unless a specific overlay is applied, which is handled by default by Flutter's ButtonStyleButton.
+            return Colors.transparent; // Always transparent background
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withOpacity(0.38);
+            }
+            return colorScheme.primary; // Enabled
+          }),
+          side: WidgetStateProperty.resolveWith<BorderSide?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return BorderSide(color: colorScheme.onSurface.withOpacity(0.12));
+            }
+            if (states.contains(WidgetState.focused)) { // M3 focus indicator for outlined can be stronger border
+              return BorderSide(color: colorScheme.primary, width: 1.0); // Example, M3 might use a thicker outline or an overlay
+            }
+            return BorderSide(color: colorScheme.outline); // Enabled
+          }),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: colorScheme.primary,
-          disabledForegroundColor:
-              colorScheme.onSurface.withValues(alpha: 0.38),
-          textStyle:
-              m3BaseTextTheme.labelLarge?.copyWith(color: colorScheme.primary),
-          padding: EdgeInsets.symmetric(
-              vertical: 10.h,
-              horizontal: 12.w), // M3 text buttons have less horizontal padding
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        style: ButtonStyle(
+          minimumSize: WidgetStateProperty.all(Size(0, 40.h)),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r))),
+          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w)),
+          textStyle: WidgetStateProperty.all(m3TextTheme.labelLarge?.copyWith(color: colorScheme.primary)),
+          foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withOpacity(0.38);
+            }
+            return colorScheme.primary; // Enabled
+          }),
         ),
       ),
 
       // --- InputDecorationTheme (for TextFields) ---
       inputDecorationTheme: InputDecorationTheme(
-        filled: false, // 1. Set filled to false
-        // 2. Remove fillColor property
-        contentPadding: EdgeInsets.symmetric(
-            horizontal: 16.w, vertical: 12.h), // 9. Reviewed contentPadding
+        filled: false,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h), // M3 default is often 16dp symmetric
         border: OutlineInputBorder(
-          // 4. Default border
-          borderRadius:
-              BorderRadius.all(Radius.circular(4.r)), // M3 "ExtraSmall" radius
-          borderSide: BorderSide(
-              color: colorScheme.outline,
-              width: 1.0), // colorScheme.outline, 1.0 width
+          borderRadius: BorderRadius.all(Radius.circular(4.r)), // M3 ExtraSmall
+          borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
-          // 3. Update enabledBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
-          borderSide: BorderSide(
-              color: colorScheme.outline,
-              width: 1.0), // colorScheme.outline, 1.0 width
+          borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
-          // 5. Ensure focusedBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
-          borderSide: BorderSide(
-              color: colorScheme.primary,
-              width: 2.0), // Primary color, 2px width
+          borderSide: BorderSide(color: colorScheme.primary, width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
-          // 6. Ensure errorBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
-          borderSide: BorderSide(
-              color: colorScheme.error, width: 1.0), // Error color, 1.0px width
+          borderSide: BorderSide(color: colorScheme.error, width: 1.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          // 7. Ensure focusedErrorBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
           borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
         disabledBorder: OutlineInputBorder(
-          // 8. Ensure disabledBorder
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
-          borderSide: BorderSide(
-              color: colorScheme.onSurface.withOpacity(0.12),
-              width: 1.0), // onSurface with opacity, 1.0 width
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.12), width: 1.0),
         ),
-        labelStyle: m3BaseTextTheme.bodyLarge?.copyWith(
-            color: colorScheme.onSurfaceVariant), // 10. Ensure labelStyle
-        hintStyle: m3BaseTextTheme.bodyLarge?.copyWith(
-            color: colorScheme.onSurfaceVariant), // 11. Ensure hintStyle
-        errorStyle: m3BaseTextTheme.bodySmall
-            ?.copyWith(color: colorScheme.error), // 12. Ensure errorStyle
+        labelStyle: m3TextTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+        hintStyle: m3TextTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+        errorStyle: m3TextTheme.bodySmall?.copyWith(color: colorScheme.error),
       ),
 
-      // --- CardTheme ---
-      cardTheme: CardThemeData(
-        // Defaulting to M3 Filled Card style
-        elevation: 0.0, // M3 Filled cards have no elevation
+      // --- CardTheme (Defaulting to M3 Filled Card style) ---
+      cardTheme: CardTheme(
+        elevation: 0.0,
         color: colorScheme.surfaceContainer, // M3 Filled Card color
-        surfaceTintColor: Colors.transparent, // M3 Filled cards don't show tint
+        surfaceTintColor: Colors.transparent, // M3 Filled cards often don't show tint
         shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.all(Radius.circular(12.r))), // M3 "Medium" radius
+            borderRadius: BorderRadius.all(Radius.circular(12.r))), // M3 "Medium" radius
       ),
-      // For M3 Elevated Card style, you'd use:
-      // cardThemeElevated: CardTheme(
-      //   elevation: 1.0,
-      //   color: colorScheme.surface, // M3 Elevated Card color is surface
-      //   surfaceTintColor: colorScheme.surfaceTint,
-      //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.r))),
-      // ),
-      // For M3 Outlined Card style, you'd use:
-      // cardThemeOutlined: CardTheme(
-      //   elevation: 0.0,
-      //   color: colorScheme.surface,
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.all(Radius.circular(12.r)),
-      //     side: BorderSide(color: colorScheme.outlineVariant)
-      //   ),
-      // ),
 
       iconTheme: IconThemeData(
           color: colorScheme.onSurfaceVariant), // Default icon color
@@ -379,87 +397,69 @@ class AppTheme {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onPrimaryContainer,
-        elevation: 3.0, // M3 FABs standard elevation
+        elevation: 3.0, // M3 FABs standard elevation (level 3)
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-                16.r)), // M3 "Medium" shape category for standard FAB
-        // smallFabShape and largeFabShape are not direct properties of FloatingActionButtonThemeData.
-        // Different FAB sizes (small, large) are handled by using different constructors like
-        // FloatingActionButton.small() or FloatingActionButton.large() which then might
-        // consult theme extensions or have their own default shapes if not overridden by 'shape'.
-        // The 'shape' here applies to the default FAB.
-        extendedTextStyle: m3BaseTextTheme.labelLarge
-            ?.copyWith(color: colorScheme.onPrimaryContainer),
+            borderRadius: BorderRadius.circular(16.r)), // M3 "Medium" shape category for standard FAB
+        extendedTextStyle: m3TextTheme.labelLarge?.copyWith(color: colorScheme.onPrimaryContainer), // Ensure color matches foregroundColor
       ),
 
       // --- DialogTheme ---
       dialogTheme: DialogThemeData(
         backgroundColor: colorScheme.surfaceContainerHigh,
-        elevation: 3.0, // M3 standard elevation for dialogs
+        elevation: 6.0, // M3 Dialog elevation (level 3 = 6dp)
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28.r)), // M3 "ExtraLarge" shape
-        titleTextStyle: m3BaseTextTheme.headlineSmall
-            ?.copyWith(color: colorScheme.onSurface),
-        contentTextStyle: m3BaseTextTheme.bodyMedium
-            ?.copyWith(color: colorScheme.onSurfaceVariant),
+        titleTextStyle: m3TextTheme.headlineSmall, // Already has onSurface color from m3TextTheme
+        contentTextStyle: m3TextTheme.bodyMedium, // Already has onSurfaceVariant color from m3TextTheme
       ),
 
       // --- BottomSheetTheme ---
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: colorScheme.surfaceContainer,
+        backgroundColor: colorScheme.surfaceContainer, // M3 modal bottom sheet uses surfaceContainer
         modalBackgroundColor: colorScheme.surfaceContainer,
-        elevation: 3.0, // M3 standard elevation
+        elevation: 6.0, // M3 modal bottom sheet elevation (level 3 = 6dp)
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
                 top: Radius.circular(28.r)) // M3 "ExtraLarge" top corners
             ),
-        // surfaceTintColor: colorScheme.surfaceTint, // If you want a tint
+        // surfaceTintColor: colorScheme.surfaceTint, // Optional: if elevation tint is desired
       ),
 
       // --- ChipTheme --- (Defaulting to M3 Assist chip - outlined style)
       chipTheme: ChipThemeData(
-        backgroundColor: colorScheme.surface, // M3 Assist chip background
-        labelStyle: m3BaseTextTheme.labelLarge!.copyWith(
-            color:
-                colorScheme.onSurface), // M3 uses onSurface for outlined assist
+        backgroundColor: colorScheme.surface, // M3 Assist chip (outlined) background
+        labelStyle: m3TextTheme.labelLarge?.copyWith(color: colorScheme.onSurface), // M3 uses onSurface for outlined assist chip text
         side: BorderSide(color: colorScheme.outline), // M3 Outlined Assist chip
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.r)), // M3 "Small" shape
         padding: EdgeInsets.symmetric(horizontal: 12.w),
         iconTheme: IconThemeData(
-            color: colorScheme.primary,
-            size: 18.sp), // Leading icon for assist chip
-        // selectedColor: colorScheme.secondaryContainer, // For Filter chips
-        // selectedColor: colorScheme.primary, // For Input chips (when selected)
-        // showCheckmark: true, // For Filter/Input chips
+            color: colorScheme.primary, // Leading icon for assist chip
+            size: 18.sp),
+        showCheckmark: false, // Default for assist chips
+        // selectedColor: colorScheme.secondaryContainer, // For Filter chips (selected state)
+        // deleteIconColor: colorScheme.onSecondaryContainer, // For Input chips (if using them)
       ),
 
       // --- NavigationBarTheme ---
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surfaceContainer,
-        indicatorColor:
-            colorScheme.secondaryContainer, // Indicator for selected item
-        iconTheme: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+        backgroundColor: colorScheme.surfaceContainer, // M3 default Navigation Bar
+        indicatorColor: colorScheme.secondaryContainer, // Indicator for selected item
+        iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((Set<WidgetState> states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(
-                color: colorScheme
-                    .onSecondaryContainer); // Icon color for selected
+            return IconThemeData(color: colorScheme.onSecondaryContainer); // Icon color for selected
           }
-          return IconThemeData(
-              color: colorScheme.onSurfaceVariant); // Icon color for unselected
+          return IconThemeData(color: colorScheme.onSurfaceVariant); // Icon color for unselected
         }),
-        labelTextStyle:
-            WidgetStateProperty.resolveWith((Set<WidgetState> states) {
-          final style = m3BaseTextTheme.labelMedium!; // M3 uses labelMedium
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((Set<WidgetState> states) {
+          final style = m3TextTheme.labelMedium!; // M3 uses labelMedium
           if (states.contains(WidgetState.selected)) {
-            return style.copyWith(
-                color: colorScheme.onSurface); // Text color for selected
+            return style.copyWith(color: colorScheme.onSurface); // Text color for selected
           }
-          return style.copyWith(
-              color: colorScheme.onSurfaceVariant); // Text color for unselected
+          return style.copyWith(color: colorScheme.onSurfaceVariant); // Text color for unselected
         }),
-        height: 64.h,
-        elevation: 2.0,
+        height: 80.h, // M3 Navigation Bar height is 80dp
+        elevation: 2.0, // M3 Navigation Bar default elevation (level 2 = 3dp, but Flutter M3 default is 2.0)
       ),
       // Add other component themes as needed...
     );
