@@ -1,7 +1,6 @@
 // lib/src/presentation/widgets/common/social_login_button.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-// AppColors import removed as styles should come from the theme.
 
 class SocialLoginButton extends StatelessWidget {
   final String text;

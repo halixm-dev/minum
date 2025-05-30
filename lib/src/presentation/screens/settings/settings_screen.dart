@@ -192,23 +192,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // _rescheduleNotifications is now effectively replaced by NotificationService.scheduleDailyRemindersIfNeeded
-  // However, if we want a direct way to trigger it from UI that might show a specific SnackBar,
-  // we can keep a simplified version or just rely on _saveReminderSettings.
-  // For now, let's assume direct calls to the service method are sufficient.
-  // If a manual "refresh schedule" button were added, it would call the service method.
-  // void _rescheduleNotifications() {
-  //   if (!mounted) return;
-  //   logger.i("SettingsScreen: Manual reschedule trigger initiated.");
-  //   Provider.of<NotificationService>(context, listen: false).scheduleDailyRemindersIfNeeded().then((_) {
-  //     AppUtils.showSnackBar(context, "Attempted to refresh notification schedule for today.");
-  //     logger.i("SettingsScreen: scheduleDailyRemindersIfNeeded() call completed from manual trigger.");
-  //   }).catchError((e) {
-  //     logger.e("SettingsScreen: Error calling scheduleDailyRemindersIfNeeded() from manual trigger: $e");
-  //     AppUtils.showSnackBar(context, "Error refreshing schedule. Check logs.", isError: true);
-  //   });
-  // }
-
   Future<void> _selectTime(BuildContext context, bool isStartTime) async {
     final TimeOfDay initialTime =
         isStartTime ? _selectedStartTime : _selectedEndTime;
@@ -221,8 +204,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           : "Select Reminder End Time",
     );
 
-    // Check context.mounted after await before using it for UI (SnackBar)
-    // Also check if the State itself is still mounted for setState
     if (!context.mounted) return;
     if (picked == null) return;
 
@@ -734,168 +715,171 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildSectionTitle(AppStrings.general, theme),
-            _buildSettingsTile(
-              context: context,
-              icon: Icons.person_outline,
-              title: AppStrings.profile,
-              subtitle: "Manage your personal details",
-              onTap: () {
-                if (!context.mounted) return;
-                Navigator.of(context).pushNamed(AppRoutes.profile);
-              },
-            ),
-            _buildSettingsTile(
-              context: context,
-              icon: Icons.color_lens_outlined,
-              title: AppStrings.theme,
-              subtitle:
-                  "${_getThemeSourceName(themeProvider.themeSource)} / ${themeProvider.currentThemeName}",
-              onTap: () => _showThemeDialog(context, themeProvider),
-            ),
-            _buildSettingsTile(
-              context: context,
-              icon: Icons.water_drop_outlined,
-              title: AppStrings.dailyWaterGoal,
-              subtitle: userProfile != null
-                  ? unit_converter.formatVolume(
-                      userProfile.dailyGoalMl, userProfile.preferredUnit)
-                  : 'N/A',
-              onTap: () => _showDailyGoalOptionsDialog(
-                  context, userProvider, hydrationService),
-            ),
-            _buildSettingsTile(
-              context: context,
-              icon: Icons.straighten_outlined,
-              title: AppStrings.measurementUnit,
-              subtitle: userProfile?.preferredUnit.displayName ?? AppStrings.ml,
-              onTap: () =>
-                  _showEditMeasurementUnitDialog(context, userProvider),
-            ),
-            _buildSettingsTile(
-              context: context,
-              icon: Icons.format_list_numbered_outlined,
-              title: "Favorite Quick Add Volumes",
-              subtitle: userProfile != null &&
-                      userProfile.favoriteIntakeVolumes.isNotEmpty
-                  ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
-                      double volMl = double.tryParse(volStr) ?? 0;
-                      return unit_converter.formatVolume(
-                          volMl, userProfile.preferredUnit,
-                          includeUnitString: false);
-                    }).join(', ')} ${userProfile.preferredUnit.displayName}'
-                  : "N/A",
-              onTap: () =>
-                  _showEditFavoriteVolumesDialog(context, userProvider),
-            ),
-
-            _buildSectionTitle(AppStrings.reminders, theme),
-            SwitchListTile(
-              title: Text(AppStrings.enableReminders,
-                  style: theme.textTheme.titleMedium),
-              value: _enableReminders,
-              onChanged: (bool value) {
-                if (!mounted) return;
-                setState(() {
-                  _enableReminders = value;
-                });
-                _saveReminderSettings();
-              },
-              secondary: Icon(Icons.notifications_active_outlined,
-                  color: theme.colorScheme.onSurfaceVariant),
-              activeColor: theme.colorScheme.primary, // M3 Switch active color
-              inactiveThumbColor:
-                  theme.colorScheme.outline, // M3 Switch inactive thumb
-              inactiveTrackColor: theme.colorScheme
-                  .surfaceContainerHighest, // M3 Switch inactive track
-            ),
-            if (_enableReminders) ...[
-              _buildSettingsTile(
-                context: context,
-                icon: Icons.hourglass_empty_outlined,
-                title: "Reminder Interval",
-                subtitle: () {
-                  if (_selectedIntervalHours <= 0)
-                    return "N/A"; // Should not happen with min interval logic
-                  int totalMinutes = (_selectedIntervalHours * 60).round();
-                  int hours = totalMinutes ~/ 60;
-                  int minutes = totalMinutes % 60;
-
-                  if (hours > 0 && minutes > 0) {
-                    return "${hours}h ${minutes}m";
-                  } else if (hours > 0 && minutes == 0) {
-                    return "${hours}h";
-                  } else if (hours == 0 && minutes > 0) {
-                    return "${minutes}m";
-                  } else {
-                    // Fallback, though minimum interval logic should prevent 0h 0m.
-                    // If _selectedIntervalHours is 0.25 (15 mins), this will be 15m.
-                    return "${minutes}m";
-                  }
-                }(),
-                onTap: () => _showIntervalPicker(context),
-              ),
-              _buildSettingsTile(
-                context: context,
-                icon: Icons.schedule_outlined,
-                title: "Reminder Start Time",
-                subtitle: _selectedStartTime.format(context),
-                onTap: () => _selectTime(context, true),
-              ),
-              _buildSettingsTile(
-                context: context,
-                icon: Icons.watch_later_outlined,
-                title: "Reminder End Time",
-                subtitle: _selectedEndTime.format(context),
-                onTap: () => _selectTime(context, false),
-              ),
-              _buildSettingsTile(
-                context: context,
-                icon: Icons.notifications_none,
-                title: "Send Test Notification",
-                subtitle:
-                    "Tap to send an immediate test notification to check if notifications are working.",
-                onTap: _sendTestNotification,
-              ),
-            ],
-            Divider(
-                height: 32.h,
-                thickness: 1,
-                color: theme.colorScheme.outlineVariant), // M3 Divider
-            if (authProvider.isAuthenticated)
-              _buildSettingsTile(
-                context: context,
-                icon: Icons.logout_outlined,
-                title: AppStrings.logout,
-                onTap: _handleLogout,
-                // For special tiles like logout/login, consider a slightly different background or distinct icon color
-                // tileColor: theme.colorScheme.errorContainer.withValues(alpha: 0.3), // Use opacity for subtle fill
-                textColor: theme.colorScheme.error,
-                iconColor: theme.colorScheme.error,
-              )
-            else
-              _buildSettingsTile(
-                context: context,
-                icon: Icons.login_outlined,
-                title: "Login / Sign Up",
-                onTap: _handleLogin,
-                // tileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                textColor: theme.colorScheme.primary,
-                iconColor: theme.colorScheme.primary,
-              ),
-
-            SizedBox(height: 24.h),
-            Center(
-              child: Text(
-                '${AppStrings.appName} - Version: $_appVersion',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              ),
-            ),
-            SizedBox(height: 24.h),
+            _buildGeneralSettingsSection(context, theme, themeProvider, userProvider, hydrationService),
+            _buildRemindersSection(context, theme),
+            _buildAccountActionsSection(context, theme, authProvider),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildGeneralSettingsSection(BuildContext context, ThemeData theme, ThemeProvider themeProvider, UserProvider userProvider, HydrationService hydrationService) {
+    final userProfile = userProvider.userProfile;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(AppStrings.general, theme),
+        _buildSettingsTile(
+          context: context,
+          icon: Icons.person_outline,
+          title: AppStrings.profile,
+          subtitle: "Manage your personal details",
+          onTap: () {
+            if (!context.mounted) return;
+            Navigator.of(context).pushNamed(AppRoutes.profile);
+          },
+        ),
+        _buildSettingsTile(
+          context: context,
+          icon: Icons.color_lens_outlined,
+          title: AppStrings.theme,
+          subtitle: "${_getThemeSourceName(themeProvider.themeSource)} / ${themeProvider.currentThemeName}",
+          onTap: () => _showThemeDialog(context, themeProvider),
+        ),
+        _buildSettingsTile(
+          context: context,
+          icon: Icons.water_drop_outlined,
+          title: AppStrings.dailyWaterGoal,
+          subtitle: userProfile != null
+              ? unit_converter.formatVolume(
+                  userProfile.dailyGoalMl, userProfile.preferredUnit)
+              : 'N/A',
+          onTap: () => _showDailyGoalOptionsDialog(context, userProvider, hydrationService),
+        ),
+        _buildSettingsTile(
+          context: context,
+          icon: Icons.straighten_outlined,
+          title: AppStrings.measurementUnit,
+          subtitle: userProfile?.preferredUnit.displayName ?? AppStrings.ml,
+          onTap: () => _showEditMeasurementUnitDialog(context, userProvider),
+        ),
+        _buildSettingsTile(
+          context: context,
+          icon: Icons.format_list_numbered_outlined,
+          title: "Favorite Quick Add Volumes",
+          subtitle: userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty
+              ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
+                  double volMl = double.tryParse(volStr) ?? 0;
+                  return unit_converter.formatVolume(
+                      volMl, userProfile.preferredUnit,
+                      includeUnitString: false);
+                }).join(', ')} ${userProfile.preferredUnit.displayName}'
+              : "N/A",
+          onTap: () => _showEditFavoriteVolumesDialog(context, userProvider),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRemindersSection(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(AppStrings.reminders, theme),
+        SwitchListTile(
+          title: Text(AppStrings.enableReminders, style: theme.textTheme.titleMedium),
+          value: _enableReminders,
+          onChanged: (bool value) {
+            if (!mounted) return;
+            setState(() {
+              _enableReminders = value;
+            });
+            _saveReminderSettings();
+          },
+          secondary: Icon(Icons.notifications_active_outlined, color: theme.colorScheme.onSurfaceVariant),
+          activeColor: theme.colorScheme.primary,
+          inactiveThumbColor: theme.colorScheme.outline,
+          inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+        ),
+        if (_enableReminders) ...[
+          _buildSettingsTile(
+            context: context,
+            icon: Icons.hourglass_empty_outlined,
+            title: "Reminder Interval",
+            subtitle: () {
+              if (_selectedIntervalHours <= 0) return "N/A";
+              int totalMinutes = (_selectedIntervalHours * 60).round();
+              int hours = totalMinutes ~/ 60;
+              int minutes = totalMinutes % 60;
+              if (hours > 0 && minutes > 0) return "${hours}h ${minutes}m";
+              if (hours > 0 && minutes == 0) return "${hours}h";
+              if (hours == 0 && minutes > 0) return "${minutes}m";
+              return "${minutes}m";
+            }(),
+            onTap: () => _showIntervalPicker(context),
+          ),
+          _buildSettingsTile(
+            context: context,
+            icon: Icons.schedule_outlined,
+            title: "Reminder Start Time",
+            subtitle: _selectedStartTime.format(context),
+            onTap: () => _selectTime(context, true),
+          ),
+          _buildSettingsTile(
+            context: context,
+            icon: Icons.watch_later_outlined,
+            title: "Reminder End Time",
+            subtitle: _selectedEndTime.format(context),
+            onTap: () => _selectTime(context, false),
+          ),
+          _buildSettingsTile(
+            context: context,
+            icon: Icons.notifications_none,
+            title: "Send Test Notification",
+            subtitle: "Tap to send an immediate test notification to check if notifications are working.",
+            onTap: _sendTestNotification,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAccountActionsSection(BuildContext context, ThemeData theme, AuthProvider authProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(
+            height: 32.h,
+            thickness: 1,
+            color: theme.colorScheme.outlineVariant),
+        if (authProvider.isAuthenticated)
+          _buildSettingsTile(
+            context: context,
+            icon: Icons.logout_outlined,
+            title: AppStrings.logout,
+            onTap: _handleLogout,
+            textColor: theme.colorScheme.error,
+            iconColor: theme.colorScheme.error,
+          )
+        else
+          _buildSettingsTile(
+            context: context,
+            icon: Icons.login_outlined,
+            title: "Login / Sign Up",
+            onTap: _handleLogin,
+            textColor: theme.colorScheme.primary,
+            iconColor: theme.colorScheme.primary,
+          ),
+        SizedBox(height: 24.h),
+        Center(
+          child: Text(
+            '${AppStrings.appName} - Version: $_appVersion',
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ),
+        SizedBox(height: 24.h),
+      ],
     );
   }
 
