@@ -5,7 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/core/theme/app_theme.dart';
 
-enum ThemeSource { staticBaseline, dynamicSystem, customSeed }
+enum ThemeSource {
+  baseline, // For the standard AppTheme.lightTheme/darkTheme
+  mediumContrast,
+  highContrast,
+  dynamicSystem,
+  customSeed,
+}
 
 class ThemeProvider with ChangeNotifier {
   static const String _themePrefKey =
@@ -14,12 +20,19 @@ class ThemeProvider with ChangeNotifier {
   static const String _customSeedColorKey = 'customSeedColor';
 
   ThemeMode _themeMode = ThemeMode.system;
-  ThemeSource _themeSource = ThemeSource.staticBaseline;
+  ThemeSource _themeSource = ThemeSource.baseline; // Default to baseline
   ColorScheme? _lightDynamicScheme; // Changed from CorePalette
   ColorScheme? _darkDynamicScheme; // Changed from CorePalette
   Color? _customSeedColor; // Store the user's custom seed color
 
   bool _isDisposed = false; // Flag to track disposal
+
+  // Cache variables for dynamic themes
+  ThemeData? _cachedLightDynamicThemeData;
+  ColorScheme? _lastLightDynamicScheme;
+
+  ThemeData? _cachedDarkDynamicThemeData;
+  ColorScheme? _lastDarkDynamicScheme;
 
   ThemeMode get themeMode => _themeMode;
   ThemeSource get themeSource => _themeSource; // Expose for UI if needed
@@ -27,15 +40,30 @@ class ThemeProvider with ChangeNotifier {
 
   ThemeData get currentLightThemeData {
     switch (_themeSource) {
+      case ThemeSource.baseline:
+        logger.i("Using baseline light theme.");
+        return AppTheme.lightTheme;
+      case ThemeSource.mediumContrast:
+        logger.i("Using medium contrast light theme.");
+        return AppTheme.lightMediumContrastTheme;
+      case ThemeSource.highContrast:
+        logger.i("Using high contrast light theme.");
+        return AppTheme.lightHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_lightDynamicScheme != null) {
-          logger.i("Using dynamic system scheme for light theme.");
-          return AppTheme.buildThemeDataFromScheme(
-              _lightDynamicScheme!, Brightness.light);
+          if (identical(_lightDynamicScheme, _lastLightDynamicScheme) && _cachedLightDynamicThemeData != null) {
+            logger.i("Using cached dynamic system light theme.");
+            return _cachedLightDynamicThemeData!;
+          }
+          logger.i("Rebuilding dynamic system light theme.");
+          _lastLightDynamicScheme = _lightDynamicScheme;
+          _cachedLightDynamicThemeData = AppTheme.buildThemeDataFromScheme(
+              _lightDynamicScheme!, AppTheme.lightTheme.textTheme); // Assuming AppTheme.lightTheme.textTheme is the correct base
+          return _cachedLightDynamicThemeData!;
         }
         logger.w(
-            "Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to static baseline.");
-        return AppTheme.lightTheme;
+            "Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to baseline.");
+        return AppTheme.lightTheme; // Fallback
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger
@@ -44,25 +72,37 @@ class ThemeProvider with ChangeNotifier {
               seedColor: _customSeedColor!, brightness: Brightness.light);
         }
         logger.w(
-            "Custom seed source selected for light theme, but customSeedColor is null. Falling back to static baseline.");
-        return AppTheme.lightTheme;
-      case ThemeSource.staticBaseline:
-        logger.i("Using static baseline light theme.");
-        return AppTheme.lightTheme;
+            "Custom seed source selected for light theme, but customSeedColor is null. Falling back to baseline.");
+        return AppTheme.lightTheme; // Fallback to baseline
     }
   }
 
   ThemeData get currentDarkThemeData {
     switch (_themeSource) {
+      case ThemeSource.baseline:
+        logger.i("Using baseline dark theme.");
+        return AppTheme.darkTheme;
+      case ThemeSource.mediumContrast:
+        logger.i("Using medium contrast dark theme.");
+        return AppTheme.darkMediumContrastTheme;
+      case ThemeSource.highContrast:
+        logger.i("Using high contrast dark theme.");
+        return AppTheme.darkHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_darkDynamicScheme != null) {
-          logger.i("Using dynamic system scheme for dark theme.");
-          return AppTheme.buildThemeDataFromScheme(
-              _darkDynamicScheme!, Brightness.dark);
+          if (identical(_darkDynamicScheme, _lastDarkDynamicScheme) && _cachedDarkDynamicThemeData != null) {
+            logger.i("Using cached dynamic system dark theme.");
+            return _cachedDarkDynamicThemeData!;
+          }
+          logger.i("Rebuilding dynamic system dark theme.");
+          _lastDarkDynamicScheme = _darkDynamicScheme;
+          _cachedDarkDynamicThemeData = AppTheme.buildThemeDataFromScheme(
+              _darkDynamicScheme!, AppTheme.darkTheme.textTheme); // Assuming AppTheme.darkTheme.textTheme is the correct base
+          return _cachedDarkDynamicThemeData!;
         }
         logger.w(
-            "Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to static baseline.");
-        return AppTheme.darkTheme;
+            "Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to baseline.");
+        return AppTheme.darkTheme; // Fallback
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger.i("Using custom seed color for dark theme: $_customSeedColor");
@@ -70,11 +110,8 @@ class ThemeProvider with ChangeNotifier {
               seedColor: _customSeedColor!, brightness: Brightness.dark);
         }
         logger.w(
-            "Custom seed source selected for dark theme, but customSeedColor is null. Falling back to static baseline.");
-        return AppTheme.darkTheme;
-      case ThemeSource.staticBaseline:
-        logger.i("Using static baseline dark theme.");
-        return AppTheme.darkTheme;
+            "Custom seed source selected for dark theme, but customSeedColor is null. Falling back to baseline.");
+        return AppTheme.darkTheme; // Fallback to baseline
     }
   }
 
@@ -112,7 +149,7 @@ class ThemeProvider with ChangeNotifier {
       final themeSourceString = prefs.getString(_themeSourceKey);
       _themeSource = ThemeSource.values.firstWhere(
         (e) => e.name == themeSourceString,
-        orElse: () => ThemeSource.staticBaseline, // Default
+        orElse: () => ThemeSource.baseline, // Default to baseline
       );
       logger.i("ThemeSource loaded: $_themeSource");
 
@@ -134,15 +171,32 @@ class ThemeProvider with ChangeNotifier {
 
   void setDynamicColorSchemes(ColorScheme? light, ColorScheme? dark) {
     if (_isDisposed) return;
-    _lightDynamicScheme = light;
-    _darkDynamicScheme = dark;
-    if (_themeSource == ThemeSource.dynamicSystem) {
+
+    bool lightChanged = !identical(light, _lightDynamicScheme);
+    bool darkChanged = !identical(dark, _darkDynamicScheme);
+
+    if (lightChanged) {
+      _cachedLightDynamicThemeData = null; // Invalidate cache
+      _lightDynamicScheme = light;
+      logger.i("New light dynamic scheme set. Cache invalidated.");
+    }
+
+    if (darkChanged) {
+      _cachedDarkDynamicThemeData = null; // Invalidate cache
+      _darkDynamicScheme = dark;
+      logger.i("New dark dynamic scheme set. Cache invalidated.");
+    }
+
+    if ((lightChanged || darkChanged) && _themeSource == ThemeSource.dynamicSystem) {
       logger.i(
-          "Dynamic ColorSchemes updated. Notifying listeners as current source is dynamic.");
+          "Dynamic ColorSchemes updated and current source is dynamic. Notifying listeners.");
       _safeNotifyListeners();
+    } else if (lightChanged || darkChanged) {
+      logger.i(
+          "Dynamic ColorSchemes updated but current source is not dynamic, no immediate notification unless source changes.");
     } else {
       logger.i(
-          "Dynamic ColorSchemes updated. Current source is not dynamic, no immediate notification.");
+          "Dynamic ColorSchemes received, but identical to current. No changes made, no notification.");
     }
   }
 

@@ -2,137 +2,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:minum/src/core/constants/app_colors.dart';
+// import 'package:minum/src/core/constants/app_colors.dart'; // Removed as per instructions
 
 class AppTheme {
   AppTheme._(); // Private constructor
 
-  static final ThemeData lightTheme = buildThemeDataFromScheme(
-      ColorScheme.light(
-        brightness: Brightness.light,
-        primary: AppColors.primaryColor, // M3: primary
-        onPrimary: AppColors.onPrimary, // M3: onPrimary
-        primaryContainer:
-            AppColors.primaryContainerLight, // M3: primaryContainer
-        onPrimaryContainer:
-            AppColors.onPrimaryContainerLight, // M3: onPrimaryContainer
-        secondary: AppColors.secondaryLight, // M3: secondary (from accentColor)
-        onSecondary: AppColors.onSecondaryLight, // M3: onSecondary
-        secondaryContainer:
-            AppColors.secondaryContainerLight, // M3: secondaryContainer
-        onSecondaryContainer:
-            AppColors.onSecondaryContainerLight, // M3: onSecondaryContainer
-        tertiary: AppColors.tertiaryLight, // M3: tertiary
-        onTertiary: AppColors.onTertiaryLight, // M3: onTertiary
-        tertiaryContainer:
-            AppColors.tertiaryContainerLight, // M3: tertiaryContainer
-        onTertiaryContainer:
-            AppColors.onTertiaryContainerLight, // M3: onTertiaryContainer
-        error: AppColors.errorColor, // M3: error (Updated to #BA1A1A)
-        onError: AppColors.onError, // M3: onError
-        errorContainer: AppColors
-            .errorContainerLight, // M3: errorContainer (Updated to #FFDAD6)
-        onErrorContainer: AppColors
-            .onErrorContainerLight, // M3: onErrorContainer (Updated to #410002)
-        surface: AppColors
-            .lightScaffoldBackground, // M3: surface (main background - using lightScaffoldBackground)
-        onSurface: AppColors.lightText, // M3: onSurface
-        surfaceDim: AppColors.surfaceDimLight, // M3: surfaceDim
-        surfaceBright: AppColors.surfaceBrightLight, // M3: surfaceBright
-        surfaceContainerLowest:
-            AppColors.surfaceContainerLowestLight, // M3: surfaceContainerLowest
-        surfaceContainerLow: AppColors
-            .surfaceContainerLowLight, // M3: surfaceContainerLow (matches lightScaffoldBackground)
-        surfaceContainer: AppColors
-            .surfaceContainerLight, // M3: surfaceContainer (for cards - using lightSurface)
-        surfaceContainerHigh:
-            AppColors.surfaceContainerHighLight, // M3: surfaceContainerHigh
-        surfaceContainerHighest: AppColors
-            .surfaceContainerHighestLight, // M3: surfaceVariant (using AppColor E0E4E8)
-        onSurfaceVariant:
-            AppColors.onSurfaceVariantLight, // M3: onSurfaceVariant
-        outline: AppColors.outlineLight, // M3: outline
-        outlineVariant: AppColors.outlineVariantLight, // M3: outlineVariant
-        inverseSurface: AppColors
-            .darkScaffoldBackground, // M3: inverseSurface (dark theme's scaffold)
-        onInverseSurface:
-            AppColors.darkText, // M3: onInverseSurface (dark theme's text)
-        inversePrimary: AppColors
-            .primaryColorDark, // M3: inversePrimary (dark theme's primary)
-        shadow: AppColors.shadowColor, // M3: shadow
-        scrim: Colors.black
-            .withAlpha(82), // M3: scrim (Standard ~32% opacity black)
-        surfaceTint:
-            AppColors.primaryColor, // M3: surfaceTint (typically primary color)
-      ),
-      Brightness.light);
+  // Define base TextThemes
+  static final TextTheme _lightTextTheme = GoogleFonts.robotoTextTheme(ThemeData.light().textTheme);
+  static final TextTheme _darkTextTheme = GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
 
-  static final ThemeData darkTheme = buildThemeDataFromScheme(
-      ColorScheme.dark(
-        brightness: Brightness.dark,
-        primary: AppColors.primaryColorDark, // M3: primary
-        onPrimary: AppColors.onPrimaryDark, // M3: onPrimary
-        primaryContainer:
-            AppColors.primaryContainerDark, // M3: primaryContainer
-        onPrimaryContainer:
-            AppColors.onPrimaryContainerDark, // M3: onPrimaryContainer
-        secondary:
-            AppColors.secondaryDark, // M3: secondary (from accentColorDark)
-        onSecondary: AppColors.onSecondaryDark, // M3: onSecondary
-        secondaryContainer:
-            AppColors.secondaryContainerDark, // M3: secondaryContainer
-        onSecondaryContainer:
-            AppColors.onSecondaryContainerDark, // M3: onSecondaryContainer
-        tertiary: AppColors.tertiaryDark, // M3: tertiary
-        onTertiary: AppColors.onTertiaryDark, // M3: onTertiary
-        tertiaryContainer:
-            AppColors.tertiaryContainerDark, // M3: tertiaryContainer
-        onTertiaryContainer:
-            AppColors.onTertiaryContainerDark, // M3: onTertiaryContainer
-        error: AppColors.errorDarkM3, // M3: error (#FFB4AB)
-        onError: AppColors.onErrorDarkM3, // M3: onError (#690005)
-        errorContainer:
-            AppColors.errorContainerDark, // M3: errorContainer (#93000A)
-        onErrorContainer:
-            AppColors.onErrorContainerDark, // M3: onErrorContainer (#FFDAD6)
-        surface: AppColors
-            .darkScaffoldBackground, // M3: surface (main background - using darkScaffoldBackground)
-        onSurface: AppColors.darkText, // M3: onSurface
-        surfaceDim: AppColors.surfaceDimDark, // M3: surfaceDim
-        surfaceBright: AppColors.surfaceBrightDark, // M3: surfaceBright
-        surfaceContainerLowest:
-            AppColors.surfaceContainerLowestDark, // M3: surfaceContainerLowest
-        surfaceContainerLow: AppColors
-            .surfaceContainerLowDark, // M3: surfaceContainerLow (using darkBackground)
-        surfaceContainer: AppColors
-            .surfaceContainerDark, // M3: surfaceContainer (for cards - using darkSurface)
-        surfaceContainerHigh:
-            AppColors.surfaceContainerHighDark, // M3: surfaceContainerHigh
-        surfaceContainerHighest:
-            AppColors.surfaceContainerHighestDark, // M3: surfaceVariant
-        onSurfaceVariant:
-            AppColors.onSurfaceVariantDark, // M3: onSurfaceVariant
-        outline: AppColors.outlineDark, // M3: outline
-        outlineVariant: AppColors.outlineVariantDark, // M3: outlineVariant
-        inverseSurface: AppColors
-            .lightScaffoldBackground, // M3: inverseSurface (light theme's scaffold)
-        onInverseSurface:
-            AppColors.lightText, // M3: onInverseSurface (light theme's text)
-        inversePrimary: AppColors
-            .primaryColor, // M3: inversePrimary (light theme's primary)
-        shadow: AppColors.shadowColor, // M3: shadow
-        scrim: Colors.black
-            .withAlpha(102), // M3: scrim (Standard ~40% opacity black for dark)
-        surfaceTint: AppColors
-            .primaryColorDark, // M3: surfaceTint (typically primary color for dark theme)
-      ),
-      Brightness.dark);
+  // Create MaterialTheme instances
+  static final MaterialTheme _lightMaterialTheme = MaterialTheme(_lightTextTheme);
+  static final MaterialTheme _darkMaterialTheme = MaterialTheme(_darkTextTheme);
+
+  // Static ThemeData getters using MaterialTheme
+  static ThemeData get lightTheme => _lightMaterialTheme.light();
+  static ThemeData get darkTheme => _darkMaterialTheme.dark();
+
+  static ThemeData get lightMediumContrastTheme => _lightMaterialTheme.lightMediumContrast();
+  static ThemeData get lightHighContrastTheme => _lightMaterialTheme.lightHighContrast();
+  static ThemeData get darkMediumContrastTheme => _darkMaterialTheme.darkMediumContrast();
+  static ThemeData get darkHighContrastTheme => _darkMaterialTheme.darkHighContrast();
+  
 
   static ThemeData themeFromSeed(
       {required Color seedColor, required Brightness brightness}) {
-    final colorScheme =
-        ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
-    return buildThemeDataFromScheme(colorScheme, brightness);
+    final colorScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
+    // Create a base TextTheme based on brightness for themeFromSeed
+    final baseTextTheme = brightness == Brightness.light
+        ? GoogleFonts.robotoTextTheme(ThemeData.light().textTheme)
+        : GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
+    return buildThemeDataFromScheme(colorScheme, baseTextTheme);
   }
 
   // Static style for Filled Tonal Button
@@ -177,105 +77,101 @@ class AppTheme {
   // (using AppTheme.themeFromSeed if necessary, or directly creating ColorScheme objects)
   // and then calling buildThemeDataFromScheme or themeFromSeed.
 
+  // Updated to accept a TextTheme instead of Brightness
   static ThemeData buildThemeDataFromScheme(
-      ColorScheme colorScheme, Brightness brightness) {
-    final baseTextTheme = brightness == Brightness.light
-        ? ThemeData.light().textTheme
-        : ThemeData.dark().textTheme;
-    final m3BaseTextTheme =
-        GoogleFonts.robotoTextTheme(baseTextTheme); // Using Roboto as specified
-
-    // Create the M3 TextTheme with updated font sizes, weights, letter spacing, and line heights
-    final TextTheme m3TextTheme = m3BaseTextTheme.copyWith(
-      displayLarge: m3BaseTextTheme.displayLarge?.copyWith(
-          fontSize: 57.sp,
+      ColorScheme colorScheme, TextTheme baseTheme) {
+    // Brightness can be derived from the colorScheme
+    final brightness = colorScheme.brightness;
+    
+    // The provided baseTheme is already a GoogleFonts.robotoTextTheme via MaterialTheme instance
+    // or explicitly created in themeFromSeed.
+    // So, m3BaseTextTheme is effectively the passed 'baseTheme'.
+    final TextTheme m3TextTheme = baseTheme.copyWith( // Apply color scheme specific colors to the passed text theme
+      displayLarge: baseTheme.displayLarge?.copyWith(
+          fontSize: 57.sp, // These sizes are examples, ensure they match your m3BaseTextTheme
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 64.0 / 57.0,
           color: colorScheme.onSurface),
-      displayMedium: m3BaseTextTheme.displayMedium?.copyWith(
+      displayMedium: baseTheme.displayMedium?.copyWith(
           fontSize: 45.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 52.0 / 45.0,
           color: colorScheme.onSurface),
-      displaySmall: m3BaseTextTheme.displaySmall?.copyWith(
+      displaySmall: baseTheme.displaySmall?.copyWith(
           fontSize: 36.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 44.0 / 36.0,
           color: colorScheme.onSurface),
-      headlineLarge: m3BaseTextTheme.headlineLarge?.copyWith(
+      headlineLarge: baseTheme.headlineLarge?.copyWith(
           fontSize: 32.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 40.0 / 32.0,
           color: colorScheme.onSurface),
-      headlineMedium: m3BaseTextTheme.headlineMedium?.copyWith(
+      headlineMedium: baseTheme.headlineMedium?.copyWith(
           fontSize: 28.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 36.0 / 28.0,
           color: colorScheme.onSurface),
-      headlineSmall: m3BaseTextTheme.headlineSmall?.copyWith(
+      headlineSmall: baseTheme.headlineSmall?.copyWith(
           fontSize: 24.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 32.0 / 24.0,
           color: colorScheme.onSurface),
-      titleLarge: m3BaseTextTheme.titleLarge?.copyWith(
+      titleLarge: baseTheme.titleLarge?.copyWith(
           fontSize: 22.sp,
-          fontWeight:
-              FontWeight.w400, // M3 spec can vary; 400 is common for titles.
+          fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 28.0 / 22.0,
-          color: colorScheme.onSurface), // Often used for AppBars
-      titleMedium: m3BaseTextTheme.titleMedium?.copyWith(
+          color: colorScheme.onSurface),
+      titleMedium: baseTheme.titleMedium?.copyWith(
           fontSize: 16.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.15.sp,
           height: 24.0 / 16.0,
           color: colorScheme.onSurface),
-      titleSmall: m3BaseTextTheme.titleSmall?.copyWith(
+      titleSmall: baseTheme.titleSmall?.copyWith(
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1.sp,
           height: 20.0 / 14.0,
           color: colorScheme.onSurface),
-      bodyLarge: m3BaseTextTheme.bodyLarge?.copyWith(
+      bodyLarge: baseTheme.bodyLarge?.copyWith(
           fontSize: 16.sp,
           fontWeight: FontWeight.w400,
-          letterSpacing: 0.5
-              .sp, // Current: 0.5sp, M3 spec also shows 0.15 for some. Kept 0.5.
+          letterSpacing: 0.5.sp,
           height: 24.0 / 16.0,
           color: colorScheme.onSurface),
-      bodyMedium: m3BaseTextTheme.bodyMedium?.copyWith(
+      bodyMedium: baseTheme.bodyMedium?.copyWith(
           fontSize: 14.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0.25.sp,
           height: 20.0 / 14.0,
-          color: colorScheme
-              .onSurfaceVariant), // M3 bodyMedium is often onSurfaceVariant
-      bodySmall: m3BaseTextTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant),
+      bodySmall: baseTheme.bodySmall?.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w400,
           letterSpacing: 0.4.sp,
           height: 16.0 / 12.0,
-          color: colorScheme
-              .onSurfaceVariant), // M3 bodySmall is often onSurfaceVariant
-      labelLarge: m3BaseTextTheme.labelLarge?.copyWith(
+          color: colorScheme.onSurfaceVariant),
+      labelLarge: baseTheme.labelLarge?.copyWith( // Used for buttons etc.
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1.sp,
           height: 20.0 / 14.0,
-          color: colorScheme.onPrimary), // Used in ElevatedButtons
-      labelMedium: m3BaseTextTheme.labelMedium?.copyWith(
+          color: colorScheme.onPrimary), // Example, check if this is always onPrimary or varies
+      labelMedium: baseTheme.labelMedium?.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.5.sp,
           height: 16.0 / 12.0,
           color: colorScheme.onSurfaceVariant),
-      labelSmall: m3BaseTextTheme.labelSmall?.copyWith(
+      labelSmall: baseTheme.labelSmall?.copyWith(
           fontSize: 11.sp,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.5.sp,
@@ -285,7 +181,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      brightness: brightness,
+      brightness: brightness, // Derived from colorScheme
       colorScheme: colorScheme,
       primaryColor: colorScheme.primary, // M2 compatibility
       scaffoldBackgroundColor: colorScheme.surface,
@@ -657,7 +553,7 @@ class AppTheme {
         dialHandColor: colorScheme.primary,
         dialBackgroundColor:
             colorScheme.surfaceContainerHighest, // Background of the dial
-        dialTextColor: colorScheme.onPrimary,
+        dialTextColor: colorScheme.onSurface,
         // `dialItemColor` might be needed for the inner circle of selected item on dial
         helpTextStyle: m3TextTheme.labelSmall?.copyWith(
             color: colorScheme
@@ -665,5 +561,365 @@ class AppTheme {
         // inputDecorationTheme for TimePickerEntryMode.input can be inherited or specified
       ),
     );
+  }
+}
+
+// --- ExtendedColor and ColorFamily Classes (as provided in issue) ---
+class ExtendedColor {
+  final Color seed, vibrant, vibrantTonal, onVibrant, onVibrantTonal;
+  ExtendedColor({
+    required this.seed,
+    required this.vibrant,
+    required this.vibrantTonal,
+    required this.onVibrant,
+    required this.onVibrantTonal,
+  });
+}
+
+class ColorFamily {
+  final Color color;
+  final Color onColor;
+  final Color container;
+  final Color onContainer;
+  const ColorFamily({
+    required this.color,
+    required this.onColor,
+    required this.container,
+    required this.onContainer,
+  });
+}
+
+// --- MaterialTheme Class ---
+class MaterialTheme {
+  final TextTheme textTheme;
+  const MaterialTheme(this.textTheme);
+
+  static ColorScheme lightScheme() {
+    return const ColorScheme(
+      brightness: Brightness.light,
+      primary: Color(0xff1b6585),
+      surfaceTint: Color(0xff1b6585),
+      onPrimary: Color(0xffffffff),
+      primaryContainer: Color(0xffc3e8ff),
+      onPrimaryContainer: Color(0xff004c68),
+      secondary: Color(0xff4e616d),
+      onSecondary: Color(0xffffffff),
+      secondaryContainer: Color(0xffd1e5f4),
+      onSecondaryContainer: Color(0xff364955),
+      tertiary: Color(0xff605a7d),
+      onTertiary: Color(0xffffffff),
+      tertiaryContainer: Color(0xffe6deff),
+      onTertiaryContainer: Color(0xff484264),
+      error: Color(0xffba1a1a),
+      onError: Color(0xffffffff),
+      errorContainer: Color(0xffffdad6),
+      onErrorContainer: Color(0xff93000a),
+      surface: Color(0xfff6fafe),
+      onSurface: Color(0xff181c1f),
+      onSurfaceVariant: Color(0xff41484d),
+      outline: Color(0xff71787d),
+      outlineVariant: Color(0xffc0c7cd),
+      shadow: Color(0xff000000),
+      scrim: Color(0xff000000),
+      inverseSurface: Color(0xff2c3134),
+      inversePrimary: Color(0xff8fcef3),
+      primaryFixed: Color(0xffc3e8ff),
+      onPrimaryFixed: Color(0xff001e2c),
+      primaryFixedDim: Color(0xff8fcef3),
+      onPrimaryFixedVariant: Color(0xff004c68),
+      secondaryFixed: Color(0xffd1e5f4),
+      onSecondaryFixed: Color(0xff091e28),
+      secondaryFixedDim: Color(0xffb5c9d7),
+      onSecondaryFixedVariant: Color(0xff364955),
+      tertiaryFixed: Color(0xffe6deff),
+      onTertiaryFixed: Color(0xff1c1736),
+      tertiaryFixedDim: Color(0xffcac1ea),
+      onTertiaryFixedVariant: Color(0xff484264),
+      surfaceDim: Color(0xffd6dadf),
+      surfaceBright: Color(0xfff6fafe),
+      surfaceContainerLowest: Color(0xffffffff),
+      surfaceContainerLow: Color(0xfff0f4f8),
+      surfaceContainer: Color(0xffeaeef2),
+      surfaceContainerHigh: Color(0xffe5e9ed),
+      surfaceContainerHighest: Color(0xffdfe3e7),
+    );
+  }
+
+  ThemeData light() => theme(lightScheme());
+
+  static ColorScheme lightMediumContrastScheme() {
+    return const ColorScheme(
+      brightness: Brightness.light,
+      primary: Color(0xff003b51),
+      surfaceTint: Color(0xff1b6585),
+      onPrimary: Color(0xffffffff),
+      primaryContainer: Color(0xff307495),
+      onPrimaryContainer: Color(0xffffffff),
+      secondary: Color(0xff263943),
+      onSecondary: Color(0xffffffff),
+      secondaryContainer: Color(0xff5c707c),
+      onSecondaryContainer: Color(0xffffffff),
+      tertiary: Color(0xff373252),
+      onTertiary: Color(0xffffffff),
+      tertiaryContainer: Color(0xff6f688c),
+      onTertiaryContainer: Color(0xffffffff),
+      error: Color(0xff740006),
+      onError: Color(0xffffffff),
+      errorContainer: Color(0xffcf2c27),
+      onErrorContainer: Color(0xffffffff),
+      surface: Color(0xfff6fafe),
+      onSurface: Color(0xff0d1215),
+      onSurfaceVariant: Color(0xff30373c),
+      outline: Color(0xff4c5358),
+      outlineVariant: Color(0xff676e73),
+      shadow: Color(0xff000000),
+      scrim: Color(0xff000000),
+      inverseSurface: Color(0xff2c3134),
+      inversePrimary: Color(0xff8fcef3),
+      primaryFixed: Color(0xff307495),
+      onPrimaryFixed: Color(0xffffffff),
+      primaryFixedDim: Color(0xff075b7b),
+      onPrimaryFixedVariant: Color(0xffffffff),
+      secondaryFixed: Color(0xff5c707c),
+      onSecondaryFixed: Color(0xffffffff),
+      secondaryFixedDim: Color(0xff445763),
+      onSecondaryFixedVariant: Color(0xffffffff),
+      tertiaryFixed: Color(0xff6f688c),
+      onTertiaryFixed: Color(0xffffffff),
+      tertiaryFixedDim: Color(0xff565073),
+      onTertiaryFixedVariant: Color(0xffffffff),
+      surfaceDim: Color(0xffc3c7cb),
+      surfaceBright: Color(0xfff6fafe),
+      surfaceContainerLowest: Color(0xffffffff),
+      surfaceContainerLow: Color(0xfff0f4f8),
+      surfaceContainer: Color(0xffe5e9ed),
+      surfaceContainerHigh: Color(0xffd9dde1),
+      surfaceContainerHighest: Color(0xffced2d6),
+    );
+  }
+
+  ThemeData lightMediumContrast() => theme(lightMediumContrastScheme());
+
+  static ColorScheme lightHighContrastScheme() {
+    return const ColorScheme(
+      brightness: Brightness.light,
+      primary: Color(0xff003043),
+      surfaceTint: Color(0xff1b6585),
+      onPrimary: Color(0xffffffff),
+      primaryContainer: Color(0xff004f6c),
+      onPrimaryContainer: Color(0xffffffff),
+      secondary: Color(0xff1b2e39),
+      onSecondary: Color(0xffffffff),
+      secondaryContainer: Color(0xff394c57),
+      onSecondaryContainer: Color(0xffffffff),
+      tertiary: Color(0xff2d2847),
+      onTertiary: Color(0xffffffff),
+      tertiaryContainer: Color(0xff4b4566),
+      onTertiaryContainer: Color(0xffffffff),
+      error: Color(0xff600004),
+      onError: Color(0xffffffff),
+      errorContainer: Color(0xff98000a),
+      onErrorContainer: Color(0xffffffff),
+      surface: Color(0xfff6fafe),
+      onSurface: Color(0xff000000),
+      onSurfaceVariant: Color(0xff000000),
+      outline: Color(0xff262d32),
+      outlineVariant: Color(0xff434a4f),
+      shadow: Color(0xff000000),
+      scrim: Color(0xff000000),
+      inverseSurface: Color(0xff2c3134),
+      inversePrimary: Color(0xff8fcef3),
+      primaryFixed: Color(0xff004f6c),
+      onPrimaryFixed: Color(0xffffffff),
+      primaryFixedDim: Color(0xff00374c),
+      onPrimaryFixedVariant: Color(0xffffffff),
+      secondaryFixed: Color(0xff394c57),
+      onSecondaryFixed: Color(0xffffffff),
+      secondaryFixedDim: Color(0xff223540),
+      onSecondaryFixedVariant: Color(0xffffffff),
+      tertiaryFixed: Color(0xff4b4566),
+      onTertiaryFixed: Color(0xffffffff),
+      tertiaryFixedDim: Color(0xff342e4e),
+      onTertiaryFixedVariant: Color(0xffffffff),
+      surfaceDim: Color(0xffb5b9bd),
+      surfaceBright: Color(0xfff6fafe),
+      surfaceContainerLowest: Color(0xffffffff),
+      surfaceContainerLow: Color(0xffedf1f5),
+      surfaceContainer: Color(0xffdfe3e7),
+      surfaceContainerHigh: Color(0xffd1d5d9),
+      surfaceContainerHighest: Color(0xffc3c7cb),
+    );
+  }
+
+  ThemeData lightHighContrast() => theme(lightHighContrastScheme());
+
+  static ColorScheme darkScheme() {
+    return const ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xff8fcef3),
+      surfaceTint: Color(0xff8fcef3),
+      onPrimary: Color(0xff003549),
+      primaryContainer: Color(0xff004c68),
+      onPrimaryContainer: Color(0xffc3e8ff),
+      secondary: Color(0xffb5c9d7),
+      onSecondary: Color(0xff20333e),
+      secondaryContainer: Color(0xff364955),
+      onSecondaryContainer: Color(0xffd1e5f4),
+      tertiary: Color(0xffcac1ea),
+      onTertiary: Color(0xff322c4c),
+      tertiaryContainer: Color(0xff484264),
+      onTertiaryContainer: Color(0xffe6deff),
+      error: Color(0xffffb4ab),
+      onError: Color(0xff690005),
+      errorContainer: Color(0xff93000a),
+      onErrorContainer: Color(0xffffdad6),
+      surface: Color(0xff0f1417),
+      onSurface: Color(0xffdfe3e7),
+      onSurfaceVariant: Color(0xffc0c7cd),
+      outline: Color(0xff8a9297),
+      outlineVariant: Color(0xff41484d),
+      shadow: Color(0xff000000),
+      scrim: Color(0xff000000),
+      inverseSurface: Color(0xffdfe3e7),
+      inversePrimary: Color(0xff1b6585),
+      primaryFixed: Color(0xffc3e8ff),
+      onPrimaryFixed: Color(0xff001e2c),
+      primaryFixedDim: Color(0xff8fcef3),
+      onPrimaryFixedVariant: Color(0xff004c68),
+      secondaryFixed: Color(0xffd1e5f4),
+      onSecondaryFixed: Color(0xff091e28),
+      secondaryFixedDim: Color(0xffb5c9d7),
+      onSecondaryFixedVariant: Color(0xff364955),
+      tertiaryFixed: Color(0xffe6deff),
+      onTertiaryFixed: Color(0xff1c1736),
+      tertiaryFixedDim: Color(0xffcac1ea),
+      onTertiaryFixedVariant: Color(0xff484264),
+      surfaceDim: Color(0xff0f1417),
+      surfaceBright: Color(0xff353a3d),
+      surfaceContainerLowest: Color(0xff0a0f12),
+      surfaceContainerLow: Color(0xff181c1f),
+      surfaceContainer: Color(0xff1c2023),
+      surfaceContainerHigh: Color(0xff262b2e),
+      surfaceContainerHighest: Color(0xff313539),
+    );
+  }
+
+  ThemeData dark() => theme(darkScheme());
+
+  static ColorScheme darkMediumContrastScheme() {
+    return const ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xffb5e3ff), // This was 8fcef3, user provided b5e3ff for medium contrast primary
+      surfaceTint: Color(0xff8fcef3),
+      onPrimary: Color(0xff00293a),
+      primaryContainer: Color(0xff5898bb), // This was 004c68, user provided 5898bb for medium contrast primaryContainer
+      onPrimaryContainer: Color(0xff000000), // This was c3e8ff, user provided 000000 for medium contrast onPrimaryContainer
+      secondary: Color(0xffcbdfed), // This was b5c9d7, user provided cbdfed for medium contrast secondary
+      onSecondary: Color(0xff152832), // This was 20333e, user provided 152832 for medium contrast onSecondary
+      secondaryContainer: Color(0xff8093a0), // This was 364955, user provided 8093a0 for medium contrast secondaryContainer
+      onSecondaryContainer: Color(0xff000000), // This was d1e5f4, user provided 000000 for medium contrast onSecondaryContainer
+      tertiary: Color(0xffe0d7ff), // This was cac1ea, user provided e0d7ff for medium contrast tertiary
+      onTertiary: Color(0xff272140), // This was 322c4c, user provided 272140 for medium contrast onTertiary
+      tertiaryContainer: Color(0xff938cb2), // This was 484264, user provided 938cb2 for medium contrast tertiaryContainer
+      onTertiaryContainer: Color(0xff000000), // This was e6deff, user provided 000000 for medium contrast onTertiaryContainer
+      error: Color(0xffffd2cc),
+      onError: Color(0xff540003),
+      errorContainer: Color(0xffff5449),
+      onErrorContainer: Color(0xff000000),
+      surface: Color(0xff0f1417),
+      onSurface: Color(0xffffffff),
+      onSurfaceVariant: Color(0xffd6dde3),
+      outline: Color(0xffacb3b9),
+      outlineVariant: Color(0xff8a9197),
+      shadow: Color(0xff000000),
+      scrim: Color(0xff000000),
+      inverseSurface: Color(0xffdfe3e7),
+      inversePrimary: Color(0xff004e6a), // This was 1b6585, user provided 004e6a
+      primaryFixed: Color(0xffc3e8ff),
+      onPrimaryFixed: Color(0xff00131d),
+      primaryFixedDim: Color(0xff8fcef3),
+      onPrimaryFixedVariant: Color(0xff003b51), // This was 004c68, user provided 003b51
+      secondaryFixed: Color(0xffd1e5f4),
+      onSecondaryFixed: Color(0xff01131d), // This was 091e28, user provided 01131d
+      secondaryFixedDim: Color(0xffb5c9d7),
+      onSecondaryFixedVariant: Color(0xff263943), // This was 364955, user provided 263943
+      tertiaryFixed: Color(0xffe6deff),
+      onTertiaryFixed: Color(0xff120c2b), // This was 1c1736, user provided 120c2b
+      tertiaryFixedDim: Color(0xffcac1ea),
+      onTertiaryFixedVariant: Color(0xff373252), // This was 484264, user provided 373252
+      surfaceDim: Color(0xff0f1417),
+      surfaceBright: Color(0xff404549), // This was 353a3d, user provided 404549
+      surfaceContainerLowest: Color(0xff04080b), // This was 0a0f12, user provided 04080b
+      surfaceContainerLow: Color(0xff1a1e21), // This was 181c1f, user provided 1a1e21
+      surfaceContainer: Color(0xff24282c), // This was 1c2023, user provided 24282c
+      surfaceContainerHigh: Color(0xff2e3337), // This was 262b2e, user provided 2e3337
+      surfaceContainerHighest: Color(0xff3a3e42), // This was 313539, user provided 3a3e42
+    );
+  }
+
+  ThemeData darkMediumContrast() => theme(darkMediumContrastScheme());
+
+  static ColorScheme darkHighContrastScheme() {
+    return const ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xffe1f2ff), // This was 8fcef3, user provided e1f2ff
+      surfaceTint: Color(0xff8fcef3),
+      onPrimary: Color(0xff000000), // This was 003549, user provided 000000
+      primaryContainer: Color(0xff8bcbef), // This was 004c68, user provided 8bcbef
+      onPrimaryContainer: Color(0xff000d15), // This was c3e8ff, user provided 000d15
+      secondary: Color(0xffe1f2ff), // This was b5c9d7, user provided e1f2ff
+      onSecondary: Color(0xff000000), // This was 20333e, user provided 000000
+      secondaryContainer: Color(0xffb1c5d3), // This was 364955, user provided b1c5d3
+      onSecondaryContainer: Color(0xff000d15), // This was d1e5f4, user provided 000d15
+      tertiary: Color(0xfff3edff), // This was cac1ea, user provided f3edff
+      onTertiary: Color(0xff000000), // This was 322c4c, user provided 000000
+      tertiaryContainer: Color(0xffc6bde6), // This was 484264, user provided c6bde6
+      onTertiaryContainer: Color(0xff0c0625), // This was e6deff, user provided 0c0625
+      error: Color(0xffffece9),
+      onError: Color(0xff000000),
+      errorContainer: Color(0xffffaea4),
+      onErrorContainer: Color(0xff220001),
+      surface: Color(0xff0f1417),
+      onSurface: Color(0xffffffff),
+      onSurfaceVariant: Color(0xffffffff),
+      outline: Color(0xffeaf1f7),
+      outlineVariant: Color(0xffbcc3c9),
+      shadow: Color(0xff000000),
+      scrim: Color(0xff000000),
+      inverseSurface: Color(0xffdfe3e7),
+      inversePrimary: Color(0xff004e6a), // This was 1b6585, user provided 004e6a
+      primaryFixed: Color(0xffc3e8ff),
+      onPrimaryFixed: Color(0xff000000), // This was 001e2c, user provided 000000
+      primaryFixedDim: Color(0xff8fcef3),
+      onPrimaryFixedVariant: Color(0xff00131d), // This was 004c68, user provided 00131d
+      secondaryFixed: Color(0xffd1e5f4),
+      onSecondaryFixed: Color(0xff000000), // This was 091e28, user provided 000000
+      secondaryFixedDim: Color(0xffb5c9d7),
+      onSecondaryFixedVariant: Color(0xff01131d), // This was 364955, user provided 01131d
+      tertiaryFixed: Color(0xffe6deff),
+      onTertiaryFixed: Color(0xff000000), // This was 1c1736, user provided 000000
+      tertiaryFixedDim: Color(0xffcac1ea),
+      onTertiaryFixedVariant: Color(0xff120c2b), // This was 484264, user provided 120c2b
+      surfaceDim: Color(0xff0f1417),
+      surfaceBright: Color(0xff4c5154), // This was 353a3d, user provided 4c5154
+      surfaceContainerLowest: Color(0xff000000), // This was 0a0f12, user provided 000000
+      surfaceContainerLow: Color(0xff1c2023), // This was 181c1f, user provided 1c2023
+      surfaceContainer: Color(0xff2c3134), // This was 1c2023, user provided 2c3134
+      surfaceContainerHigh: Color(0xff373c3f), // This was 262b2e, user provided 373c3f
+      surfaceContainerHighest: Color(0xff43474b), // This was 313539, user provided 43474b
+    );
+  }
+
+  ThemeData darkHighContrast() => theme(darkHighContrastScheme());
+
+  ThemeData theme(ColorScheme colorScheme) {
+    // This will call AppTheme.buildThemeDataFromScheme
+    // The textTheme from the MaterialTheme instance will be used.
+    // AppTheme.buildThemeDataFromScheme already handles applying bodyColor and displayColor
+    // from the colorScheme to the textTheme.    
+    // The `textTheme` parameter of MaterialTheme's constructor is expected to be a 
+    // GoogleFonts.robotoTextTheme-ified TextTheme.
+    // `buildThemeDataFromScheme` then takes this, and applies color scheme specific colors.
+    return AppTheme.buildThemeDataFromScheme(colorScheme, textTheme);
   }
 }

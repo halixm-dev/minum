@@ -52,12 +52,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Helper to get display name for ThemeSource
   String _getThemeSourceName(ThemeSource source) {
     switch (source) {
-      case ThemeSource.staticBaseline:
-        return "Default"; // Placeholder for AppStrings.staticThemeName or similar
+      case ThemeSource.baseline:
+        return "Default";
+      case ThemeSource.mediumContrast:
+        return "Medium Contrast";
+      case ThemeSource.highContrast:
+        return "High Contrast";
       case ThemeSource.dynamicSystem:
-        return "System Dynamic"; // Placeholder for AppStrings.dynamicThemeName
+        return "System Dynamic";
       case ThemeSource.customSeed:
-        return "Custom Color"; // Placeholder for AppStrings.customThemeName
+        return "Custom Color";
     }
   }
 
@@ -266,39 +270,76 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // dialogContext is fresh here
         return AlertDialog(
           title: const Text(AppStrings.theme),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              RadioListTile<ThemeMode>(
-                title: const Text(AppStrings.lightTheme),
-                value: ThemeMode.light,
-                groupValue: themeProvider.themeMode,
-                onChanged: (ThemeMode? value) {
-                  if (value != null) themeProvider.setThemeMode(value);
-                  // dialogContext is used to pop, check its mounted status
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text(AppStrings.darkTheme),
-                value: ThemeMode.dark,
-                groupValue: themeProvider.themeMode,
-                onChanged: (ThemeMode? value) {
-                  if (value != null) themeProvider.setThemeMode(value);
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text(AppStrings.systemTheme),
-                value: ThemeMode.system,
-                groupValue: themeProvider.themeMode,
-                onChanged: (ThemeMode? value) {
-                  if (value != null) themeProvider.setThemeMode(value);
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                },
-              ),
-            ],
+          content: SingleChildScrollView( // Added SingleChildScrollView for longer content
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Text("Mode", style: TextStyle(fontWeight: FontWeight.bold)), // Sub-header
+                RadioListTile<ThemeMode>(
+                  title: const Text(AppStrings.lightTheme),
+                  value: ThemeMode.light,
+                  groupValue: themeProvider.themeMode,
+                  onChanged: (ThemeMode? value) {
+                    if (value != null) themeProvider.setThemeMode(value);
+                    // Note: Popping here might be too soon if user wants to change source too.
+                    // Consider a "Done" button or popping only when source is selected.
+                    // For now, keeping original behavior of popping on ThemeMode change.
+                    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  },
+                ),
+                RadioListTile<ThemeMode>(
+                  title: const Text(AppStrings.darkTheme),
+                  value: ThemeMode.dark,
+                  groupValue: themeProvider.themeMode,
+                  onChanged: (ThemeMode? value) {
+                    if (value != null) themeProvider.setThemeMode(value);
+                    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  },
+                ),
+                RadioListTile<ThemeMode>(
+                  title: const Text(AppStrings.systemTheme),
+                  value: ThemeMode.system,
+                  groupValue: themeProvider.themeMode,
+                  onChanged: (ThemeMode? value) {
+                    if (value != null) themeProvider.setThemeMode(value);
+                    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  },
+                ),
+                Divider(height: 20.h),
+                const Text("Color Scheme", style: TextStyle(fontWeight: FontWeight.bold)), // Sub-header
+                ...ThemeSource.values.map((source) {
+                  return RadioListTile<ThemeSource>(
+                    title: Text(_getThemeSourceName(source)),
+                    value: source,
+                    groupValue: themeProvider.themeSource,
+                    onChanged: (ThemeSource? value) {
+                      if (value != null) {
+                        themeProvider.setThemeSource(value);
+                        // If the source is customSeed, and no seed is set,
+                        // potentially navigate to a color picker or show a message.
+                        // For now, just setting the source.
+                        if (value == ThemeSource.customSeed && themeProvider.customSeedColor == null) {
+                           // Optionally, prompt user to pick a color here.
+                           // For this task, we just set the source.
+                           logger.i("Custom seed selected, but no color is set yet.");
+                        }
+                      }
+                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                    },
+                  );
+                }),
+              ],
+            ),
           ),
+          actions: [ // Added a common dismiss button
+            TextButton(
+              onPressed: () {
+                if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+              },
+              child: const Text("Close"),
+            ),
+          ],
         );
       },
     );
@@ -775,7 +816,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _buildSettingsTile(
           context: context,
           icon: Icons.format_list_numbered_outlined,
-          title: "Favorite Quick Add Volumes",
+          title: "Quick Add Volumes",
           subtitle: userProfile != null &&
                   userProfile.favoriteIntakeVolumes.isNotEmpty
               ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
