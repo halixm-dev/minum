@@ -110,7 +110,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _dailyGoalController = TextEditingController();
     _weightController = TextEditingController();
     _heightController = TextEditingController();
-    _dateOfBirthController = TextEditingController(); // Initialize date controller
+    _dateOfBirthController =
+        TextEditingController(); // Initialize date controller
 
     // Initialize FocusNodes
     _displayNameFocusNode = FocusNode();
@@ -152,14 +153,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       List<HealthCondition> initialHealthConditions =
           List.from(userProfile.healthConditions ?? [HealthCondition.none]);
-      if (initialHealthConditions.isEmpty)
+      if (initialHealthConditions.isEmpty) {
         initialHealthConditions = [HealthCondition.none];
+      }
       if (_selectedGender != Gender.female) {
         initialHealthConditions.removeWhere((c) =>
             c == HealthCondition.pregnancy ||
             c == HealthCondition.breastfeeding);
-        if (initialHealthConditions.isEmpty)
+        if (initialHealthConditions.isEmpty) {
           initialHealthConditions = [HealthCondition.none];
+        }
       }
       _selectedHealthConditions = initialHealthConditions;
       _selectedWeatherCondition =
@@ -278,10 +281,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         tempUserForCalc.age == null ||
         tempUserForCalc.gender == null ||
         tempUserForCalc.activityLevel == null) {
-      if (mounted)
+      if (mounted) {
         AppUtils.showSnackBar(context,
             "Please fill in Weight, Date of Birth, Gender, and Activity Level to calculate a suggestion.",
             isError: true);
+      }
       return;
     }
 
@@ -302,10 +306,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     AppUtils.hideLoadingDialog(mainScreenContext);
 
     if (!calculationSuccess) {
-      if (mainScreenContext.mounted)
+      if (mainScreenContext.mounted) {
         AppUtils.showSnackBar(mainScreenContext,
             "Could not calculate suggested goal. Please try again.",
             isError: true);
+      }
       return;
     }
 
@@ -320,8 +325,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (apply == true) {
       // Ensure context captured before await is still valid
-      if (!confirmationDialogContext.mounted)
+      if (!confirmationDialogContext.mounted) {
         return; // Added check for captured context
+      }
       if (mounted) {
         // Check for the State's mounted status
         setState(() {
@@ -345,9 +351,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentUser = userProvider.userProfile;
 
     if (currentUser == null) {
-      if (mounted)
+      if (mounted) {
         AppUtils.showSnackBar(context, "User not found. Cannot save profile.",
             isError: true);
+      }
       if (mounted) setState(() => _isLoading = false);
       return;
     }
@@ -457,10 +464,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       logger.e("Error updating profile: $e");
-      if (mounted)
+      if (mounted) {
         AppUtils.showSnackBar(
             context, userProvider.errorMessage ?? "Failed to update profile.",
             isError: true);
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -519,14 +527,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               c == HealthCondition.breastfeeding);
         }
 
-        bool isOz = user.preferredUnit == MeasurementUnit.oz;
-        TextInputType goalKeyboardType = isOz
-            ? const TextInputType.numberWithOptions(decimal: true)
-            : TextInputType.number;
-        List<TextInputFormatter> goalInputFormatters = isOz
-            ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
-            : [FilteringTextInputFormatter.digitsOnly];
-
         return Scaffold(
           appBar: AppBar(
             title: const Text(AppStrings.profile),
@@ -564,11 +564,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _buildPersonalInformationSection(context, user, userProvider, Theme.of(context)),
+                  _buildPersonalInformationSection(
+                      context, user, userProvider, Theme.of(context)),
                   SizedBox(height: 24.h), // Maintain spacing between sections
-                  _buildLifestyleEnvironmentSection(context, user, userProvider, Theme.of(context)),
+                  _buildLifestyleEnvironmentSection(
+                      context, user, userProvider, Theme.of(context)),
                   SizedBox(height: 24.h), // Maintain spacing between sections
-                  _buildHydrationGoalSection(context, user, userProvider, Theme.of(context)),
+                  _buildHydrationGoalSection(
+                      context, user, userProvider, Theme.of(context)),
                   SizedBox(height: 40.h), // Maintain bottom spacing
                 ],
               ),
@@ -579,7 +582,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildPersonalInformationSection(BuildContext context, UserModel user, UserProvider userProvider, ThemeData theme) {
+  Widget _buildPersonalInformationSection(BuildContext context, UserModel user,
+      UserProvider userProvider, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -591,7 +595,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             labelText: 'Display Name',
             prefixIcon: Icon(Icons.person_outline),
           ),
-          validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name"),
+          validator: (value) =>
+              AppUtils.validateNotEmpty(value, fieldName: "Display name"),
           textInputAction: TextInputAction.next,
           onChanged: (_) => _setIsDirty(),
         ),
@@ -607,7 +612,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           enabled: false,
         ), // Email is not editable
         SizedBox(height: 16.h),
-        _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth, (date) {
+        _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth,
+            (date) {
           if (mounted) {
             setState(() {
               _selectedDateOfBirth = date;
@@ -627,7 +633,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _isDirty = true;
                 if (newValue != Gender.female) {
                   _selectedHealthConditions.removeWhere((c) =>
-                      c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+                      c == HealthCondition.pregnancy ||
+                      c == HealthCondition.breastfeeding);
                   if (_selectedHealthConditions.isEmpty) {
                     _selectedHealthConditions = [HealthCondition.none];
                   }
@@ -647,8 +654,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             prefixIcon: Icon(Icons.height_outlined),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-          validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+          ],
+          validator: (val) => (val == null || val.isEmpty)
+              ? null
+              : AppUtils.validateNumber(val, allowDecimal: true),
           onChanged: (_) => _setIsDirty(),
           textInputAction: TextInputAction.next,
         ),
@@ -661,8 +672,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             prefixIcon: Icon(Icons.monitor_weight_outlined),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+          validator: (value) => (value == null || value.isEmpty)
+              ? null
+              : AppUtils.validateNumber(value, allowDecimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+          ],
           onChanged: (_) => _setIsDirty(),
           textInputAction: TextInputAction.next,
         ),
@@ -670,8 +685,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLifestyleEnvironmentSection(BuildContext context, UserModel user, UserProvider userProvider, ThemeData theme) {
-    List<HealthCondition> availableHealthConditions = List.from(HealthCondition.values);
+  Widget _buildLifestyleEnvironmentSection(BuildContext context, UserModel user,
+      UserProvider userProvider, ThemeData theme) {
+    List<HealthCondition> availableHealthConditions =
+        List.from(HealthCondition.values);
     if (_selectedGender != Gender.female) {
       availableHealthConditions.removeWhere((c) =>
           c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
@@ -731,9 +748,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildHydrationGoalSection(BuildContext context, UserModel user, UserProvider userProvider, ThemeData theme) {
+  Widget _buildHydrationGoalSection(BuildContext context, UserModel user,
+      UserProvider userProvider, ThemeData theme) {
     bool isOz = user.preferredUnit == MeasurementUnit.oz;
-    TextInputType goalKeyboardType = isOz ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.number;
+    TextInputType goalKeyboardType = isOz
+        ? const TextInputType.numberWithOptions(decimal: true)
+        : TextInputType.number;
     List<TextInputFormatter> goalInputFormatters = isOz
         ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
         : [FilteringTextInputFormatter.digitsOnly];
@@ -826,7 +846,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onSelected: onChanged,
       // DropdownMenu expands by default to fit its parent or the widest item.
       // To ensure it fills the width like DropdownButtonFormField with isExpanded:true:
-      width: MediaQuery.of(context).size.width - (40.w), // Screen width minus padding
+      width: MediaQuery.of(context).size.width -
+          (40.w), // Screen width minus padding
       // Alternatively, wrap in a SizedBox(width: double.infinity) if parent allows for it,
       // or rely on Expanded if in a Row.
       // The menuStyle can be used for extensive customization (e.g., background color)
@@ -872,14 +893,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   } else {
                     newSelection
                         .removeWhere((item) => item == HealthCondition.none);
-                    if (!newSelection.contains(option))
+                    if (!newSelection.contains(option)) {
                       newSelection.add(option);
+                    }
                   }
                 } else {
                   if (option != HealthCondition.none) {
                     newSelection.remove(option);
-                    if (newSelection.isEmpty)
+                    if (newSelection.isEmpty) {
                       newSelection.add(HealthCondition.none as T);
+                    }
                   }
                 }
                 onSelectionChanged(newSelection);

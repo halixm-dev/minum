@@ -1,4 +1,6 @@
 // lib/src/presentation/screens/home/add_water_log_screen.dart
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // For FilteringTextInputFormatter
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -79,6 +81,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
     if (pickedDate != null) {
       if (!mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
+        // ignore: duplicate_ignore
+        // ignore: use_build_context_synchronously
         context: context,
         initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
       );
@@ -194,7 +198,6 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
     });
 
     final theme = Theme.of(context);
-    final inputTheme = theme.inputDecorationTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -217,6 +220,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 );
                 if (confirmed == true && widget.entryToEdit != null) {
                   if (!mounted) return;
+                  // ignore: duplicate_ignore
+                  // ignore: use_build_context_synchronously
                   AppUtils.showLoadingDialog(context,
                       message: "Deleting log...");
                   try {
@@ -276,7 +281,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 onTap: () => _selectDateTime(context),
               ),
               SizedBox(height: 20.h),
-              Text('Notes (Optional)', // This label is kept as it's for a different field
+              Text(
+                  'Notes (Optional)', // This label is kept as it's for a different field
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),

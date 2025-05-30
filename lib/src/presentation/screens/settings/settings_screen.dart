@@ -509,8 +509,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               TextButton(
                   child: const Text(AppStrings.cancel),
                   onPressed: () {
-                    if (dialogContext.mounted)
+                    if (dialogContext.mounted) {
                       Navigator.of(dialogContext).pop();
+                    }
                   }),
               TextButton(
                 child: const Text(AppStrings.save),
@@ -705,7 +706,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final hydrationService =
         Provider.of<HydrationService>(context, listen: false);
-    final userProfile = userProvider.userProfile;
     final theme = Theme.of(context); // For easy access
 
     return Scaffold(
@@ -715,7 +715,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildGeneralSettingsSection(context, theme, themeProvider, userProvider, hydrationService),
+            _buildGeneralSettingsSection(
+                context, theme, themeProvider, userProvider, hydrationService),
             _buildRemindersSection(context, theme),
             _buildAccountActionsSection(context, theme, authProvider),
           ],
@@ -724,7 +725,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildGeneralSettingsSection(BuildContext context, ThemeData theme, ThemeProvider themeProvider, UserProvider userProvider, HydrationService hydrationService) {
+  Widget _buildGeneralSettingsSection(
+      BuildContext context,
+      ThemeData theme,
+      ThemeProvider themeProvider,
+      UserProvider userProvider,
+      HydrationService hydrationService) {
     final userProfile = userProvider.userProfile;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -744,7 +750,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context: context,
           icon: Icons.color_lens_outlined,
           title: AppStrings.theme,
-          subtitle: "${_getThemeSourceName(themeProvider.themeSource)} / ${themeProvider.currentThemeName}",
+          subtitle:
+              "${_getThemeSourceName(themeProvider.themeSource)} / ${themeProvider.currentThemeName}",
           onTap: () => _showThemeDialog(context, themeProvider),
         ),
         _buildSettingsTile(
@@ -755,7 +762,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? unit_converter.formatVolume(
                   userProfile.dailyGoalMl, userProfile.preferredUnit)
               : 'N/A',
-          onTap: () => _showDailyGoalOptionsDialog(context, userProvider, hydrationService),
+          onTap: () => _showDailyGoalOptionsDialog(
+              context, userProvider, hydrationService),
         ),
         _buildSettingsTile(
           context: context,
@@ -768,7 +776,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context: context,
           icon: Icons.format_list_numbered_outlined,
           title: "Favorite Quick Add Volumes",
-          subtitle: userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty
+          subtitle: userProfile != null &&
+                  userProfile.favoriteIntakeVolumes.isNotEmpty
               ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
                   double volMl = double.tryParse(volStr) ?? 0;
                   return unit_converter.formatVolume(
@@ -788,7 +797,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         _buildSectionTitle(AppStrings.reminders, theme),
         SwitchListTile(
-          title: Text(AppStrings.enableReminders, style: theme.textTheme.titleMedium),
+          title: Text(AppStrings.enableReminders,
+              style: theme.textTheme.titleMedium),
           value: _enableReminders,
           onChanged: (bool value) {
             if (!mounted) return;
@@ -797,7 +807,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             });
             _saveReminderSettings();
           },
-          secondary: Icon(Icons.notifications_active_outlined, color: theme.colorScheme.onSurfaceVariant),
+          secondary: Icon(Icons.notifications_active_outlined,
+              color: theme.colorScheme.onSurfaceVariant),
           activeColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
           inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
@@ -837,7 +848,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             context: context,
             icon: Icons.notifications_none,
             title: "Send Test Notification",
-            subtitle: "Tap to send an immediate test notification to check if notifications are working.",
+            subtitle:
+                "Tap to send an immediate test notification to check if notifications are working.",
             onTap: _sendTestNotification,
           ),
         ],
@@ -845,7 +857,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAccountActionsSection(BuildContext context, ThemeData theme, AuthProvider authProvider) {
+  Widget _buildAccountActionsSection(
+      BuildContext context, ThemeData theme, AuthProvider authProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -875,7 +888,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Center(
           child: Text(
             '${AppStrings.appName} - Version: $_appVersion',
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),
         SizedBox(height: 24.h),
@@ -907,9 +921,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
 
     // Determine colors based on M3 defaults and overrides
-    final Color finalIconColor = iconColor ?? theme.colorScheme.onSurfaceVariant;
+    final Color finalIconColor =
+        iconColor ?? theme.colorScheme.onSurfaceVariant;
     final Color finalTitleColor = textColor ?? theme.colorScheme.onSurface;
-    final Color finalSubtitleColor = textColor?.withOpacity(0.7) ?? theme.colorScheme.onSurfaceVariant;
+    final Color finalSubtitleColor =
+        textColor?.withValues(alpha: 0.7) ?? theme.colorScheme.onSurfaceVariant;
 
     return ListTile(
       leading: Icon(icon, color: finalIconColor),
@@ -921,9 +937,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ?.copyWith(color: finalSubtitleColor))
           : null,
       onTap: onTap,
-      // Removed tileColor to use default transparent background
-      // Removed contentPadding to use M3 default adaptive padding
-      // Removed shape to use default rectangular shape
     );
   }
 }
@@ -1206,13 +1219,15 @@ class _EditDailyGoalDialogContentState
       final newGoal = double.tryParse(_goalController.text);
       if (newGoal != null && newGoal > 0) {
         await widget.userProvider.updateDailyGoal(newGoal);
-        if (mounted)
+        if (mounted) {
           Navigator.of(context).pop(true); // Pop with true to indicate success
+        }
       } else {
         // This case should ideally be caught by the validator, but as a fallback:
-        if (mounted)
+        if (mounted) {
           AppUtils.showSnackBar(context, "Please enter a valid goal.",
               isError: true);
+        }
       }
     }
   }
@@ -1241,8 +1256,9 @@ class _EditDailyGoalDialogContentState
             children: <Widget>[
               TextButton(
                 onPressed: () {
-                  if (mounted)
+                  if (mounted) {
                     Navigator.of(context).pop(false); // Pop with false
+                  }
                 },
                 child: const Text(AppStrings.cancel),
               ),
