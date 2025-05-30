@@ -572,174 +572,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _buildSectionTitle('Personal Information'),
-                  TextFormField(
-                    controller: _displayNameController,
-                    focusNode: _displayNameFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'Display Name',
-                      prefixIcon: Icon(Icons.person_outline),
-                    ),
-                    validator: (value) => AppUtils.validateNotEmpty(value,
-                        fieldName: "Display name"),
-                    textInputAction: TextInputAction.next,
-                  ),
-                  SizedBox(height: 16.h),
-                  TextFormField(
-                    controller: _emailController,
-                    focusNode: _emailFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.email,
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                    readOnly: true,
-                    enabled: false,
-                  ), // Email is not editable
-                  SizedBox(height: 16.h),
-                  _buildDatePickerField(
-                      context, "Date of Birth", _selectedDateOfBirth, (date) {
-                    if (mounted) {
-                      setState(() {
-                        _selectedDateOfBirth = date;
-                        _isDirty = true;
-                      });
-                    }
-                  }),
-                  SizedBox(height: 16.h),
-                  _buildDropdown<Gender?>(
-                    label: "Gender",
-                    value: _selectedGender,
-                    items: [null, Gender.male, Gender.female],
-                    onChanged: (Gender? newValue) {
-                      if (mounted) {
-                        setState(() {
-                          _selectedGender = newValue;
-                          _isDirty = true;
-                          if (newValue != Gender.female) {
-                            _selectedHealthConditions.removeWhere((c) =>
-                                c == HealthCondition.pregnancy ||
-                                c == HealthCondition.breastfeeding);
-                            if (_selectedHealthConditions.isEmpty)
-                              _selectedHealthConditions = [
-                                HealthCondition.none
-                              ];
-                          }
-                        });
-                      }
-                    },
-                    itemAsString: _getGenderDisplayString,
-                    prefixIcon: Icons.wc, // Changed from Icons.wc_outlined
-                  ),
-                  SizedBox(height: 16.h),
-                  TextFormField(
-                    controller: _heightController,
-                    focusNode: _heightFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'Height (cm)',
-                      prefixIcon: Icon(Icons.height_outlined),
-                    ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
-                    ],
-                    validator: (val) => (val == null || val.isEmpty)
-                        ? null
-                        : AppUtils.validateNumber(val, allowDecimal: true),
-                    onChanged: (_) => _setIsDirty(),
-                    textInputAction: TextInputAction.next,
-                  ),
-                  SizedBox(height: 16.h),
-                  TextFormField(
-                    controller: _weightController,
-                    focusNode: _weightFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: '${AppStrings.weight} (${AppStrings.kg})',
-                      prefixIcon: Icon(Icons.monitor_weight_outlined),
-                    ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    validator: (value) => (value == null || value.isEmpty)
-                        ? null
-                        : AppUtils.validateNumber(value, allowDecimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
-                    ],
-                    onChanged: (_) => _setIsDirty(),
-                    textInputAction: TextInputAction.next,
-                  ),
-                  SizedBox(height: 24.h),
-
-                  _buildSectionTitle('Lifestyle & Environment'),
-                  _buildDropdown<ActivityLevel?>(
-                    label: AppStrings.activityLevel,
-                    value: _selectedActivityLevel,
-                    items: [null, ...ActivityLevel.values],
-                    onChanged: (ActivityLevel? newValue) {
-                      if (mounted)
-                        setState(() {
-                          _selectedActivityLevel = newValue;
-                          _isDirty = true;
-                        });
-                    },
-                    itemAsString: _getActivityLevelDisplayString,
-                    prefixIcon: Icons.directions_run_outlined,
-                  ),
-                  SizedBox(height: 16.h),
-                  _buildMultiSelectChipGroup<HealthCondition>(
-                    label: "Health Conditions (Optional)",
-                    allOptions: availableHealthConditions,
-                    selectedOptions: _selectedHealthConditions,
-                    optionAsString: _getHealthConditionDisplayString,
-                    onSelectionChanged: (selected) {
-                      if (mounted)
-                        setState(() {
-                          _selectedHealthConditions = selected;
-                          _isDirty = true;
-                        });
-                    },
-                  ),
-                  SizedBox(height: 16.h),
-                  _buildDropdown<WeatherCondition>(
-                    label: "Typical Weather", value: _selectedWeatherCondition,
-                    items: WeatherCondition.values,
-                    onChanged: (WeatherCondition? newValue) {
-                      if (newValue != null && mounted)
-                        setState(() {
-                          _selectedWeatherCondition = newValue;
-                          _isDirty = true;
-                        });
-                    },
-                    itemAsString: _getWeatherConditionDisplayString,
-                    prefixIcon: Icons
-                        .thermostat, // Changed from Icons.thermostat_outlined
-                  ),
-                  SizedBox(height: 24.h),
-
-                  _buildSectionTitle('Hydration Goal'),
-                  TextFormField(
-                    controller: _dailyGoalController,
-                    focusNode: _dailyGoalFocusNode,
-                    decoration: InputDecoration(
-                      labelText:
-                          'Daily Goal (${user.preferredUnit.displayName})',
-                      prefixIcon: const Icon(Icons.flag_outlined),
-                    ),
-                    keyboardType: goalKeyboardType,
-                    inputFormatters: goalInputFormatters,
-                    validator: (val) =>
-                        AppUtils.validateNumber(val, allowDecimal: isOz),
-                    onChanged: (_) => _setIsDirty(),
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _saveProfile(),
-                  ),
-                  SizedBox(height: 12.h),
-                  FilledButton.tonal(
-                    onPressed: _calculateAndSuggestGoal,
-                    child: const Text("Calculate Suggested Goal"),
-                    // FilledButton.tonal uses secondaryContainer and onSecondaryContainer by default from theme
-                  ),
-                  SizedBox(height: 40.h),
+                  _buildPersonalInformationSection(context, user, userProvider, Theme.of(context)),
+                  SizedBox(height: 24.h), // Maintain spacing between sections
+                  _buildLifestyleEnvironmentSection(context, user, userProvider, Theme.of(context)),
+                  SizedBox(height: 24.h), // Maintain spacing between sections
+                  _buildHydrationGoalSection(context, user, userProvider, Theme.of(context)),
+                  SizedBox(height: 40.h), // Maintain bottom spacing
                 ],
               ),
             ),
@@ -749,16 +587,207 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildPersonalInformationSection(BuildContext context, UserModel user, UserProvider userProvider, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Personal Information'),
+        TextFormField(
+          controller: _displayNameController,
+          focusNode: _displayNameFocusNode,
+          decoration: const InputDecoration(
+            labelText: 'Display Name',
+            prefixIcon: Icon(Icons.person_outline),
+          ),
+          validator: (value) => AppUtils.validateNotEmpty(value, fieldName: "Display name"),
+          textInputAction: TextInputAction.next,
+          onChanged: (_) => _setIsDirty(),
+        ),
+        SizedBox(height: 16.h),
+        TextFormField(
+          controller: _emailController,
+          focusNode: _emailFocusNode,
+          decoration: const InputDecoration(
+            labelText: AppStrings.email,
+            prefixIcon: Icon(Icons.email_outlined),
+          ),
+          readOnly: true,
+          enabled: false,
+        ), // Email is not editable
+        SizedBox(height: 16.h),
+        _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth, (date) {
+          if (mounted) {
+            setState(() {
+              _selectedDateOfBirth = date;
+              _isDirty = true;
+            });
+          }
+        }),
+        SizedBox(height: 16.h),
+        _buildDropdown<Gender?>(
+          label: "Gender",
+          value: _selectedGender,
+          items: [null, Gender.male, Gender.female],
+          onChanged: (Gender? newValue) {
+            if (mounted) {
+              setState(() {
+                _selectedGender = newValue;
+                _isDirty = true;
+                if (newValue != Gender.female) {
+                  _selectedHealthConditions.removeWhere((c) =>
+                      c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+                  if (_selectedHealthConditions.isEmpty) {
+                    _selectedHealthConditions = [HealthCondition.none];
+                  }
+                }
+              });
+            }
+          },
+          itemAsString: _getGenderDisplayString,
+          prefixIcon: Icons.wc,
+        ),
+        SizedBox(height: 16.h),
+        TextFormField(
+          controller: _heightController,
+          focusNode: _heightFocusNode,
+          decoration: const InputDecoration(
+            labelText: 'Height (cm)',
+            prefixIcon: Icon(Icons.height_outlined),
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+          validator: (val) => (val == null || val.isEmpty) ? null : AppUtils.validateNumber(val, allowDecimal: true),
+          onChanged: (_) => _setIsDirty(),
+          textInputAction: TextInputAction.next,
+        ),
+        SizedBox(height: 16.h),
+        TextFormField(
+          controller: _weightController,
+          focusNode: _weightFocusNode,
+          decoration: const InputDecoration(
+            labelText: '${AppStrings.weight} (${AppStrings.kg})',
+            prefixIcon: Icon(Icons.monitor_weight_outlined),
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          validator: (value) => (value == null || value.isEmpty) ? null : AppUtils.validateNumber(value, allowDecimal: true),
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+          onChanged: (_) => _setIsDirty(),
+          textInputAction: TextInputAction.next,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLifestyleEnvironmentSection(BuildContext context, UserModel user, UserProvider userProvider, ThemeData theme) {
+    List<HealthCondition> availableHealthConditions = List.from(HealthCondition.values);
+    if (_selectedGender != Gender.female) {
+      availableHealthConditions.removeWhere((c) =>
+          c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Lifestyle & Environment'),
+        _buildDropdown<ActivityLevel?>(
+          label: AppStrings.activityLevel,
+          value: _selectedActivityLevel,
+          items: [null, ...ActivityLevel.values],
+          onChanged: (ActivityLevel? newValue) {
+            if (mounted) {
+              setState(() {
+                _selectedActivityLevel = newValue;
+                _isDirty = true;
+              });
+            }
+          },
+          itemAsString: _getActivityLevelDisplayString,
+          prefixIcon: Icons.directions_run_outlined,
+        ),
+        SizedBox(height: 16.h),
+        _buildMultiSelectChipGroup<HealthCondition>(
+          label: "Health Conditions (Optional)",
+          allOptions: availableHealthConditions,
+          selectedOptions: _selectedHealthConditions,
+          optionAsString: _getHealthConditionDisplayString,
+          onSelectionChanged: (selected) {
+            if (mounted) {
+              setState(() {
+                _selectedHealthConditions = selected;
+                _isDirty = true;
+              });
+            }
+          },
+        ),
+        SizedBox(height: 16.h),
+        _buildDropdown<WeatherCondition>(
+          label: "Typical Weather",
+          value: _selectedWeatherCondition,
+          items: WeatherCondition.values,
+          onChanged: (WeatherCondition? newValue) {
+            if (newValue != null && mounted) {
+              setState(() {
+                _selectedWeatherCondition = newValue;
+                _isDirty = true;
+              });
+            }
+          },
+          itemAsString: _getWeatherConditionDisplayString,
+          prefixIcon: Icons.thermostat,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHydrationGoalSection(BuildContext context, UserModel user, UserProvider userProvider, ThemeData theme) {
+    bool isOz = user.preferredUnit == MeasurementUnit.oz;
+    TextInputType goalKeyboardType = isOz ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.number;
+    List<TextInputFormatter> goalInputFormatters = isOz
+        ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
+        : [FilteringTextInputFormatter.digitsOnly];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Hydration Goal'),
+        TextFormField(
+          controller: _dailyGoalController,
+          focusNode: _dailyGoalFocusNode,
+          decoration: InputDecoration(
+            labelText: 'Daily Goal (${user.preferredUnit.displayName})',
+            prefixIcon: const Icon(Icons.flag_outlined),
+          ),
+          keyboardType: goalKeyboardType,
+          inputFormatters: goalInputFormatters,
+          validator: (val) => AppUtils.validateNumber(val, allowDecimal: isOz),
+          onChanged: (_) => _setIsDirty(),
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _saveProfile(),
+        ),
+        SizedBox(height: 12.h),
+        FilledButton.tonal(
+          onPressed: _calculateAndSuggestGoal,
+          child: const Text("Calculate Suggested Goal"),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
+    // theme parameter removed as it's already passed to the section builders
+    // and this method is now only called from within them or can use Theme.of(context)
+    // For consistency, let's assume it will use Theme.of(context) if needed,
+    // or be passed `theme` if called from a method that receives `theme`.
+    // Since the section builders now get `theme`, they can pass it here.
+    // However, the original _buildSectionTitle did not take `theme` as a parameter
+    // but accessed it via `Theme.of(context)`. We'll stick to that.
     final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h, top: 16.h),
       child: Text(
         title,
         style: theme.textTheme.titleLarge?.copyWith(
-          // Changed to titleLarge for section headers
           color: theme.colorScheme.primary,
-          // fontWeight removed, rely on M3 theme's definition
         ),
       ),
     );

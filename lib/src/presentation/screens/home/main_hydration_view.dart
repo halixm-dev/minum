@@ -285,125 +285,206 @@ class _MainHydrationViewState extends State<MainHydrationView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: Icon(Icons.chevron_left,
-                    size: 28.sp), // Size can be themed via IconTheme
-                onPressed: () {
-                  context.read<HydrationProvider>().setSelectedDate(
-                        hydrationProvider.selectedDate
-                            .subtract(const Duration(days: 1)),
-                      );
-                },
-              ),
-              Text(
-                DateFormat('EEEE, MMM d')
-                    .format(hydrationProvider.selectedDate),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge, // fontWeight removed
-              ),
-              IconButton(
-                icon: Icon(Icons.chevron_right, size: 28.sp),
-                color: DateUtils.isSameDay(
-                        hydrationProvider.selectedDate, DateTime.now())
-                    ? Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.38) // M3 disabled color
-                    : Theme.of(context)
-                        .iconTheme
-                        .color, // Use default icon theme color
-                onPressed: DateUtils.isSameDay(
-                        hydrationProvider.selectedDate, DateTime.now())
-                    ? null // Disabled
-                    : () {
-                        context.read<HydrationProvider>().setSelectedDate(
-                              hydrationProvider.selectedDate
-                                  .add(const Duration(days: 1)),
-                            );
-                      },
-              ),
-            ],
-          ),
+          _buildDateNavigationHeader(context, hydrationProvider),
           SizedBox(height: 16.h), // Standard M3 spacing
-
-          if (currentUser != null)
-            DailyProgressCard(
-              consumed: totalIntakeToday,
-              goal: dailyGoal,
-              unit: currentUser.preferredUnit,
-            )
-          else
-            // M3 styled loading placeholder for the card
-            Card(
-                child: SizedBox(
-                    height: 150.h, // Approximate height of DailyProgressCard
-                    child: Center(
-                        child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator.adaptive(),
-                        SizedBox(height: 16.h),
-                        Text("Loading user data...",
-                            style: Theme.of(context).textTheme.bodyMedium),
-                      ],
-                    )))),
-
+          _buildDailyProgressSection(context, userProvider, hydrationProvider),
           if (DateUtils.isSameDay(
               hydrationProvider.selectedDate, DateTime.now()))
             _buildNextReminderSection(),
-
           SizedBox(
               height: _nextReminder != null && !_isLoadingReminder
                   ? 8.h
                   : 16.h), // Adjusted spacing
-
-          if (currentUser != null &&
-              DateUtils.isSameDay(
-                  hydrationProvider.selectedDate, DateTime.now()))
-            QuickAddButtons(
-              favoriteVolumes: currentUser.favoriteIntakeVolumes,
-              unit: currentUser.preferredUnit,
-              onQuickAdd: (volumeMl) {
-                context.read<HydrationProvider>().addHydrationEntry(
-                      volumeMl,
-                      source: 'quick_add_${volumeMl}ml',
-                    );
-                AppUtils.showSnackBar(context,
-                    "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} added!");
-              },
-            ),
+          _buildQuickAddSection(context, userProvider, hydrationProvider),
           if (currentUser != null &&
               DateUtils.isSameDay(
                   hydrationProvider.selectedDate, DateTime.now()))
             SizedBox(height: 24.h), // Standard M3 spacing
-
-          if (todaysEntries.isNotEmpty ||
-              hydrationProvider.logStatus ==
-                  HydrationLogStatus
-                      .loading) // Show title if loading or has entries
-            Padding(
-              padding: EdgeInsets.only(
-                  bottom: 8.h, left: 4.w, top: 8.h), // Added top padding
-              child: Text(
-                DateUtils.isSameDay(
-                        hydrationProvider.selectedDate, DateTime.now())
-                    ? "Today's Log"
-                    : "Log for ${DateFormat.MMMd().format(hydrationProvider.selectedDate)}",
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge, // Changed from headlineSmall for better hierarchy
-              ),
-            ),
-
-          buildLogList(),
+          _buildLogTitle(context, hydrationProvider),
+          _LogList(hydrationProvider: hydrationProvider, currentUser: currentUser),
           SizedBox(height: 80.h), // Space for FAB or bottom elements
         ],
       ),
+    );
+  }
+
+  Widget _buildDateNavigationHeader(
+      BuildContext context, HydrationProvider hydrationProvider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.chevron_left,
+              size: 28.sp), // Size can be themed via IconTheme
+          onPressed: () {
+            context.read<HydrationProvider>().setSelectedDate(
+                  hydrationProvider.selectedDate.subtract(const Duration(days: 1)),
+                );
+          },
+        ),
+        Text(
+          DateFormat('EEEE, MMM d').format(hydrationProvider.selectedDate),
+          style: Theme.of(context).textTheme.titleLarge, // fontWeight removed
+        ),
+        IconButton(
+          icon: Icon(Icons.chevron_right, size: 28.sp),
+          color: DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())
+              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38) // M3 disabled color
+              : Theme.of(context).iconTheme.color, // Use default icon theme color
+          onPressed:
+              DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())
+                  ? null // Disabled
+                  : () {
+                      context.read<HydrationProvider>().setSelectedDate(
+                            hydrationProvider.selectedDate.add(const Duration(days: 1)),
+                          );
+                    },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyProgressSection(BuildContext context,
+      UserProvider userProvider, HydrationProvider hydrationProvider) {
+    final UserModel? currentUser = userProvider.userProfile;
+    final double totalIntakeToday = hydrationProvider.totalIntakeToday;
+    final double dailyGoal = currentUser?.dailyGoalMl ?? 2000.0;
+
+    if (currentUser != null) {
+      return DailyProgressCard(
+        consumed: totalIntakeToday,
+        goal: dailyGoal,
+        unit: currentUser.preferredUnit,
+      );
+    } else {
+      // M3 styled loading placeholder for the card
+      return Card(
+          child: SizedBox(
+              height: 150.h, // Approximate height of DailyProgressCard
+              child: Center(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator.adaptive(),
+                  SizedBox(height: 16.h),
+                  Text("Loading user data...",
+                      style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ))));
+    }
+  }
+
+  Widget _buildQuickAddSection(BuildContext context, UserProvider userProvider,
+      HydrationProvider hydrationProvider) {
+    final UserModel? currentUser = userProvider.userProfile;
+    if (currentUser != null &&
+        DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())) {
+      return QuickAddButtons(
+        favoriteVolumes: currentUser.favoriteIntakeVolumes,
+        unit: currentUser.preferredUnit,
+        onQuickAdd: (volumeMl) {
+          context.read<HydrationProvider>().addHydrationEntry(
+                volumeMl,
+                source: 'quick_add_${volumeMl}ml',
+              );
+          AppUtils.showSnackBar(
+              context,
+              "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} added!");
+        },
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildLogTitle(
+      BuildContext context, HydrationProvider hydrationProvider) {
+    final List<HydrationEntry> todaysEntries = hydrationProvider.dailyEntries;
+    if (todaysEntries.isNotEmpty ||
+        hydrationProvider.logStatus == HydrationLogStatus.loading) {
+      // Show title if loading or has entries
+      return Padding(
+        padding: EdgeInsets.only(bottom: 8.h, left: 4.w, top: 8.h), // Added top padding
+        child: Text(
+          DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())
+              ? "Today's Log"
+              : "Log for ${DateFormat.MMMd().format(hydrationProvider.selectedDate)}",
+          style: Theme.of(context).textTheme.titleLarge, // Changed from headlineSmall for better hierarchy
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+}
+
+class _LogList extends StatelessWidget {
+  const _LogList({
+    Key? key,
+    required this.hydrationProvider,
+    required this.currentUser,
+  }) : super(key: key);
+
+  final HydrationProvider hydrationProvider;
+  final UserModel? currentUser;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<HydrationEntry> todaysEntries = hydrationProvider.dailyEntries;
+
+    if (hydrationProvider.logStatus == HydrationLogStatus.loading &&
+        todaysEntries.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (hydrationProvider.logStatus == HydrationLogStatus.error) {
+      return Center(
+          child: Text(
+              hydrationProvider.errorMessage ?? AppStrings.anErrorOccurred));
+    }
+    if (todaysEntries.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 32.h), // Changed from 30.h
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.local_drink_outlined,
+                  size: 56.sp,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant), // Adjusted size
+              SizedBox(height: 16.h),
+              Text(
+                'No water logged yet for today.',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                'Tap the (+) button to add your first drink!',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      // No separator needed as ListTiles can have their own dividers if desired by theme
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: todaysEntries.length,
+      itemBuilder: (context, index) {
+        final entry = todaysEntries[index];
+        return HydrationLogListItem(
+          entry: entry,
+          unit: currentUser?.preferredUnit ?? MeasurementUnit.ml,
+          onDismissed: () {
+            context.read<HydrationProvider>().deleteHydrationEntry(entry);
+          },
+        );
+      },
     );
   }
 }
