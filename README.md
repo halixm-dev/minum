@@ -4,13 +4,13 @@ Stay hydrated and on track with Minum, your smart water reminder app! Sync with 
 
 ## Features
 
--   **Smart Intake Calculation:** (Conceptual) TODO: Integrates with Google Fit, Health Connect, and weather data to suggest ideal water intake.
+-   **Smart Intake Calculation:** TODO: Integrates with Google Fit, Health Connect, and weather data to suggest ideal water intake.
 -   **Firebase Authentication:** Secure login and registration using Google Sign-In and Email/Password.
 -   **Manual & Automatic Targets:** Set your daily hydration goals.
 -   **Intake Logging:** Easily log water consumption.
--   **Progress Tracking:** TODO: Monitor your daily and historical hydration levels (Depends on data layer).
+-   **Progress Tracking:** Monitor your daily and historical hydration levels (Depends on data layer).
 -   **Customizable Reminders:** Get timely notifications to drink water.
--   **Health Data Input:** TODO: Manually add relevant health information (Potentially linked to smart features).
+-   **Health Data Input:** Manually add relevant health information (Potentially linked to smart features).
 -   **Responsive UI:** Material Design interface that adapts to various screen sizes.
 -   **State Management:** Using Provider.
 -   **API Integration:** TODO: Using Dio for network requests (e.g., for weather API, specific integrations).
@@ -23,18 +23,16 @@ minum/
 ├── ios/                # iOS specific files
 ├── lib/                # Main application Dart code
 │   ├── main.dart       # App entry point
-│   ├── src/            # Core application logic (TARGET STRUCTURE - PLANNED)
-│   │   ├── app.dart    # MaterialApp and routing setup (PLANNED)
-│   │   ├── core/       # Constants, themes, utils (PLANNED)
-│   │   ├── data/       # Models, repositories, API providers (PLANNED)
-│   │   ├── presentation/ # UI (screens, widgets) and state management (providers) (PLANNED)
-│   │   ├── services/   # Business logic services (PLANNED)
-│   │   └── navigation/ # Navigation logic (PLANNED)
-│   └── config/         # Firebase configuration (e.g., firebase_options.dart - PLANNED)
+│   ├── firebase_options.dart # Firebase configuration 
+│   ├── src/            # Core application logic
+│       ├── app.dart    # MaterialApp and routing setup
+│       ├── core/       # Constants, themes, utils
+│       ├── data/       # Models, repositories, API providers
+│       ├── presentation/ # UI (screens, widgets) and state management (providers)
+│       ├── services/   # Business logic services
+│       └── navigation/ # Navigation logic
 ├── linux/              # Linux specific files
 ├── macos/              # macOS specific files
-├── test/               # Test files
-│   └── widget_test.dart # Example widget test
 ├── web/                # Web specific files
 ├── windows/            # Windows specific files
 ├── .gitignore          # Specifies intentionally untracked files that Git should ignore
