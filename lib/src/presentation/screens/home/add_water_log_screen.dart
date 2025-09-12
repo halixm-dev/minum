@@ -258,7 +258,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 decoration: InputDecoration(
                   labelText: AppStrings.enterAmount,
                   hintText: 'e.g., 250 or 8',
-                  prefixIcon: Icon(Symbols.local_drink),
+                  prefixIcon: Icon(Symbols.water_full_rounded),
                 ),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
