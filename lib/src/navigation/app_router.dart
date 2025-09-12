@@ -14,6 +14,7 @@ import 'package:minum/src/presentation/screens/profile/profile_screen.dart';
 import 'package:minum/src/presentation/screens/settings/settings_screen.dart';
 import 'package:minum/src/presentation/screens/splash_screen.dart';
 import 'package:minum/src/presentation/screens/stats/hydration_history_screen.dart';
+import 'package:minum/src/navigation/fade_in_page_route.dart';
 
 import 'app_routes.dart';
 
@@ -25,35 +26,30 @@ class AppRouter {
       case AppRoutes.splash:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case AppRoutes.onboarding:
-        return MaterialPageRoute(builder: (_) => const OnboardingScreen());
-      // case AppRoutes.welcome: // Removed
-      //   return MaterialPageRoute(builder: (_) => const WelcomeScreen());
+        return FadeInPageRoute(child: const OnboardingScreen());
       case AppRoutes.authGate:
         return MaterialPageRoute(builder: (_) => const AuthGateScreen());
       case AppRoutes.login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
-      case AppRoutes
-            .register: // Kept for potential direct access or future re-introduction
-        return MaterialPageRoute(builder: (_) => const RegisterScreen());
-      case AppRoutes.forgotPassword: // Kept for potential direct access
-        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+        return FadeInPageRoute(child: const LoginScreen());
+      case AppRoutes.register:
+        return FadeInPageRoute(child: const RegisterScreen());
+      case AppRoutes.forgotPassword:
+        return FadeInPageRoute(child: const ForgotPasswordScreen());
       case AppRoutes.home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return FadeInPageRoute(child: const HomeScreen());
       case AppRoutes.addWaterLog:
         HydrationEntry? entryToEdit;
         if (args is HydrationEntry) {
           entryToEdit = args;
         }
-        return MaterialPageRoute(
-          builder: (_) => AddWaterLogScreen(entryToEdit: entryToEdit),
-        );
+        return FadeInPageRoute(
+            child: AddWaterLogScreen(entryToEdit: entryToEdit));
       case AppRoutes.history:
-        return MaterialPageRoute(
-            builder: (_) => const HydrationHistoryScreen());
+        return FadeInPageRoute(child: const HydrationHistoryScreen());
       case AppRoutes.settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
+        return FadeInPageRoute(child: const SettingsScreen());
       case AppRoutes.profile:
-        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+        return FadeInPageRoute(child: const ProfileScreen());
 
       default:
         return MaterialPageRoute(

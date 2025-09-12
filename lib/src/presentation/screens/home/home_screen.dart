@@ -19,7 +19,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabScaleAnimation;
+
   final List<Widget> _screens = [
     const MainHydrationView(),
     const HydrationHistoryScreen(),
@@ -35,6 +39,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _fabAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fabScaleAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+      parent: _fabAnimationController,
+      curve: Curves.easeInOutBack,
+    ));
+
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     if (userProvider.userProfile == null &&
         userProvider.status != UserProfileStatus.loading) {
@@ -45,53 +59,70 @@ class _HomeScreenState extends State<HomeScreen> {
             "HomeScreen initState: User profile is null, UserProvider should fetch it via auth state changes.");
       }
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Provider.of<BottomNavProvider>(context, listen: false).currentIndex ==
+          0) {
+        _fabAnimationController.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _fabAnimationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final bottomNavProvider = Provider.of<BottomNavProvider>(context);
     final currentIndex = bottomNavProvider.currentIndex;
-    // final theme = Theme.of(context); // Unused local variable removed
+    final theme = Theme.of(context);
+
+    if (currentIndex == 0) {
+      _fabAnimationController.forward();
+    } else {
+      _fabAnimationController.reverse();
+    }
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surfaceContainer,
       appBar: AppBar(
         title: Text(_appBarTitles[currentIndex]),
-        // centerTitle and actions will be handled by appBarTheme from AppTheme
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: IndexedStack(
-        index: currentIndex,
-        children: _screens,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: _screens[currentIndex],
       ),
-      floatingActionButton: currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
-              },
-              // backgroundColor and foregroundColor will be handled by floatingActionButtonTheme
-              tooltip: "Log Water Intake",
-              child: Icon(Icons.add,
-                  size: 28.sp), // Icon color will also be from theme
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation
-          .endFloat, // M3 default is often .centerFloat with BottomAppBar, or .endFloat
+      floatingActionButton: ScaleTransition(
+        scale: _fabScaleAnimation,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
+          },
+          tooltip: "Log Water Intake",
+          child: Icon(Icons.add, size: 28.sp),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: (index) {
           bottomNavProvider.setCurrentIndex(index);
         },
-        // Styling for NavigationBar comes from navigationBarTheme in AppTheme:
-        // - backgroundColor: colorScheme.surfaceContainer
-        // - indicatorColor: colorScheme.secondaryContainer
-        // - iconTheme: (selected: onSecondaryContainer, unselected: onSurfaceVariant)
-        // - labelTextStyle: (selected: onSurface, unselected: onSurfaceVariant, using labelMedium)
-        // - height: 80.h
-        // - elevation: 2.0
         destinations: const <Widget>[
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(
-                Icons.home), // M3 often uses filled icons for selected state
+            selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
           NavigationDestination(

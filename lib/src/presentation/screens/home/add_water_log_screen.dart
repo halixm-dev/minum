@@ -23,23 +23,31 @@ class AddWaterLogScreen extends StatefulWidget {
   State<AddWaterLogScreen> createState() => _AddWaterLogScreenState();
 }
 
-class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
+class _AddWaterLogScreenState extends State<AddWaterLogScreen>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _notesController = TextEditingController();
-  late TextEditingController _dateTimeController; // Added for date/time picker
+  late TextEditingController _dateTimeController;
 
   DateTime _selectedDateTime = DateTime.now();
   MeasurementUnit _currentUnit = MeasurementUnit.ml;
   bool _isEditMode = false;
 
+  late AnimationController _animationController;
+
   @override
   void initState() {
     super.initState();
-    _dateTimeController = TextEditingController(); // Initialize controller
+    _dateTimeController = TextEditingController();
     _isEditMode = widget.entryToEdit != null;
     final userProfile =
         Provider.of<UserProvider>(context, listen: false).userProfile;
+
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
 
     if (userProfile != null) {
       _currentUnit = userProfile.preferredUnit;
@@ -57,21 +65,22 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       _notesController.text = entry.notes ?? '';
       _selectedDateTime = entry.timestamp;
     }
-    // Set initial text for the date/time controller
     _dateTimeController.text =
         DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
+
+    _animationController.forward();
   }
 
   @override
   void dispose() {
     _amountController.dispose();
     _notesController.dispose();
-    _dateTimeController.dispose(); // Dispose controller
+    _dateTimeController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   Future<void> _selectDateTime(BuildContext context) async {
-    if (!mounted) return;
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDateTime,
@@ -79,15 +88,11 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (pickedDate != null) {
-      if (!mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
-        // ignore: duplicate_ignore
-        // ignore: use_build_context_synchronously
         context: context,
         initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
       );
       if (pickedTime != null) {
-        if (!mounted) return;
         setState(() {
           _selectedDateTime = DateTime(
             pickedDate.year,
@@ -96,7 +101,6 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
             pickedTime.hour,
             pickedTime.minute,
           );
-          // Update the controller's text
           _dateTimeController.text =
               DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
         });
@@ -123,17 +127,13 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
     }
 
     if (amountMl <= 0) {
-      if (mounted) {
-        AppUtils.showSnackBar(context, "Please enter a valid amount.",
-            isError: true);
-      }
+      AppUtils.showSnackBar(context, "Please enter a valid amount.",
+          isError: true);
       return;
     }
 
-    if (mounted) {
-      AppUtils.showLoadingDialog(context,
-          message: _isEditMode ? "Updating log..." : "Logging water...");
-    }
+    AppUtils.showLoadingDialog(context,
+        message: _isEditMode ? "Updating log..." : "Logging water...");
 
     try {
       if (_isEditMode) {
@@ -153,14 +153,10 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
           source: 'manual_add',
         );
       }
-
-      if (!mounted) return;
       AppUtils.hideLoadingDialog(context);
-      if (!mounted) return;
       Navigator.of(context).pop();
     } catch (e) {
       logger.e("Error saving/updating water log: $e");
-      if (!mounted) return;
       AppUtils.hideLoadingDialog(context);
     }
   }
@@ -170,48 +166,17 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   @override
   Widget build(BuildContext context) {
     final hydrationProvider = Provider.of<HydrationProvider>(context);
-    final userProfile =
-        Provider.of<UserProvider>(context, listen: false).userProfile;
-
-    if (userProfile != null && _currentUnit != userProfile.preferredUnit) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _currentUnit = userProfile.preferredUnit;
-          });
-        }
-      });
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted &&
-          (hydrationProvider.actionStatus == HydrationActionStatus.success ||
-              hydrationProvider.actionStatus == HydrationActionStatus.error)) {
-        if (hydrationProvider.actionStatus == HydrationActionStatus.error &&
-            hydrationProvider.errorMessage != null) {
-          AppUtils.showSnackBar(context, hydrationProvider.errorMessage!,
-              isError: true);
-        }
-        // Success snackbar can be shown by the calling screen if needed, or here.
-        // For now, pop on success is handled in _saveOrUpdateLog.
-      }
-    });
-
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditMode ? "Edit Water Log" : AppStrings.logWaterTitle),
-        // centerTitle, elevation handled by appBarTheme
         actions: [
           if (_isEditMode)
             IconButton(
-              icon: Icon(Icons.delete,
-                  color:
-                      theme.colorScheme.error), // Changed to filled delete icon
+              icon: Icon(Icons.delete_forever, color: theme.colorScheme.error),
               tooltip: "Delete Log",
               onPressed: () async {
-                if (!mounted) return;
                 final bool? confirmed = await AppUtils.showConfirmationDialog(
                   context,
                   title: "Delete Log",
@@ -219,21 +184,15 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                   confirmText: "Delete",
                 );
                 if (confirmed == true && widget.entryToEdit != null) {
-                  if (!mounted) return;
-                  // ignore: duplicate_ignore
-                  // ignore: use_build_context_synchronously
                   AppUtils.showLoadingDialog(context,
                       message: "Deleting log...");
                   try {
                     await hydrationProvider
                         .deleteHydrationEntry(widget.entryToEdit!);
-                    if (!mounted) return;
                     AppUtils.hideLoadingDialog(context);
-                    if (!mounted) return;
                     Navigator.of(context).pop();
                   } catch (e) {
                     logger.e("Error deleting log from AddWaterLogScreen: $e");
-                    if (!mounted) return; // Added check for catch block
                     AppUtils.hideLoadingDialog(context);
                   }
                 }
@@ -242,81 +201,138 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Amount ($_unitString)',
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              SizedBox(height: 8.h),
-              TextFormField(
-                controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: AppStrings.enterAmount,
-                  hintText: 'e.g., 250 or 8',
-                  prefixIcon: Icon(Icons.local_drink_outlined),
-                ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) =>
-                    AppUtils.validateNumber(value, allowDecimal: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                ],
-                textInputAction: TextInputAction.next,
+              _AnimatedSlideFade(
+                animation: _animationController,
+                order: 1,
+                child: Text('Amount ($_unitString)',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(color: theme.colorScheme.primary)),
               ),
-              SizedBox(height: 20.h),
-              // The Text widget for "Date & Time" label is removed as it's now part of InputDecoration
-              TextFormField(
-                controller: _dateTimeController,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  labelText: 'Date & Time', // Label integrated here
-                  prefixIcon: Icon(Icons.edit_calendar_outlined),
-                  // Styling (border, fillColor, contentPadding) from app's InputDecorationTheme
+              SizedBox(height: 12.h),
+              _AnimatedSlideFade(
+                animation: _animationController,
+                order: 2,
+                child: TextFormField(
+                  controller: _amountController,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.enterAmount,
+                    hintText: 'e.g., 250 or 8',
+                    prefixIcon: Icon(Icons.local_drink),
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) =>
+                      AppUtils.validateNumber(value, allowDecimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                  ],
+                  textInputAction: TextInputAction.next,
                 ),
-                onTap: () => _selectDateTime(context),
               ),
-              SizedBox(height: 20.h),
-              Text(
-                  'Notes (Optional)', // This label is kept as it's for a different field
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              SizedBox(height: 8.h),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Add a note',
-                  hintText: 'e.g., After workout',
+              SizedBox(height: 24.h),
+              _AnimatedSlideFade(
+                animation: _animationController,
+                order: 3,
+                child: TextFormField(
+                  controller: _dateTimeController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Date & Time',
+                    prefixIcon: Icon(Icons.edit_calendar),
+                  ),
+                  onTap: () => _selectDateTime(context),
                 ),
-                maxLines: 3,
-                minLines: 1,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _saveOrUpdateLog(),
               ),
-              SizedBox(height: 32.h),
-              FilledButton(
-                onPressed: hydrationProvider.actionStatus ==
-                        HydrationActionStatus.processing
-                    ? null
-                    : _saveOrUpdateLog,
-                child: hydrationProvider.actionStatus ==
-                        HydrationActionStatus.processing
-                    ? SizedBox(
-                        width: 20.r,
-                        height: 20.r,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: theme.colorScheme.onPrimary))
-                    : Text(
-                        _isEditMode ? "Update Log" : AppStrings.logWaterTitle),
+              SizedBox(height: 24.h),
+              _AnimatedSlideFade(
+                animation: _animationController,
+                order: 4,
+                child: Text('Notes (Optional)',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(color: theme.colorScheme.primary)),
+              ),
+              SizedBox(height: 12.h),
+              _AnimatedSlideFade(
+                animation: _animationController,
+                order: 5,
+                child: TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(
+                    labelText: 'Add a note',
+                    hintText: 'e.g., After workout',
+                    prefixIcon: Icon(Icons.notes),
+                  ),
+                  maxLines: 3,
+                  minLines: 1,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _saveOrUpdateLog(),
+                ),
+              ),
+              SizedBox(height: 40.h),
+              _AnimatedSlideFade(
+                animation: _animationController,
+                order: 6,
+                child: FilledButton(
+                  onPressed: hydrationProvider.actionStatus ==
+                          HydrationActionStatus.processing
+                      ? null
+                      : _saveOrUpdateLog,
+                  child: hydrationProvider.actionStatus ==
+                          HydrationActionStatus.processing
+                      ? SizedBox(
+                          width: 20.r,
+                          height: 20.r,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: theme.colorScheme.onPrimary))
+                      : Text(_isEditMode
+                          ? "Update Log"
+                          : AppStrings.logWaterTitle),
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AnimatedSlideFade extends StatelessWidget {
+  final Animation<double> animation;
+  final int order;
+  final Widget child;
+
+  const _AnimatedSlideFade({
+    required this.animation,
+    required this.order,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: animation,
+        curve: Interval(0.1 * order, 0.5 + 0.1 * order,
+            curve: Curves.easeOut),
+      ),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.2),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Interval(0.1 * order, 0.5 + 0.1 * order,
+              curve: Curves.easeOut),
+        )),
+        child: child,
       ),
     );
   }
