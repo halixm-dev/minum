@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/settings/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_strings.dart'; // Assuming AppStrings class exists
 import 'package:minum/src/core/utils/app_utils.dart';
@@ -469,7 +470,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.edit_outlined),
+                leading: Icon(Symbols.edit),
                 title: const Text("Enter Manually"),
                 onTap: () {
                   // screenContext is passed to the next dialog showing method
@@ -478,7 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.calculate_outlined),
+                leading: Icon(Symbols.calculate),
                 title: const Text("Calculate Suggestion"),
                 onTap: () {
                   // screenContext is passed
@@ -779,7 +780,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _buildSectionTitle(AppStrings.general, theme),
         _buildSettingsTile(
           context: context,
-          icon: Icons.person_outline,
+          icon: Symbols.person,
           title: AppStrings.profile,
           subtitle: "Manage your personal details",
           onTap: () {
@@ -789,7 +790,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         _buildSettingsTile(
           context: context,
-          icon: Icons.color_lens_outlined,
+          icon: Symbols.color_lens,
           title: AppStrings.theme,
           subtitle:
               "${_getThemeSourceName(themeProvider.themeSource)} / ${themeProvider.currentThemeName}",
@@ -797,7 +798,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         _buildSettingsTile(
           context: context,
-          icon: Icons.water_drop_outlined,
+          icon: Symbols.water_drop,
           title: AppStrings.dailyWaterGoal,
           subtitle: userProfile != null
               ? unit_converter.formatVolume(
@@ -808,14 +809,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         _buildSettingsTile(
           context: context,
-          icon: Icons.straighten_outlined,
+          icon: Symbols.straighten,
           title: AppStrings.measurementUnit,
           subtitle: userProfile?.preferredUnit.displayName ?? AppStrings.ml,
           onTap: () => _showEditMeasurementUnitDialog(context, userProvider),
         ),
         _buildSettingsTile(
           context: context,
-          icon: Icons.format_list_numbered_outlined,
+          icon: Symbols.format_list_numbered,
           title: "Quick Add Volumes",
           subtitle: userProfile != null &&
                   userProfile.favoriteIntakeVolumes.isNotEmpty
@@ -848,7 +849,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             });
             _saveReminderSettings();
           },
-          secondary: Icon(Icons.notifications_active_outlined,
+          secondary: Icon(Symbols.notifications_active,
               color: theme.colorScheme.onSurfaceVariant),
           activeColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
@@ -857,7 +858,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (_enableReminders) ...[
           _buildSettingsTile(
             context: context,
-            icon: Icons.hourglass_empty_outlined,
+            icon: Symbols.hourglass_empty,
             title: "Reminder Interval",
             subtitle: () {
               if (_selectedIntervalHours <= 0) return "N/A";
@@ -873,21 +874,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildSettingsTile(
             context: context,
-            icon: Icons.schedule_outlined,
+            icon: Symbols.schedule,
             title: "Reminder Start Time",
             subtitle: _selectedStartTime.format(context),
             onTap: () => _selectTime(context, true),
           ),
           _buildSettingsTile(
             context: context,
-            icon: Icons.watch_later_outlined,
+            icon: Symbols.watch_later,
             title: "Reminder End Time",
             subtitle: _selectedEndTime.format(context),
             onTap: () => _selectTime(context, false),
           ),
           _buildSettingsTile(
             context: context,
-            icon: Icons.notifications_none,
+            icon: Symbols.notifications_none,
             title: "Send Test Notification",
             subtitle:
                 "Tap to send an immediate test notification to check if notifications are working.",
@@ -910,7 +911,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (authProvider.isAuthenticated)
           _buildSettingsTile(
             context: context,
-            icon: Icons.logout_outlined,
+            icon: Symbols.logout,
             title: AppStrings.logout,
             onTap: _handleLogout,
             textColor: theme.colorScheme.error,
@@ -919,7 +920,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         else
           _buildSettingsTile(
             context: context,
-            icon: Icons.login_outlined,
+            icon: Symbols.login,
             title: "Login / Sign Up",
             onTap: _handleLogin,
             textColor: theme.colorScheme.primary,
@@ -1162,7 +1163,7 @@ class _EditFavoriteVolumesDialogContentState
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.remove_circle,
+                      icon: Icon(Symbols.remove,
                           color: Theme.of(context)
                               .colorScheme
                               .error), // Changed to filled
@@ -1179,7 +1180,7 @@ class _EditFavoriteVolumesDialogContentState
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
                   onPressed: () => _addVolumeField(),
-                  icon: const Icon(Icons.add_circle_outline),
+                  icon: Icon(Symbols.add_circle),
                   label: const Text("Add Volume"),
                 ),
               ),

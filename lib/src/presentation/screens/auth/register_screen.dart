@@ -2,6 +2,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
@@ -97,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         .colorScheme
                         .primary, // Optionally tint logo
                     errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.water_drop,
+                        Symbols.water_drop,
                         size: 70.h,
                         color: Theme.of(context).colorScheme.primary),
                   ),
@@ -124,10 +125,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   TextFormField(
                     controller: _displayNameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Display Name',
                       hintText: 'Your Name',
-                      prefixIcon: Icon(Icons.person_outline),
+                      prefixIcon: Icon(Symbols.person),
                     ),
                     validator: (value) => AppUtils.validateNotEmpty(value,
                         fieldName: "Display name"),
@@ -137,10 +138,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: AppStrings.email,
                       hintText: 'you@example.com',
-                      prefixIcon: Icon(Icons.email_outlined),
+                      prefixIcon: Icon(Symbols.email),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: AppUtils.validateEmail,
@@ -153,11 +154,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: InputDecoration(
                       labelText: AppStrings.password,
                       hintText: 'Create a password (min. 6 characters)',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Symbols.lock),
                       suffixIcon: IconButton(
                           icon: Icon(_obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined),
+                              ? Symbols.visibility_off
+                              : Symbols.visibility),
                           onPressed: () => setState(
                               () => _obscurePassword = !_obscurePassword)),
                     ),
@@ -172,11 +173,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: InputDecoration(
                       labelText: AppStrings.confirmPassword,
                       hintText: 'Re-enter your password',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Symbols.lock),
                       suffixIcon: IconButton(
                           icon: Icon(_obscureConfirmPassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined),
+                              ? Symbols.visibility_off
+                              : Symbols.visibility),
                           onPressed: () => setState(() =>
                               _obscureConfirmPassword =
                                   !_obscureConfirmPassword)),

@@ -1,6 +1,7 @@
 // lib/src/presentation/widgets/common/social_login_button.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 class SocialLoginButton extends StatelessWidget {
   final String text;
@@ -65,7 +66,7 @@ class SocialLoginButton extends StatelessWidget {
             width: 20.w,
             // color: progressIndicatorColor, // This will only work for SVGs or template images
             errorBuilder: (context, error, stackTrace) {
-              return Icon(Icons.login,
+              return Icon(Symbols.login,
                   size: 20.sp, color: progressIndicatorColor);
             },
           ),

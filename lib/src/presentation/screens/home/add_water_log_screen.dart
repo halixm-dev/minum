@@ -2,7 +2,8 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For FilteringTextInputFormatter
+import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart'; // For FilteringTextInputFormatter
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
@@ -206,7 +207,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
         actions: [
           if (_isEditMode)
             IconButton(
-              icon: Icon(Icons.delete,
+              icon: Icon(Symbols.delete,
                   color:
                       theme.colorScheme.error), // Changed to filled delete icon
               tooltip: "Delete Log",
@@ -254,10 +255,10 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
               SizedBox(height: 8.h),
               TextFormField(
                 controller: _amountController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: AppStrings.enterAmount,
                   hintText: 'e.g., 250 or 8',
-                  prefixIcon: Icon(Icons.local_drink_outlined),
+                  prefixIcon: Icon(Symbols.local_drink),
                 ),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
@@ -273,9 +274,9 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
               TextFormField(
                 controller: _dateTimeController,
                 readOnly: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Date & Time', // Label integrated here
-                  prefixIcon: Icon(Icons.edit_calendar_outlined),
+                  prefixIcon: Icon(Symbols.edit_calendar),
                   // Styling (border, fillColor, contentPadding) from app's InputDecorationTheme
                 ),
                 onTap: () => _selectDateTime(context),
