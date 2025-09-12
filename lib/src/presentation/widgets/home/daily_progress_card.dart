@@ -1,6 +1,7 @@
 // lib/src/presentation/widgets/home/daily_progress_card.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
 import 'package:minum/src/core/utils/app_utils.dart'; // For formatting amount
@@ -93,7 +94,7 @@ class DailyProgressCard extends StatelessWidget {
                 ),
                 SizedBox(width: 8.w), // M3 standard spacing
                 if (progress >= 1.0)
-                  Icon(Icons.check_circle_rounded,
+                  Icon(Symbols.check_circle,
                       color: theme.colorScheme.tertiary,
                       size: 28.sp) // Adjusted size
                 else
