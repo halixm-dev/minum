@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/auth/welcome_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
@@ -48,7 +49,7 @@ class WelcomeScreen extends StatelessWidget {
                       .primary, // Optionally tint logo with primary color if it's a template image
                   errorBuilder: (context, error, stackTrace) {
                     logger.e("WelcomeScreen: Error loading app logo: $error");
-                    return Icon(Icons.water_drop_rounded,
+                    return Icon(Symbols.water_drop,
                         size: 120.h, color: colorScheme.primary);
                   },
                 ),

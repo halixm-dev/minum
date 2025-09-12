@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/core/not_found_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart'; // For home route
 
@@ -22,7 +23,7 @@ class NotFoundScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Icon(
-                Icons
+                Symbols
                     .error, // Changed from Icons.error_outline to filled version for M3 emphasis
                 color: Theme.of(context).colorScheme.error,
                 size: 80.sp,

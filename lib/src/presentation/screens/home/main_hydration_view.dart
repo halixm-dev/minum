@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/home/main_hydration_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/data/models/hydration_entry_model.dart';
@@ -174,7 +175,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               child: Row(
                 children: [
-                  Icon(Icons.alarm_outlined,
+                  Icon(Symbols.alarm,
                       size: 24.sp,
                       color: Theme.of(context).colorScheme.primary),
                   SizedBox(width: 12.w),
@@ -255,7 +256,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         IconButton(
-          icon: Icon(Icons.chevron_left,
+          icon: Icon(Symbols.chevron_left,
               size: 28.sp), // Size can be themed via IconTheme
           onPressed: () {
             context.read<HydrationProvider>().setSelectedDate(
@@ -269,7 +270,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
           style: Theme.of(context).textTheme.titleLarge, // fontWeight removed
         ),
         IconButton(
-          icon: Icon(Icons.chevron_right, size: 28.sp),
+          icon: Icon(Symbols.chevron_right, size: 28.sp),
           color: DateUtils.isSameDay(
                   hydrationProvider.selectedDate, DateTime.now())
               ? Theme.of(context)
@@ -396,7 +397,7 @@ class _LogList extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.local_drink_outlined,
+              Icon(Symbols.water_full,
                   size: 56.sp,
                   color: Theme.of(context)
                       .colorScheme

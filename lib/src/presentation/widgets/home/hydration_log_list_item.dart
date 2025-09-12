@@ -1,6 +1,7 @@
 // lib/src/presentation/widgets/home/hydration_log_list_item.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart'; // For time formatting
 import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
@@ -22,15 +23,15 @@ class HydrationLogListItem extends StatelessWidget {
   String get _unitString => unit == MeasurementUnit.ml ? 'mL' : 'oz';
 
   IconData _getSourceIcon() {
-    if (entry.source == null) return Icons.water_drop_outlined;
-    if (entry.source!.startsWith('quick_add')) return Icons.bolt_outlined;
+    if (entry.source == null) return Symbols.water_drop;
+    if (entry.source!.startsWith('quick_add')) return Symbols.bolt;
     if (entry.source!.contains('google_fit')) {
-      return Icons.fitness_center_outlined;
+      return Symbols.fitness_center;
     }
     if (entry.source!.contains('health_connect')) {
-      return Icons.health_and_safety_outlined;
+      return Symbols.health_and_safety;
     }
-    return Icons.water_drop_outlined; // Default
+    return Symbols.water_drop; // Default
   }
 
   @override
@@ -50,7 +51,7 @@ class HydrationLogListItem extends StatelessWidget {
         color: theme.colorScheme.errorContainer, // M3 error container color
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         alignment: Alignment.centerRight,
-        child: Icon(Icons.delete,
+        child: Icon(Symbols.delete,
             color: theme.colorScheme.onErrorContainer,
             size: 28.sp), // Changed to filled
       ),
