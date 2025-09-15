@@ -1,6 +1,8 @@
 // lib/src/presentation/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
@@ -9,6 +11,7 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/screens/home/main_hydration_view.dart';
 import 'package:minum/src/presentation/screens/settings/settings_screen.dart';
 import 'package:minum/src/presentation/screens/stats/hydration_history_screen.dart';
+import 'package:minum/src/presentation/widgets/home/fab_menu.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 
@@ -51,61 +54,51 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bottomNavProvider = Provider.of<BottomNavProvider>(context);
     final currentIndex = bottomNavProvider.currentIndex;
-    // final theme = Theme.of(context); // Unused local variable removed
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_appBarTitles[currentIndex]),
-        // centerTitle and actions will be handled by appBarTheme from AppTheme
-      ),
-      body: IndexedStack(
-        index: currentIndex,
-        children: _screens,
-      ),
-      floatingActionButton: currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
-              },
-              // backgroundColor and foregroundColor will be handled by floatingActionButtonTheme
-              tooltip: "Log Water Intake",
-              child: Icon(Icons.add,
-                  size: 28.sp), // Icon color will also be from theme
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation
-          .endFloat, // M3 default is often .centerFloat with BottomAppBar, or .endFloat
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (index) {
-          bottomNavProvider.setCurrentIndex(index);
-        },
-        // Styling for NavigationBar comes from navigationBarTheme in AppTheme:
-        // - backgroundColor: colorScheme.surfaceContainer
-        // - indicatorColor: colorScheme.secondaryContainer
-        // - iconTheme: (selected: onSecondaryContainer, unselected: onSurfaceVariant)
-        // - labelTextStyle: (selected: onSurface, unselected: onSurfaceVariant, using labelMedium)
-        // - height: 80.h
-        // - elevation: 2.0
-        destinations: const <Widget>[
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(
-                Icons.home), // M3 often uses filled icons for selected state
-            label: 'Home',
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: Text(_appBarTitles[currentIndex]),
+            // centerTitle and actions will be handled by appBarTheme from AppTheme
           ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'History',
+          body: IndexedStack(
+            index: currentIndex,
+            children: _screens,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: currentIndex,
+            onDestinationSelected: (index) {
+              bottomNavProvider.setCurrentIndex(index);
+            },
+            // Styling for NavigationBar comes from navigationBarTheme in AppTheme
+            destinations: const <Widget>[
+              NavigationDestination(
+                icon: Icon(Symbols.home,
+                    weight: 600, fontFamily: MaterialSymbols.rounded),
+                selectedIcon: Icon(Symbols.home,
+                    fill: 1, weight: 600, fontFamily: MaterialSymbols.rounded),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Symbols.bar_chart,
+                    weight: 600, fontFamily: MaterialSymbols.rounded),
+                selectedIcon: Icon(Symbols.bar_chart,
+                    fill: 1, weight: 600, fontFamily: MaterialSymbols.rounded),
+                label: 'History',
+              ),
+              NavigationDestination(
+                icon: Icon(Symbols.settings,
+                    weight: 600, fontFamily: MaterialSymbols.rounded),
+                selectedIcon: Icon(Symbols.settings,
+                    fill: 1, weight: 600, fontFamily: MaterialSymbols.rounded),
+                label: 'Settings',
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        if (currentIndex == 0) const FabMenu(),
+      ],
     );
   }
 }
