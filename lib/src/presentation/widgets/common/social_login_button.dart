@@ -2,15 +2,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+/// A customizable button for social login actions.
+///
+/// This button is styled as an `OutlinedButton` and can display a social media
+/// icon, text, and a loading indicator.
 class SocialLoginButton extends StatelessWidget {
+  /// The text to display on the button.
   final String text;
-  final String assetName; // Path to the social icon asset (e.g., Google logo)
+  /// The path to the social icon asset.
+  final String assetName;
+  /// The callback that is called when the button is tapped.
   final VoidCallback? onPressed;
+  /// A flag to indicate if the button is in a loading state.
   final bool isLoading;
+  /// The width of the button.
   final double? width;
-  // final double? height; // Removed height, M3 buttons derive height from theme/content
-  final ButtonStyle? style; // Allow full style override if needed
+  /// The style of the button.
+  final ButtonStyle? style;
 
+  /// Creates a `SocialLoginButton`.
   const SocialLoginButton({
     super.key,
     required this.text,
@@ -18,27 +28,22 @@ class SocialLoginButton extends StatelessWidget {
     this.onPressed,
     this.isLoading = false,
     this.width,
-    // this.height, // Removed height
     this.style,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Use the theme's OutlinedButton style as a base
     final baseStyle = theme.outlinedButtonTheme.style ?? const ButtonStyle();
 
-    // Merge with provided style if any
     ButtonStyle effectiveStyle = baseStyle;
     if (style != null) {
       effectiveStyle = baseStyle.merge(style);
     }
 
-    // Determine color for progress indicator and fallback icon
-    // This should ideally come from the resolved foregroundColor of the button style
     Color progressIndicatorColor =
         effectiveStyle.foregroundColor?.resolve({WidgetState.disabled}) ??
-            theme.colorScheme.onSurface.withValues(alpha: 0.38);
+            theme.colorScheme.onSurface.withAlpha(97);
     if (effectiveStyle.foregroundColor?.resolve({}) != null) {
       progressIndicatorColor = effectiveStyle.foregroundColor!.resolve({})!;
     }
@@ -56,22 +61,18 @@ class SocialLoginButton extends StatelessWidget {
     } else {
       buttonChild = Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize:
-            MainAxisSize.min, // Ensure button doesn't stretch unnecessarily
+        mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
             assetName,
-            height: 20.h, // Standard icon size for buttons
+            height: 20.h,
             width: 20.w,
-            // color: progressIndicatorColor, // This will only work for SVGs or template images
             errorBuilder: (context, error, stackTrace) {
               return Icon(Icons.login,
                   size: 20.sp, color: progressIndicatorColor);
             },
           ),
-          SizedBox(
-              width: 12
-                  .w), // M3 recommended spacing between icon and label is 8dp, but 12 can be fine.
+          SizedBox(width: 12.w),
           Text(text),
         ],
       );
@@ -83,8 +84,6 @@ class SocialLoginButton extends StatelessWidget {
       child: buttonChild,
     );
 
-    // If width is specified, wrap in SizedBox to control width.
-    // Height is now determined by the button's content and theme.
     if (width != null) {
       return SizedBox(
         width: width == double.infinity ? double.infinity : width,

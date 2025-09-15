@@ -6,7 +6,12 @@ import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/main.dart';
 
+/// A welcome screen that is shown to the user when they first open the app.
+///
+/// This screen provides options to start using the app immediately (as a guest)
+/// or to navigate to the login screen.
 class WelcomeScreen extends StatelessWidget {
+  /// Creates a `WelcomeScreen`.
   const WelcomeScreen({super.key});
 
   @override
@@ -15,7 +20,6 @@ class WelcomeScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      // Scaffold background will be theme.colorScheme.surface by default from AppTheme
       body: SafeArea(
         child: Container(
           width: double.infinity,
@@ -23,15 +27,13 @@ class WelcomeScreen extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary
-                    .withValues(alpha: 0.6), // Adjusted opacity for M3 feel
-                colorScheme.secondary
-                    .withValues(alpha: 0.4), // Adjusted opacity for M3 feel
-                colorScheme.surface, // End with the surface color
+                colorScheme.primary.withAlpha(153),
+                colorScheme.secondary.withAlpha(102),
+                colorScheme.surface,
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              stops: const [0.0, 0.4, 0.9], // Adjusted stops
+              stops: const [0.0, 0.4, 0.9],
             ),
           ),
           child: Padding(
@@ -44,8 +46,7 @@ class WelcomeScreen extends StatelessWidget {
                 Image.asset(
                   AppAssets.appLogo,
                   height: 120.h,
-                  color: colorScheme
-                      .primary, // Optionally tint logo with primary color if it's a template image
+                  color: colorScheme.primary,
                   errorBuilder: (context, error, stackTrace) {
                     logger.e("WelcomeScreen: Error loading app logo: $error");
                     return Icon(Icons.water_drop_rounded,
@@ -56,19 +57,15 @@ class WelcomeScreen extends StatelessWidget {
                 Text(
                   AppStrings.appName,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.displayMedium?.copyWith(
-                    color: colorScheme.primary, // Use colorScheme.primary
-                    // fontWeight is part of displayMedium in M3 theme
-                  ),
+                  style: theme.textTheme.displayMedium
+                      ?.copyWith(color: colorScheme.primary),
                 ),
                 SizedBox(height: 8.h),
                 Text(
                   'Your personal hydration companion.',
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme
-                        .onSurfaceVariant, // Use onSurfaceVariant for less emphasis
-                  ),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
                 const Spacer(flex: 3),
                 FilledButton(

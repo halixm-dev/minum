@@ -1,11 +1,13 @@
 // lib/src/data/models/user_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import 'package:minum/main.dart'; // For logger, ensure this is appropriate for your project structure.
-import 'package:minum/src/core/constants/app_strings.dart'; // Moved import
+import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/constants/app_strings.dart';
 
+/// Represents the gender of the user.
 enum Gender { male, female }
 
+/// Represents health conditions that may affect hydration needs.
 enum HealthCondition {
   none,
   pregnancy,
@@ -14,6 +16,7 @@ enum HealthCondition {
   heartConditions,
 }
 
+/// Represents weather conditions that may affect hydration needs.
 enum WeatherCondition {
   temperate,
   hot,
@@ -21,10 +24,12 @@ enum WeatherCondition {
   cold,
 }
 
-// --- Existing Enums ---
+/// Represents the measurement units for volume.
 enum MeasurementUnit { ml, oz }
 
+/// An extension on [MeasurementUnit] to get a display name.
 extension MeasurementUnitDisplayName on MeasurementUnit {
+  /// The display name of the measurement unit (e.g., "mL", "oz").
   String get displayName {
     switch (this) {
       case MeasurementUnit.ml:
@@ -35,30 +40,65 @@ extension MeasurementUnitDisplayName on MeasurementUnit {
   }
 }
 
+/// Represents the user's physical activity level.
 enum ActivityLevel { sedentary, light, moderate, active, extraActive }
 
+/// Represents a user of the application.
+///
+/// This model holds all user-related information, including authentication
+/// details, profile information, and health data for hydration calculations.
 class UserModel extends Equatable {
+  /// The unique identifier for the user (typically from Firebase Auth).
   final String id;
+
+  /// The user's email address.
   final String? email;
+
+  /// The user's display name.
   final String? displayName;
+
+  /// The URL of the user's profile photo.
   final String? photoUrl;
+
+  /// The date and time when the user account was created.
   final DateTime createdAt;
+
+  /// The date and time of the user's last login.
   final DateTime? lastLoginAt;
 
   // Hydration specific settings
+  /// The user's daily hydration goal in milliliters.
   final double dailyGoalMl;
+
+  /// The user's preferred measurement unit for displaying volumes.
   final MeasurementUnit preferredUnit;
+
+  /// A list of favorite intake volumes for quick logging.
   final List<String> favoriteIntakeVolumes;
 
   // Health data for goal calculation
+  /// The user's date of birth.
   final DateTime? dateOfBirth;
-  final Gender? gender; // This is nullable, so user can choose not to specify
+
+  /// The user's gender.
+  final Gender? gender;
+
+  /// The user's weight in kilograms.
   final double? weightKg;
+
+  /// The user's height in centimeters.
   final double? heightCm;
+
+  /// The user's physical activity level.
   final ActivityLevel? activityLevel;
+
+  /// A list of the user's health conditions.
   final List<HealthCondition>? healthConditions;
+
+  /// The user's selected weather condition.
   final WeatherCondition? selectedWeatherCondition;
 
+  /// Creates a `UserModel` instance.
   const UserModel({
     required this.id,
     this.email,
@@ -70,7 +110,7 @@ class UserModel extends Equatable {
     this.preferredUnit = MeasurementUnit.ml,
     this.favoriteIntakeVolumes = const ['250', '500', '750'],
     this.dateOfBirth,
-    this.gender, // Can be null if not set
+    this.gender,
     this.weightKg,
     this.heightCm,
     this.activityLevel,
@@ -78,6 +118,9 @@ class UserModel extends Equatable {
     this.selectedWeatherCondition = WeatherCondition.temperate,
   });
 
+  /// Calculates the user's age based on their [dateOfBirth].
+  ///
+  /// Returns null if the date of birth is not set.
   int? get age {
     if (dateOfBirth == null) return null;
     final now = DateTime.now();
@@ -89,6 +132,7 @@ class UserModel extends Equatable {
     return age < 0 ? 0 : age;
   }
 
+  /// Creates a `UserModel` from a Firestore document snapshot.
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data();
     if (data == null) {
@@ -112,7 +156,6 @@ class UserModel extends Equatable {
     final String? genderString = data['gender'] as String?;
     if (genderString != null && genderString.isNotEmpty) {
       try {
-        // Only try to parse if it's 'Gender.male' or 'Gender.female'
         if (genderString == Gender.male.toString() ||
             genderString == Gender.female.toString()) {
           parsedGender =
@@ -120,11 +163,9 @@ class UserModel extends Equatable {
         } else {
           logger.w(
               "Invalid or unsupported gender string from Firestore: '$genderString'. Defaulting to null.");
-          parsedGender =
-              null; // If it's 'Gender.other' or something else, treat as null
+          parsedGender = null;
         }
       } catch (e) {
-        // Should not happen if check above is done, but as a safeguard
         logger.w(
             "Error parsing gender string from Firestore: '$genderString'. Defaulting to null.");
         parsedGender = null;
@@ -198,6 +239,7 @@ class UserModel extends Equatable {
     );
   }
 
+  /// Converts the `UserModel` instance to a map for storing in Firestore.
   Map<String, dynamic> toFirestore() {
     return {
       'email': email,
@@ -211,7 +253,7 @@ class UserModel extends Equatable {
       'favoriteIntakeVolumes': favoriteIntakeVolumes,
       'dateOfBirth':
           dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
-      'gender': gender?.toString(), // Will store null if gender is null
+      'gender': gender?.toString(),
       'weightKg': weightKg,
       'heightCm': heightCm,
       'activityLevel': activityLevel?.toString(),
@@ -222,6 +264,7 @@ class UserModel extends Equatable {
     };
   }
 
+  /// Creates a copy of this `UserModel` but with the given fields replaced with the new values.
   UserModel copyWith({
     String? id,
     String? email,
@@ -288,6 +331,7 @@ class UserModel extends Equatable {
         selectedWeatherCondition
       ];
 
+  /// A string representation of the preferred measurement unit (e.g., "mL", "oz").
   String get preferredUnitString =>
       preferredUnit == MeasurementUnit.ml ? 'mL' : 'oz';
 }

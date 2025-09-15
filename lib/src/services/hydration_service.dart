@@ -5,13 +5,22 @@ import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/data/repositories/hydration_repository.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// A service layer for managing hydration data and business logic.
+///
+/// This class uses a [HydrationRepository] to interact with the data layer
+/// and provides methods for adding, updating, deleting, and retrieving
+/// hydration entries, as well as calculating recommended intake.
 class HydrationService {
   final HydrationRepository _hydrationRepository;
 
+  /// Creates a `HydrationService` instance.
+  ///
+  /// Requires a [hydrationRepository].
   HydrationService({
     required HydrationRepository hydrationRepository,
   }) : _hydrationRepository = hydrationRepository;
 
+  /// Adds a new hydration entry.
   Future<void> addHydrationEntry({
     required String userId,
     required double amountMl,
@@ -37,6 +46,7 @@ class HydrationService {
     }
   }
 
+  /// Updates an existing hydration entry.
   Future<void> updateHydrationEntry(String userId, HydrationEntry entry) async {
     try {
       await _hydrationRepository.updateHydrationEntry(userId, entry);
@@ -49,6 +59,7 @@ class HydrationService {
     }
   }
 
+  /// Deletes a hydration entry.
   Future<void> deleteHydrationEntry(
       String userId, HydrationEntry entryToDelete) async {
     try {
@@ -62,6 +73,9 @@ class HydrationService {
     }
   }
 
+  /// Retrieves a stream of hydration entries for a specific day.
+  ///
+  /// @return A stream of lists of `HydrationEntry` objects.
   Stream<List<HydrationEntry>> getHydrationEntriesForDay(
       String userId, DateTime date) {
     try {
@@ -73,6 +87,9 @@ class HydrationService {
     }
   }
 
+  /// Retrieves a stream of hydration entries for a date range.
+  ///
+  /// @return A stream of lists of `HydrationEntry` objects.
   Stream<List<HydrationEntry>> getHydrationEntriesForDateRange(
       String userId, DateTime startDate, DateTime endDate) {
     try {
@@ -85,11 +102,19 @@ class HydrationService {
     }
   }
 
+  /// Calculates the total intake from a list of hydration entries.
+  ///
+  /// @return The total volume in milliliters.
   double calculateTotalIntake(List<HydrationEntry> entries) {
     if (entries.isEmpty) return 0.0;
     return entries.fold(0.0, (sum, entry) => sum + entry.amountMl);
   }
 
+  /// Calculates the recommended daily water intake for a user based on their profile.
+  ///
+  /// The calculation considers weight, gender, age, activity level, health
+  /// conditions, and weather.
+  /// @return A `Future` that completes with the recommended intake in milliliters.
   Future<double> calculateRecommendedDailyIntake({
     required UserModel user,
   }) async {
@@ -127,30 +152,26 @@ class HydrationService {
       }
     }
 
-    // 3. Activity Level Adjustment (Additive Approach)
-    // These are suggested additive values and can be further tuned.
-    // They represent additional daily fluid needs beyond baseline for sustained activity levels.
+    // 3. Activity Level Adjustment
     double activityAdditiveMl = 0;
     switch (user.activityLevel) {
       case ActivityLevel.sedentary:
-        activityAdditiveMl = 0; // No significant extra activity
+        activityAdditiveMl = 0;
         break;
-      case ActivityLevel.light: // e.g., light exercise/sports 1-3 days/week
-        activityAdditiveMl = 350; // Approx. +1.5 cups
+      case ActivityLevel.light:
+        activityAdditiveMl = 350;
         break;
-      case ActivityLevel
-            .moderate: // e.g., moderate exercise/sports 3-5 days/week
-        activityAdditiveMl = 700; // Approx. +3 cups
+      case ActivityLevel.moderate:
+        activityAdditiveMl = 700;
         break;
-      case ActivityLevel.active: // e.g., hard exercise/sports 6-7 days a week
-        activityAdditiveMl = 1050; // Approx. +4.5 cups
+      case ActivityLevel.active:
+        activityAdditiveMl = 1050;
         break;
-      case ActivityLevel
-            .extraActive: // e.g., very hard exercise/sports & physical job or 2x training
-        activityAdditiveMl = 1400; // Approx. +6 cups
+      case ActivityLevel.extraActive:
+        activityAdditiveMl = 1400;
         break;
       case null:
-        activityAdditiveMl = 0; // Default to no extra if not set
+        activityAdditiveMl = 0;
         logger.d("Activity level not set, no additive adjustment.");
         break;
     }

@@ -1,5 +1,6 @@
 // lib/src/presentation/providers/user_provider.dart
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/services/auth_service.dart';
@@ -9,19 +10,35 @@ import 'package:minum/src/data/repositories/local/local_hydration_repository.dar
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// An enumeration of the possible statuses for loading a user profile.
 enum UserProfileStatus { idle, loading, loaded, error }
 
+// --- SharedPreferences Keys for Guest User Settings ---
+/// Key for storing the guest's daily goal in milliliters.
 const String prefsGuestDailyGoalMl = 'prefs_guest_daily_goal_ml';
+/// Key for storing the guest's preferred measurement unit.
 const String prefsGuestPreferredUnit = 'prefs_guest_preferred_unit';
+/// Key for storing the guest's favorite intake volumes.
 const String prefsGuestFavoriteVolumes = 'prefs_guest_favorite_volumes';
+/// Key for storing the guest's date of birth.
 const String prefsGuestDateOfBirth = 'prefs_guest_date_of_birth';
+/// Key for storing the guest's gender.
 const String prefsGuestGender = 'prefs_guest_gender';
+/// Key for storing the guest's weight in kilograms.
 const String prefsGuestWeightKg = 'prefs_guest_weight_kg';
+/// Key for storing the guest's height in centimeters.
 const String prefsGuestHeightCm = 'prefs_guest_height_cm';
+/// Key for storing the guest's activity level.
 const String prefsGuestActivityLevel = 'prefs_guest_activity_level';
+/// Key for storing the guest's health conditions.
 const String prefsGuestHealthConditions = 'prefs_guest_health_conditions';
+/// Key for storing the guest's selected weather condition.
 const String prefsGuestSelectedWeather = 'prefs_guest_selected_weather';
 
+/// A `ChangeNotifier` that manages the user's profile data.
+///
+/// This provider handles loading the user profile based on authentication state,
+/// managing a guest profile, and updating user settings.
 class UserProvider with ChangeNotifier {
   final AuthService _authService;
   final UserRepository _userRepository;
@@ -32,12 +49,20 @@ class UserProvider with ChangeNotifier {
   StreamSubscription<UserModel?>? _authSubscription;
   bool _isDisposed = false;
 
+  /// The current user's profile. Can be a logged-in user or a guest profile.
   UserModel? get userProfile => _userProfile;
+
+  /// The current status of loading the user profile.
   UserProfileStatus get status => _status;
+
+  /// The last error message related to user profile operations.
   String? get errorMessage => _errorMessage;
+
+  /// A boolean indicating if the current user is a guest.
   bool get isGuestUser =>
       _userProfile != null && _userProfile!.id == guestUserId;
 
+  /// Creates a `UserProvider` instance.
   UserProvider(
       {required AuthService authService,
       required UserRepository userRepository})
@@ -119,8 +144,7 @@ class UserProvider with ChangeNotifier {
 
   Future<void> _loadGuestProfile() async {
     if (_isDisposed) return;
-    _status = UserProfileStatus.loading; // Notify loading before async
-    // _safeNotifyListeners(); // Consider if needed or if final notify in caller is enough
+    _status = UserProfileStatus.loading;
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_isDisposed) return;
@@ -184,13 +208,11 @@ class UserProvider with ChangeNotifier {
       _userProfile = UserModel(
           id: guestUserId, createdAt: DateTime.now(), displayName: "Guest");
     }
-    // Note: _safeNotifyListeners() is called by the method that invokes _loadGuestProfile (e.g. _subscribeToAuthChanges)
   }
 
   Future<UserModel> _migrateGuestSettingsToFirebaseUser(
       UserModel firebaseUser, SharedPreferences prefs) async {
     if (_isDisposed) return firebaseUser;
-    // ... (migration logic as before, it doesn't call notifyListeners itself)
     bool needsUpdate = false;
     UserModel userToUpdateWithGuestSettings = firebaseUser;
 
@@ -221,8 +243,7 @@ class UserProvider with ChangeNotifier {
       return firebaseVal;
     }
 
-    final initialProfileSnapshot =
-        userToUpdateWithGuestSettings; // For comparison
+    final initialProfileSnapshot = userToUpdateWithGuestSettings;
 
     userToUpdateWithGuestSettings = userToUpdateWithGuestSettings.copyWith(
         dailyGoalMl: migrateDouble(
@@ -283,7 +304,6 @@ class UserProvider with ChangeNotifier {
                 WeatherCondition.temperate) ??
             WeatherCondition.temperate);
 
-    // Determine if any actual change occurred that requires a Firebase update
     if (userToUpdateWithGuestSettings != initialProfileSnapshot) {
       needsUpdate = true;
     }
@@ -318,11 +338,13 @@ class UserProvider with ChangeNotifier {
       logger.i(
           "UserProvider: No guest settings needed migration for user ${firebaseUser.id}.");
     }
-    return userToUpdateWithGuestSettings; // Return original or updated if no Firebase save was needed/done
+    return userToUpdateWithGuestSettings;
   }
 
+  /// Fetches the user profile for a given [uid].
+  ///
+  /// If the user is a guest, it loads the guest profile from local storage.
   Future<void> fetchUserProfile(String uid) async {
-    // ... (logic as before, ensuring _migrateGuestSettingsToFirebaseUser is called with prefs)
     if (_isDisposed) {
       return;
     }
@@ -379,21 +401,23 @@ class UserProvider with ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  /// Updates the user profile.
+  ///
+  /// For guest users, it saves the data locally. For logged-in users, it
+  /// updates the data in the remote repository.
   Future<void> updateUserProfile(UserModel updatedProfile) async {
     if (_isDisposed) return;
 
-    // Set loading status at the beginning of the operation.
-    // The final status (loaded/error) will be set before the final notify.
     _status = UserProfileStatus.loading;
-    _safeNotifyListeners(); // Notify UI that an update is starting
+    _safeNotifyListeners();
 
     try {
       if (updatedProfile.id == guestUserId) {
         final prefs = await SharedPreferences.getInstance();
         if (_isDisposed) {
           _status = UserProfileStatus.idle;
-          /* Or previous status */ return;
-        } // Revert status if disposed
+          return;
+        }
 
         await prefs.setDouble(
             prefsGuestDailyGoalMl, updatedProfile.dailyGoalMl);
@@ -449,7 +473,6 @@ class UserProvider with ChangeNotifier {
           await prefs.remove(prefsGuestSelectedWeather);
         }
 
-        // Update state *after* all async SharedPreferences operations are complete
         if (!_isDisposed) {
           _userProfile = updatedProfile;
           _status = UserProfileStatus.loaded;
@@ -457,7 +480,6 @@ class UserProvider with ChangeNotifier {
           logger.i("UserProvider: Guest profile updated locally.");
         }
       } else {
-        // Logged-in user
         if (_userProfile == null || _userProfile!.id != updatedProfile.id) {
           _errorMessage = "Cannot update profile: No user or mismatched ID.";
           _status = UserProfileStatus.error;
@@ -469,7 +491,7 @@ class UserProvider with ChangeNotifier {
             if (!_isDisposed) {
               _userProfile = updatedProfile;
               _status = UserProfileStatus.loaded;
-              _errorMessage = null; // Clear any previous error/message
+              _errorMessage = null;
               logger.i(
                   "UserProvider: Profile updated successfully for user ${updatedProfile.id}");
             }
@@ -477,35 +499,32 @@ class UserProvider with ChangeNotifier {
             if (!_isDisposed) {
               logger.w(
                   "UserProvider: Timeout waiting for user profile update for ${updatedProfile.id}. Assuming offline and data queued.");
-              _userProfile = updatedProfile; // Optimistic update
-              _status =
-                  UserProfileStatus.loaded; // Treat as loaded for UI purposes
-              // Use _errorMessage to carry a success/info message in this specific case
+              _userProfile = updatedProfile;
+              _status = UserProfileStatus.loaded;
               _errorMessage = "Profile saved locally. Will sync when online.";
             }
           }
-          // Other exceptions will be caught by the general catch block below
         }
       }
     } catch (e) {
       if (_isDisposed) {
         _status = UserProfileStatus.idle;
-        /* Or previous status */ return;
+        return;
       }
       _status = UserProfileStatus.error;
       _errorMessage = "Failed to update profile: ${e.toString()}";
       logger.e("UserProvider: Error updating profile: $e");
     }
-    _safeNotifyListeners(); // Single notification at the end reflecting the final state
+    _safeNotifyListeners();
   }
 
   Future<void> _ensureGuestProfileLoaded() async {
     if (_userProfile == null && !_isDisposed) {
       await _loadGuestProfile();
-      // No notify here, let the caller decide when to notify after its own state changes
     }
   }
 
+  /// Updates the user's daily hydration goal.
   Future<void> updateDailyGoal(double newGoalMl) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -515,6 +534,7 @@ class UserProvider with ChangeNotifier {
     await updateUserProfile(updated);
   }
 
+  /// Updates the user's preferred measurement unit.
   Future<void> updatePreferredUnit(MeasurementUnit newUnit) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -524,6 +544,7 @@ class UserProvider with ChangeNotifier {
     await updateUserProfile(updated);
   }
 
+  /// Updates the user's list of favorite intake volumes.
   Future<void> updateFavoriteIntakeVolumes(List<String> newVolumes) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -539,6 +560,7 @@ class UserProvider with ChangeNotifier {
     await updateUserProfile(updated);
   }
 
+  /// Updates the user's date of birth.
   Future<void> updateDateOfBirth(DateTime? newDob) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -548,6 +570,7 @@ class UserProvider with ChangeNotifier {
         .copyWith(dateOfBirth: newDob, clearDateOfBirth: newDob == null));
   }
 
+  /// Updates the user's gender.
   Future<void> updateGender(Gender? newGender) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -557,6 +580,7 @@ class UserProvider with ChangeNotifier {
         .copyWith(gender: newGender, clearGender: newGender == null));
   }
 
+  /// Updates the user's height.
   Future<void> updateHeight(double? newHeightCm) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -566,6 +590,7 @@ class UserProvider with ChangeNotifier {
         .copyWith(heightCm: newHeightCm, clearHeightCm: newHeightCm == null));
   }
 
+  /// Updates the user's weight.
   Future<void> updateWeight(double? newWeightKg) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -576,6 +601,7 @@ class UserProvider with ChangeNotifier {
     await updateUserProfile(updated);
   }
 
+  /// Updates the user's activity level.
   Future<void> updateActivityLevel(ActivityLevel? level) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -586,6 +612,7 @@ class UserProvider with ChangeNotifier {
     await updateUserProfile(updated);
   }
 
+  /// Updates the user's health conditions.
   Future<void> updateHealthConditions(
       List<HealthCondition> newConditions) async {
     await _ensureGuestProfileLoaded();
@@ -605,6 +632,7 @@ class UserProvider with ChangeNotifier {
         _userProfile!.copyWith(healthConditions: processedConditions));
   }
 
+  /// Updates the user's selected weather condition.
   Future<void> updateSelectedWeather(WeatherCondition newWeather) async {
     await _ensureGuestProfileLoaded();
     if (_userProfile == null || _isDisposed) {
@@ -622,6 +650,8 @@ class UserProvider with ChangeNotifier {
     super.dispose();
   }
 
+  /// A utility method to compare two lists for equality.
+  @visibleForTesting
   bool listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
     if (b == null || a.length != b.length) return false;

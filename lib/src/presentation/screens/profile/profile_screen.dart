@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart'; // For date formatting
+import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/data/models/user_model.dart';
@@ -14,7 +14,9 @@ import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
 import 'package:minum/src/data/repositories/local/local_hydration_repository.dart'
     show guestUserId;
 
+/// A screen where users can view and edit their profile information.
 class ProfileScreen extends StatefulWidget {
+  /// Creates a `ProfileScreen`.
   const ProfileScreen({super.key});
 
   @override
@@ -24,13 +26,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _displayNameController;
-  late TextEditingController _emailController; // Added for email field
+  late TextEditingController _emailController;
   late TextEditingController _dailyGoalController;
   late TextEditingController _weightController;
   late TextEditingController _heightController;
-  late TextEditingController _dateOfBirthController; // Added for date picker
+  late TextEditingController _dateOfBirthController;
 
-  // FocusNodes for CustomTextFields
   late FocusNode _displayNameFocusNode;
   late FocusNode _emailFocusNode;
   late FocusNode _heightFocusNode;
@@ -45,9 +46,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isLoading = false;
   bool _isDirty = false;
-  UserModel? _lastProcessedUserProfile; // New state variable
+  UserModel? _lastProcessedUserProfile;
 
-  // Helper function for user-friendly enum display
   String _getGenderDisplayString(Gender? gender) {
     if (gender == null) return "Prefer not to say";
     switch (gender) {
@@ -106,30 +106,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _displayNameController = TextEditingController();
-    _emailController = TextEditingController(); // Initialize email controller
+    _emailController = TextEditingController();
     _dailyGoalController = TextEditingController();
     _weightController = TextEditingController();
     _heightController = TextEditingController();
-    _dateOfBirthController =
-        TextEditingController(); // Initialize date controller
+    _dateOfBirthController = TextEditingController();
 
-    // Initialize FocusNodes
     _displayNameFocusNode = FocusNode();
     _emailFocusNode = FocusNode();
     _heightFocusNode = FocusNode();
     _weightFocusNode = FocusNode();
     _dailyGoalFocusNode = FocusNode();
 
-    _setupControllerListeners(); // Moved here
+    _setupControllerListeners();
   }
 
+  /// Populates the form fields with the user's current profile data.
   void _loadInitialProfileData() {
     if (!mounted) return;
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final UserModel? userProfile =
-        userProvider.userProfile; // Get the current profile from provider
+    final UserModel? userProfile = userProvider.userProfile;
 
-    // Populate controllers and state variables from userProfile
     if (userProfile != null) {
       _displayNameController.text = userProfile.displayName ?? '';
       _emailController.text = userProfile.email ?? 'Not available';
@@ -168,10 +165,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedWeatherCondition =
           userProfile.selectedWeatherCondition ?? WeatherCondition.temperate;
     } else {
-      // Set default template data if no profile
       _displayNameController.text = '';
       _emailController.text = 'Not available';
-      _dailyGoalController.text = '2000'; // Assuming default unit is mL
+      _dailyGoalController.text = '2000';
       _weightController.text = '';
       _heightController.text = '';
       _selectedActivityLevel = null;
@@ -182,8 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedWeatherCondition = WeatherCondition.temperate;
     }
 
-    _lastProcessedUserProfile =
-        userProfile; // Store the user profile instance that was just used to set the data
+    _lastProcessedUserProfile = userProfile;
     _isDirty = false;
   }
 
@@ -192,7 +187,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _dailyGoalController.addListener(_setIsDirty);
     _weightController.addListener(_setIsDirty);
     _heightController.addListener(_setIsDirty);
-    // Email controller is read-only, no need for a listener to _setIsDirty
   }
 
   void _setIsDirty() {
@@ -207,13 +201,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _displayNameController.dispose();
-    _emailController.dispose(); // Dispose email controller
+    _emailController.dispose();
     _dailyGoalController.dispose();
     _weightController.dispose();
     _heightController.dispose();
-    _dateOfBirthController.dispose(); // Dispose date controller
+    _dateOfBirthController.dispose();
 
-    // Dispose FocusNodes
     _displayNameFocusNode.dispose();
     _emailFocusNode.dispose();
     _heightFocusNode.dispose();
@@ -223,6 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  /// Shows a date picker to select the user's date of birth.
   Future<void> _selectDateOfBirth(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
@@ -231,7 +225,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         firstDate: DateTime(1900),
         lastDate: DateTime.now(),
         helpText: "Select Date of Birth");
-    // Removed custom builder to allow default M3 styling
     if (picked != null && picked != _selectedDateOfBirth) {
       if (mounted) {
         setState(() {
@@ -243,6 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  /// Calculates and suggests a daily hydration goal based on the current profile data.
   Future<void> _calculateAndSuggestGoal() async {
     if (!mounted) return;
     final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -324,23 +318,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         cancelText: "Not Now");
 
     if (apply == true) {
-      // Ensure context captured before await is still valid
       if (!confirmationDialogContext.mounted) {
-        return; // Added check for captured context
+        return;
       }
       if (mounted) {
-        // Check for the State's mounted status
         setState(() {
           _dailyGoalController.text = suggestedGoal.toInt().toString();
           _isDirty = true;
         });
-        // confirmationDialogContext is used here, its mounted status was checked above.
         AppUtils.showSnackBar(confirmationDialogContext,
             "Suggested goal applied to form. Remember to save your profile.");
       }
     }
   }
 
+  /// Saves the updated profile information.
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -360,7 +352,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final String newDisplayName = _displayNameController.text.trim();
-    // final double newDailyGoal = double.tryParse(_dailyGoalController.text.trim()) ?? currentUser.dailyGoalMl;
     double newDailyGoal;
     final String goalText = _dailyGoalController.text.trim();
     double? enteredGoal = double.tryParse(goalText);
@@ -372,8 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         newDailyGoal = enteredGoal;
       }
     } else {
-      newDailyGoal =
-          currentUser.dailyGoalMl; // Fallback to current if input is invalid
+      newDailyGoal = currentUser.dailyGoalMl;
     }
     final double? newWeight = _weightController.text.trim().isEmpty
         ? null
@@ -422,36 +412,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       await userProvider.updateUserProfile(updatedUser);
-      // ... (inside the try block, after await userProvider.updateUserProfile(updatedUser);)
       if (mounted) {
-        String messageToShow =
-            "Profile updated successfully!"; // Default success message
-        bool isPresentationError =
-            false; // Determines if the snackbar should be styled as an error
+        String messageToShow = "Profile updated successfully!";
+        bool isPresentationError = false;
 
-        // Check provider status and potential message
         if (userProvider.status == UserProfileStatus.loaded) {
           if (userProvider.errorMessage != null &&
               userProvider.errorMessage ==
                   "Profile saved locally. Will sync when online.") {
             messageToShow = userProvider.errorMessage!;
-            // For this specific informational message, it's not an error presentation.
             isPresentationError = false;
           } else if (userProvider.errorMessage != null) {
-            // If status is loaded but there's an unexpected error message from the provider.
             messageToShow = userProvider.errorMessage!;
             isPresentationError = true;
           }
-          // If errorMessage is null, messageToShow remains "Profile updated successfully!"
         } else if (userProvider.status == UserProfileStatus.error) {
-          // This case handles if updateUserProfile resolves but ended in an error state internally.
           messageToShow =
               userProvider.errorMessage ?? "Failed to update profile.";
           isPresentationError = true;
         }
-        // Default case: if status is neither loaded nor error (e.g. idle), it might imply an issue.
-        // However, updateUserProfile should ideally always transition to loaded or error.
-        // For simplicity, we'll rely on the above conditions.
 
         AppUtils.showSnackBar(context, messageToShow,
             isError: isPresentationError);
@@ -476,11 +455,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final userProvider = Provider.of<UserProvider>(context); // Will be obtained from Consumer
-    // final UserModel? user = userProvider.userProfile; // Will be obtained from Consumer
-
-    // Removed initial null checks as Consumer will handle loading/error states.
-
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final UserModel? user = userProvider.userProfile;
@@ -495,7 +469,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         if (user == null) {
-          // Handles error or unexpected null user after loading attempt
           return Scaffold(
             appBar: AppBar(title: const Text(AppStrings.profile)),
             body: Center(
@@ -504,17 +477,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         }
 
-        // Conditional call to _loadInitialProfileData based on object instance change
         if (userProvider.status == UserProfileStatus.loaded &&
             user != _lastProcessedUserProfile) {
-          // This condition is true if:
-          // 1. Initially _lastProcessedUserProfile is null and user is not (first load).
-          // 2. User logs out (user becomes null, _lastProcessedUserProfile was not).
-          // 3. User logs in (user is new user, _lastProcessedUserProfile was null or guest).
-          // 4. User data is updated in UserProvider, resulting in a new UserModel instance.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              _loadInitialProfileData(); // This will set controllers and also update _lastProcessedUserProfile
+              _loadInitialProfileData();
             }
           });
         }
@@ -543,16 +510,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 20.r,
                             child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary)) // Use primary for TextButton loader
+                                color:
+                                    Theme.of(context).colorScheme.primary))
                         : Text("SAVE",
                             style: TextStyle(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontWeight: Theme.of(context)
                                     .textTheme
                                     .labelLarge
-                                    ?.fontWeight)), // M3 TextButton uses labelLarge
+                                    ?.fontWeight)),
                   ),
                 )
             ],
@@ -566,13 +532,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: <Widget>[
                   _buildPersonalInformationSection(
                       context, user, userProvider, Theme.of(context)),
-                  SizedBox(height: 24.h), // Maintain spacing between sections
+                  SizedBox(height: 24.h),
                   _buildLifestyleEnvironmentSection(
                       context, user, userProvider, Theme.of(context)),
-                  SizedBox(height: 24.h), // Maintain spacing between sections
+                  SizedBox(height: 24.h),
                   _buildHydrationGoalSection(
                       context, user, userProvider, Theme.of(context)),
-                  SizedBox(height: 40.h), // Maintain bottom spacing
+                  SizedBox(height: 40.h),
                 ],
               ),
             ),
@@ -610,7 +576,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           readOnly: true,
           enabled: false,
-        ), // Email is not editable
+        ),
         SizedBox(height: 16.h),
         _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth,
             (date) {
@@ -788,33 +754,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSectionTitle(String title) {
     final theme = Theme.of(context);
     return Padding(
-      padding: EdgeInsets.only(top: 16.h, bottom: 8.h), // Standardized padding
+      padding: EdgeInsets.only(top: 16.h, bottom: 8.h),
       child: Text(
         title,
-        style: theme.textTheme.titleLarge?.copyWith(
-          color: theme.colorScheme.secondary, // Changed to secondary color
-        ),
+        style: theme.textTheme.titleLarge
+            ?.copyWith(color: theme.colorScheme.secondary),
       ),
     );
   }
 
   Widget _buildDatePickerField(BuildContext context, String label,
       DateTime? selectedDate, Function(DateTime) onDateSelected) {
-    // final theme = Theme.of(context); // Not strictly needed if relying on InputDecorationTheme
-    // final inputTheme = theme.inputDecorationTheme; // Not strictly needed
-
     return TextFormField(
       controller: _dateOfBirthController,
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.calendar_today_outlined),
-        // The rest of the styling (border, fillColor, filled, contentPadding)
-        // should come from the app's InputDecorationTheme.
       ),
       onTap: () => _selectDateOfBirth(context),
-      // The validator is removed as the field is read-only and date is picked.
-      // If validation is needed (e.g. required field), it can be added here.
     );
   }
 
@@ -826,7 +784,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String Function(T item) itemAsString,
     IconData? prefixIcon,
   }) {
-    final theme = Theme.of(context); // Keep theme for icon color if needed
+    final theme = Theme.of(context);
     return DropdownMenu<T>(
       initialSelection: value,
       label: Text(label),
@@ -838,23 +796,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return DropdownMenuEntry<T>(
           value: item,
           label: itemAsString(item),
-          // Style for menu items can be themed globally via DropdownMenuThemeData.
-          // If specific styling is needed here, it can be applied to the label Text widget.
-          // style: MenuItemButton.styleFrom( ... )
         );
       }).toList(),
       onSelected: onChanged,
-      // DropdownMenu expands by default to fit its parent or the widest item.
-      // To ensure it fills the width like DropdownButtonFormField with isExpanded:true:
-      width: MediaQuery.of(context).size.width -
-          (40.w), // Screen width minus padding
-      // Alternatively, wrap in a SizedBox(width: double.infinity) if parent allows for it,
-      // or rely on Expanded if in a Row.
-      // The menuStyle can be used for extensive customization (e.g., background color)
-      // but ideally, this is handled by the global DropdownMenuThemeData.
-      // menuStyle: MenuStyle(
-      //   backgroundColor: MaterialStateProperty.all(theme.colorScheme.surfaceContainerHighest),
-      // ),
+      width:
+          MediaQuery.of(context).size.width - (40.w),
     );
   }
 
@@ -866,24 +812,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required Function(List<T> selected) onSelectionChanged,
   }) {
     final theme = Theme.of(context);
-    // final chipTheme = theme.chipTheme; // Unused local variable removed
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: theme.textTheme.labelLarge?.copyWith(
-                color: theme
-                    .colorScheme.onSurfaceVariant)), // Use onSurfaceVariant
+            style: theme.textTheme.labelLarge
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         SizedBox(height: 8.h),
         Wrap(
           spacing: 8.w,
-          runSpacing: 8.h, // Changed from 0.h to 8.h for M3 compliance
+          runSpacing: 8.h,
           children: allOptions.map((option) {
             final bool isSelected = selectedOptions.contains(option);
             return FilterChip(
-              label: Text(
-                  optionAsString(option)), // Style from chipTheme.labelStyle
+              label: Text(optionAsString(option)),
               selected: isSelected,
               onSelected: (bool selected) {
                 List<T> newSelection = List.from(selectedOptions);
@@ -907,9 +850,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
                 onSelectionChanged(newSelection);
               },
-              // Styling from chipTheme in AppTheme:
-              // backgroundColor (unselected), selectedColor, checkmarkColor, labelStyle, shape, side
-              // are expected to be defined in the global ChipThemeData for M3 compliance.
             );
           }).toList(),
         ),

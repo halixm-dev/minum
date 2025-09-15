@@ -1,22 +1,24 @@
 // lib/src/presentation/screens/home/add_water_log_screen.dart
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For FilteringTextInputFormatter
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
-import 'package:minum/src/data/models/hydration_entry_model.dart'; // For HydrationEntry
-import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
+import 'package:minum/src/data/models/hydration_entry_model.dart';
+import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// A screen for adding a new hydration entry or editing an existing one.
 class AddWaterLogScreen extends StatefulWidget {
-  final HydrationEntry? entryToEdit; // Optional entry for editing
+  /// An optional entry to edit. If this is provided, the screen will be in
+  /// edit mode.
+  final HydrationEntry? entryToEdit;
 
+  /// Creates an `AddWaterLogScreen`.
   const AddWaterLogScreen({super.key, this.entryToEdit});
 
   @override
@@ -27,7 +29,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _notesController = TextEditingController();
-  late TextEditingController _dateTimeController; // Added for date/time picker
+  late TextEditingController _dateTimeController;
 
   DateTime _selectedDateTime = DateTime.now();
   MeasurementUnit _currentUnit = MeasurementUnit.ml;
@@ -36,7 +38,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   @override
   void initState() {
     super.initState();
-    _dateTimeController = TextEditingController(); // Initialize controller
+    _dateTimeController = TextEditingController();
     _isEditMode = widget.entryToEdit != null;
     final userProfile =
         Provider.of<UserProvider>(context, listen: false).userProfile;
@@ -57,7 +59,6 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       _notesController.text = entry.notes ?? '';
       _selectedDateTime = entry.timestamp;
     }
-    // Set initial text for the date/time controller
     _dateTimeController.text =
         DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
   }
@@ -66,44 +67,50 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   void dispose() {
     _amountController.dispose();
     _notesController.dispose();
-    _dateTimeController.dispose(); // Dispose controller
+    _dateTimeController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectDateTime(BuildContext context) async {
-    if (!mounted) return;
-    final DateTime? pickedDate = await showDatePicker(
+  /// Shows date and time pickers to select the timestamp for the entry.
+  Future<void> _selectDateTime() async {
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDateTime,
       firstDate: DateTime(2000),
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
-    if (pickedDate != null) {
-      if (!mounted) return;
-      final TimeOfDay? pickedTime = await showTimePicker(
-        // ignore: duplicate_ignore
-        // ignore: use_build_context_synchronously
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-      );
-      if (pickedTime != null) {
-        if (!mounted) return;
-        setState(() {
-          _selectedDateTime = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-          // Update the controller's text
-          _dateTimeController.text =
-              DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
-        });
-      }
+
+    if (pickedDate == null) {
+      return;
     }
+
+    if (!mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
+    );
+
+    if (pickedTime == null) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _selectedDateTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+      _dateTimeController.text =
+          DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
+    });
   }
 
+  /// Saves a new entry or updates an existing one.
   Future<void> _saveOrUpdateLog() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -167,6 +174,37 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
   String get _unitString => _currentUnit == MeasurementUnit.ml ? 'mL' : 'oz';
 
+  Future<void> _deleteLog() async {
+    final hydrationProvider =
+        Provider.of<HydrationProvider>(context, listen: false);
+
+    final confirmed = await AppUtils.showConfirmationDialog(
+      context,
+      title: "Delete Log",
+      content: "Are you sure you want to delete this log entry?",
+      confirmText: "Delete",
+    );
+
+    if (confirmed != true || widget.entryToEdit == null) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    AppUtils.showLoadingDialog(context, message: "Deleting log...");
+
+    try {
+      await hydrationProvider.deleteHydrationEntry(widget.entryToEdit!);
+    } catch (e) {
+      logger.e("Error deleting log from AddWaterLogScreen: $e");
+    } finally {
+      if (mounted) {
+        AppUtils.hideLoadingDialog(context);
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final hydrationProvider = Provider.of<HydrationProvider>(context);
@@ -192,8 +230,6 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
           AppUtils.showSnackBar(context, hydrationProvider.errorMessage!,
               isError: true);
         }
-        // Success snackbar can be shown by the calling screen if needed, or here.
-        // For now, pop on success is handled in _saveOrUpdateLog.
       }
     });
 
@@ -202,42 +238,12 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditMode ? "Edit Water Log" : AppStrings.logWaterTitle),
-        // centerTitle, elevation handled by appBarTheme
         actions: [
           if (_isEditMode)
             IconButton(
-              icon: Icon(Icons.delete,
-                  color:
-                      theme.colorScheme.error), // Changed to filled delete icon
+              icon: Icon(Icons.delete, color: theme.colorScheme.error),
               tooltip: "Delete Log",
-              onPressed: () async {
-                if (!mounted) return;
-                final bool? confirmed = await AppUtils.showConfirmationDialog(
-                  context,
-                  title: "Delete Log",
-                  content: "Are you sure you want to delete this log entry?",
-                  confirmText: "Delete",
-                );
-                if (confirmed == true && widget.entryToEdit != null) {
-                  if (!mounted) return;
-                  // ignore: duplicate_ignore
-                  // ignore: use_build_context_synchronously
-                  AppUtils.showLoadingDialog(context,
-                      message: "Deleting log...");
-                  try {
-                    await hydrationProvider
-                        .deleteHydrationEntry(widget.entryToEdit!);
-                    if (!mounted) return;
-                    AppUtils.hideLoadingDialog(context);
-                    if (!mounted) return;
-                    Navigator.of(context).pop();
-                  } catch (e) {
-                    logger.e("Error deleting log from AddWaterLogScreen: $e");
-                    if (!mounted) return; // Added check for catch block
-                    AppUtils.hideLoadingDialog(context);
-                  }
-                }
-              },
+              onPressed: _deleteLog,
             ),
         ],
       ),
@@ -269,20 +275,17 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 textInputAction: TextInputAction.next,
               ),
               SizedBox(height: 20.h),
-              // The Text widget for "Date & Time" label is removed as it's now part of InputDecoration
               TextFormField(
                 controller: _dateTimeController,
                 readOnly: true,
                 decoration: const InputDecoration(
-                  labelText: 'Date & Time', // Label integrated here
+                  labelText: 'Date & Time',
                   prefixIcon: Icon(Icons.edit_calendar_outlined),
-                  // Styling (border, fillColor, contentPadding) from app's InputDecorationTheme
                 ),
-                onTap: () => _selectDateTime(context),
+                onTap: _selectDateTime,
               ),
               SizedBox(height: 20.h),
-              Text(
-                  'Notes (Optional)', // This label is kept as it's for a different field
+              Text('Notes (Optional)',
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),

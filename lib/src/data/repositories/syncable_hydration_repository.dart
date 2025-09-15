@@ -8,6 +8,9 @@ import 'package:minum/src/services/auth_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// A repository that orchestrates data synchronization between a local and a remote
+/// data source for hydration entries. It implements the [HydrationRepository]
+/// interface and provides a unified API for data operations.
 class SyncableHydrationRepository implements HydrationRepository {
   final LocalHydrationRepository _localRepository;
   final FirebaseHydrationRepository _firebaseRepository;
@@ -17,6 +20,11 @@ class SyncableHydrationRepository implements HydrationRepository {
   bool _isSyncing = false;
   Timer? _syncDebounceTimer;
 
+  /// Creates a `SyncableHydrationRepository` instance.
+  ///
+  /// It requires a [localRepository] for local data storage, a
+  /// [firebaseRepository] for remote data storage, and an [authService]
+  /// to handle user authentication state.
   SyncableHydrationRepository({
     required LocalHydrationRepository localRepository,
     required FirebaseHydrationRepository firebaseRepository,
@@ -94,7 +102,6 @@ class SyncableHydrationRepository implements HydrationRepository {
     }
   }
 
-  // Updated method signature
   @override
   Future<void> deleteHydrationEntry(
       String userIdParam, HydrationEntry entryToDelete) async {
@@ -102,20 +109,15 @@ class SyncableHydrationRepository implements HydrationRepository {
     logger.d(
         "SyncableRepo: Initiating delete for entry (Firestore ID: ${entryToDelete.id}, Local DB ID: ${entryToDelete.localDbId}) for scope $currentScopeId.");
 
-    // 1. If it's a purely local entry (no Firestore ID but has localDbId), delete it permanently from local.
     if (entryToDelete.id == null && entryToDelete.localDbId != null) {
       logger.i(
           "SyncableRepo: Permanently deleting purely local entry (localId: ${entryToDelete.localDbId}).");
       await _localRepository
           .deletePermanentlyByLocalId(entryToDelete.localDbId!);
-      // No need to sync this deletion to Firebase as it never existed there.
     } else {
-      // 2. For entries that might be on Firebase (have a Firestore ID or were intended to be synced):
-      //    Mark as deleted in local DB (soft delete). This will also mark it as unsynced.
       await _localRepository.deleteHydrationEntry(
           currentScopeId, entryToDelete);
 
-      // 3. If logged in, attempt to sync this deletion to Firebase.
       if (_isUserLoggedIn && currentScopeId != guestUserId) {
         logger.d(
             "SyncableRepo: User $currentScopeId logged in. Debouncing sync after delete initiation for (potentially) synced entry.");
@@ -126,8 +128,6 @@ class SyncableHydrationRepository implements HydrationRepository {
 
   @override
   Future<HydrationEntry?> getHydrationEntry(String userId, String entryId) {
-    // This method expects entryId to be Firestore ID.
-    // LocalHydrationRepository handles finding by Firestore ID.
     return _localRepository.getHydrationEntry(_effectiveUserId, entryId);
   }
 
@@ -170,6 +170,10 @@ class SyncableHydrationRepository implements HydrationRepository {
     }
   }
 
+  /// Synchronizes all local data with the remote repository.
+  ///
+  /// This method uploads local changes to Firebase, processes local deletions,
+  /// and downloads remote changes to the local database.
   Future<void> syncAllData({String? currentUserId}) async {
     if (_isSyncing) {
       logger.i(
@@ -205,7 +209,6 @@ class SyncableHydrationRepository implements HydrationRepository {
     logger.i("SyncableRepo: Starting data sync for user $userIdToSync...");
 
     try {
-      // --- Step 1: Upload local changes to Firebase ---
       final List<HydrationEntry> unsyncedLocalEntries =
           await _localRepository.getUnsyncedNewOrUpdatedEntries(userIdToSync);
       logger.i(
@@ -245,7 +248,6 @@ class SyncableHydrationRepository implements HydrationRepository {
         }
       }
 
-      // Process local deletions
       final List<HydrationEntry> deletedLocallyEntries =
           await _localRepository.getDeletedUnsyncedEntries(userIdToSync);
       logger.i(
@@ -273,7 +275,6 @@ class SyncableHydrationRepository implements HydrationRepository {
         }
       }
 
-      // --- Step 2: Download Firebase changes to local (Simplified: Fetch all and upsert) ---
       logger.i(
           "SyncableRepo: Fetching remote data for user $userIdToSync to update local store (upsert strategy).");
       final List<HydrationEntry> remoteEntries =
@@ -298,6 +299,10 @@ class SyncableHydrationRepository implements HydrationRepository {
     }
   }
 
+  /// Migrates guest data to a newly signed-in user.
+  ///
+  /// This method updates the user ID of local guest entries to the new
+  /// [firebaseUserId] and then triggers a sync.
   Future<void> migrateGuestDataToUser(String firebaseUserId) async {
     if (guestUserId == firebaseUserId) {
       logger.w(

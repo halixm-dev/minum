@@ -12,7 +12,12 @@ import 'package:minum/src/presentation/screens/stats/hydration_history_screen.da
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// The main screen of the application after the user is authenticated.
+///
+/// This screen contains the bottom navigation bar and displays the selected
+/// view (`MainHydrationView`, `HydrationHistoryScreen`, or `SettingsScreen`).
 class HomeScreen extends StatefulWidget {
+  /// Creates a `HomeScreen`.
   const HomeScreen({super.key});
 
   @override
@@ -51,12 +56,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bottomNavProvider = Provider.of<BottomNavProvider>(context);
     final currentIndex = bottomNavProvider.currentIndex;
-    // final theme = Theme.of(context); // Unused local variable removed
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_appBarTitles[currentIndex]),
-        // centerTitle and actions will be handled by appBarTheme from AppTheme
       ),
       body: IndexedStack(
         index: currentIndex,
@@ -67,31 +70,20 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
               },
-              // backgroundColor and foregroundColor will be handled by floatingActionButtonTheme
               tooltip: "Log Water Intake",
-              child: Icon(Icons.add,
-                  size: 28.sp), // Icon color will also be from theme
+              child: Icon(Icons.add, size: 28.sp),
             )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation
-          .endFloat, // M3 default is often .centerFloat with BottomAppBar, or .endFloat
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: (index) {
           bottomNavProvider.setCurrentIndex(index);
         },
-        // Styling for NavigationBar comes from navigationBarTheme in AppTheme:
-        // - backgroundColor: colorScheme.surfaceContainer
-        // - indicatorColor: colorScheme.secondaryContainer
-        // - iconTheme: (selected: onSecondaryContainer, unselected: onSurfaceVariant)
-        // - labelTextStyle: (selected: onSurface, unselected: onSurfaceVariant, using labelMedium)
-        // - height: 80.h
-        // - elevation: 2.0
         destinations: const <Widget>[
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(
-                Icons.home), // M3 often uses filled icons for selected state
+            selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
           NavigationDestination(
@@ -109,4 +101,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-// _buildNavItem method is no longer needed as NavigationBar handles its items directly.

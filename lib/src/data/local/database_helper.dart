@@ -5,35 +5,66 @@ import 'package:path_provider/path_provider.dart';
 import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// A singleton class to manage the local SQLite database.
+///
+/// This class handles database initialization, creation, and all CRUD
+/// operations for the `hydration_entries` table. It supports offline
+/// functionality and data synchronization with Firestore.
 class DatabaseHelper {
+  /// The name of the database file.
   static const _databaseName = "MinumApp.db";
+
+  /// The version of the database schema.
   static const _databaseVersion =
       1; // Increment this if you change the schema in the future
 
+  /// The name of the hydration entries table.
   static const tableHydrationEntries = 'hydration_entries';
 
-  // Column names (matching HydrationEntry.toDbMap() keys and HydrationEntry.fromDbMap() expectations)
-  static const columnId = '_id'; // Local auto-incrementing primary key
-  static const columnFirestoreId = 'firestore_id';
-  static const columnUserId = 'user_id';
-  static const columnAmountMl = 'amount_ml';
-  static const columnTimestamp = 'timestamp'; // Stored as ISO8601 String
-  static const columnNotes = 'notes';
-  static const columnSource = 'source';
-  static const columnIsSynced = 'is_synced'; // INTEGER: 0 for false, 1 for true
-  static const columnIsDeleted =
-      'is_deleted'; // INTEGER: 0 for false, 1 for true
+  // Column names
+  /// The local auto-incrementing primary key.
+  static const columnId = '_id';
 
+  /// The ID of the entry in Firestore.
+  static const columnFirestoreId = 'firestore_id';
+
+  /// The ID of the user who owns the entry.
+  static const columnUserId = 'user_id';
+
+  /// The amount of water consumed in milliliters.
+  static const columnAmountMl = 'amount_ml';
+
+  /// The timestamp of the entry, stored as an ISO 8601 string.
+  static const columnTimestamp = 'timestamp';
+
+  /// Optional notes for the entry.
+  static const columnNotes = 'notes';
+
+  /// The source of the entry (e.g., 'manual', 'google_fit').
+  static const columnSource = 'source';
+
+  /// A flag indicating if the entry is synced with Firestore (0 or 1).
+  static const columnIsSynced = 'is_synced';
+
+  /// A flag indicating if the entry is marked for deletion (0 or 1).
+  static const columnIsDeleted = 'is_deleted';
+
+  // --- Singleton Pattern ---
   DatabaseHelper._privateConstructor();
+
+  /// The single instance of the `DatabaseHelper`.
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
   static Database? _database;
+
+  /// Returns the singleton `Database` instance, initializing it if necessary.
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
 
+  /// Initializes the database by opening it and creating the table if it doesn't exist.
   Future<Database> _initDatabase() async {
     final documentsDirectory = await getApplicationDocumentsDirectory();
     final path = join(documentsDirectory.path, _databaseName);
@@ -46,6 +77,7 @@ class DatabaseHelper {
     );
   }
 
+  /// Called when the database is created for the first time.
   Future _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE $tableHydrationEntries (
@@ -60,24 +92,19 @@ class DatabaseHelper {
         $columnIsDeleted INTEGER NOT NULL DEFAULT 0 
       )
       ''');
-    // You can add an index for faster queries if needed, e.g., on userId and timestamp
-    // await db.execute('CREATE INDEX idx_user_timestamp ON $tableHydrationEntries ($columnUserId, $columnTimestamp)');
     logger.i("Table $tableHydrationEntries created successfully.");
   }
 
-  // Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-  //   if (oldVersion < 2) {
-  //     // Example: await db.execute("ALTER TABLE $tableHydrationEntries ADD COLUMN new_column TEXT;");
-  //   }
-  // }
+  // --- CRUD Operations ---
 
-  // Insert a HydrationEntry into the database.
-  // Returns the ID of the last inserted row (localDbId).
+  /// Inserts a [HydrationEntry] into the database.
+  ///
+  /// Returns the local ID of the newly inserted row.
+  /// @return The local database ID of the inserted entry.
   Future<int> insertHydrationEntry(HydrationEntry entry) async {
     final db = await instance.database;
     final map = entry.toDbMap();
-    // Remove localDbId from map if present, as it's auto-generated on insert
-    map.remove(columnId);
+    map.remove(columnId); // Remove localDbId, as it's auto-generated
     logger.d("Inserting into local DB: $map");
     int localId = await db.insert(tableHydrationEntries, map,
         conflictAlgorithm: ConflictAlgorithm.replace);
@@ -85,7 +112,10 @@ class DatabaseHelper {
     return localId;
   }
 
-  // Get a specific HydrationEntry by its local DB ID.
+  /// Retrieves a [HydrationEntry] by its local database ID.
+  ///
+  /// Returns the entry if found and not marked as deleted, otherwise null.
+  /// @return A `Future` that completes with the `HydrationEntry` or null.
   Future<HydrationEntry?> getHydrationEntryByLocalId(int localId) async {
     final db = await instance.database;
     final maps = await db.query(
@@ -101,16 +131,16 @@ class DatabaseHelper {
     return null;
   }
 
-  // Get all HydrationEntrys for a specific user ID and date range.
+  /// Retrieves all [HydrationEntry]s for a specific user within a date range.
+  ///
+  /// @return A list of `HydrationEntry` objects.
   Future<List<HydrationEntry>> getHydrationEntriesForUser(
       String userId, DateTime startDate, DateTime endDate) async {
     final db = await instance.database;
-    // Normalize dates to ensure consistent querying at day boundaries
     final startOfDay =
         DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0, 0);
     final endOfDay =
         DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
-
     final startIso = startOfDay.toIso8601String();
     final endIso = endOfDay.toIso8601String();
 
@@ -127,7 +157,10 @@ class DatabaseHelper {
     return maps.map((map) => HydrationEntry.fromDbMap(map)).toList();
   }
 
-  // Get all entries for a user that are not yet synced to Firestore and not marked for deletion.
+  /// Retrieves all entries for a user that are not yet synced to Firestore.
+  ///
+  /// This includes new or updated entries that are not marked for deletion.
+  /// @return A list of unsynced `HydrationEntry` objects.
   Future<List<HydrationEntry>> getUnsyncedNewOrUpdatedEntries(
       String userId) async {
     final db = await instance.database;
@@ -142,13 +175,15 @@ class DatabaseHelper {
     return maps.map((map) => HydrationEntry.fromDbMap(map)).toList();
   }
 
-  // Update an existing HydrationEntry in the local DB using its localDbId.
-  // Returns the number of rows affected.
+  /// Updates an existing [HydrationEntry] in the local database by its local ID.
+  ///
+  /// Returns the number of rows affected.
+  /// @return The number of rows affected.
   Future<int> updateHydrationEntryByLocalId(
       int localId, HydrationEntry entry) async {
     final db = await instance.database;
     final map = entry.toDbMap();
-    map.remove(columnId); // Do not try to update the primary key itself
+    map.remove(columnId); // Do not try to update the primary key
     logger.d("Updating local DB entry (localId: $localId): $map");
     return await db.update(
       tableHydrationEntries,
@@ -158,7 +193,9 @@ class DatabaseHelper {
     );
   }
 
-  // Update an entry's Firestore ID and mark it as synced.
+  /// Updates an entry's Firestore ID and marks it as synced.
+  ///
+  /// @return The number of rows affected.
   Future<int> markHydrationEntryAsSynced(
       int localId, String firestoreId) async {
     final db = await instance.database;
@@ -172,7 +209,9 @@ class DatabaseHelper {
     );
   }
 
-  // Soft delete: mark an entry as deleted locally and needing sync for deletion.
+  /// Soft deletes an entry by marking it as deleted and needing sync.
+  ///
+  /// @return The number of rows affected.
   Future<int> markHydrationEntryAsDeletedByLocalId(int localId) async {
     final db = await instance.database;
     logger
@@ -188,7 +227,9 @@ class DatabaseHelper {
     );
   }
 
-  // Get entries marked for deletion that have not yet been synced to Firestore.
+  /// Retrieves entries marked for deletion that have not yet been synced.
+  ///
+  /// @return A list of deleted, unsynced `HydrationEntry` objects.
   Future<List<HydrationEntry>> getDeletedUnsyncedEntries(String userId) async {
     final db = await instance.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -201,8 +242,10 @@ class DatabaseHelper {
     return maps.map((map) => HydrationEntry.fromDbMap(map)).toList();
   }
 
-  // Hard delete: permanently remove an entry from the local DB.
-  // Typically called after its deletion has been synced with Firestore.
+  /// Permanently removes an entry from the local database.
+  ///
+  /// This is typically called after its deletion has been synced with Firestore.
+  /// @return The number of rows affected.
   Future<int> deleteHydrationEntryPermanentlyByLocalId(int localId) async {
     final db = await instance.database;
     logger.d("Permanently deleting local entry (localId: $localId).");
@@ -213,8 +256,11 @@ class DatabaseHelper {
     );
   }
 
-  // Update local entries that were associated with a guest ID to the new Firebase User ID.
-  // Also marks them as unsynced so they will be uploaded for the new user.
+  /// Updates local entries from a guest ID to a new Firebase User ID.
+  ///
+  /// This is used when a guest user signs in. It also marks the entries as
+  /// unsynced so they can be uploaded for the new user.
+  /// @return The number of rows affected.
   Future<int> updateGuestEntriesToUser(
       String guestId, String firebaseUserId) async {
     final db = await instance.database;
@@ -233,7 +279,9 @@ class DatabaseHelper {
     );
   }
 
-  // Get the local DB ID (_id) from a Firestore ID.
+  /// Retrieves the local database ID from a Firestore ID.
+  ///
+  /// @return The local ID, or null if not found.
   Future<int?> getLocalIdFromFirestoreId(
       String firestoreId, String userId) async {
     final db = await instance.database;
@@ -251,9 +299,11 @@ class DatabaseHelper {
     return null;
   }
 
-  // Upsert: Insert if new (based on firestoreId for a given userId), or update if exists.
-  // Useful when pulling data from Firebase to local.
-  // Returns the local ID of the inserted/updated row.
+  /// Inserts or updates a [HydrationEntry].
+  ///
+  /// This is useful when pulling data from Firebase. If the entry (based on
+  /// Firestore ID) exists locally, it's updated. Otherwise, it's inserted.
+  /// @return The local ID of the inserted or updated row.
   Future<int> upsertHydrationEntry(HydrationEntry entry, String userId) async {
     final db = await instance.database;
     int? localId;

@@ -5,10 +5,13 @@ import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/repositories/hydration_repository.dart';
 import 'package:minum/main.dart'; // For logger
 
-// This constant can be defined globally or passed around.
-// It represents the user ID for entries made when not logged in.
+/// A constant user ID for entries made when not logged in (guest mode).
 const String guestUserId = "local_guest_user";
 
+/// A concrete implementation of [HydrationRepository] using a local SQLite database.
+///
+/// This repository handles all hydration data operations for the local cache,
+/// supporting offline functionality and guest mode.
 class LocalHydrationRepository implements HydrationRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
@@ -31,20 +34,16 @@ class LocalHydrationRepository implements HydrationRepository {
   @override
   Future<void> updateHydrationEntry(String userId, HydrationEntry entry) async {
     int? localIdToUpdate = entry.localDbId;
-    final effectiveUserId =
-        userId.isEmpty ? guestUserId : userId; // Ensure effectiveUserId is used
+    final effectiveUserId = userId.isEmpty ? guestUserId : userId;
 
     if (localIdToUpdate == null && entry.id != null) {
-      // Use effectiveUserId when looking up by Firestore ID
       localIdToUpdate =
           await _dbHelper.getLocalIdFromFirestoreId(entry.id!, effectiveUserId);
     }
 
     if (localIdToUpdate != null) {
       final HydrationEntry entryToUpdate = entry.copyWith(
-          userId: effectiveUserId, // Ensure this is the effectiveUserId
-          isSynced: false,
-          isLocallyDeleted: false);
+          userId: effectiveUserId, isSynced: false, isLocallyDeleted: false);
       await _dbHelper.updateHydrationEntryByLocalId(
           localIdToUpdate, entryToUpdate);
       logger.i(
@@ -52,11 +51,10 @@ class LocalHydrationRepository implements HydrationRepository {
     } else {
       logger.w(
           "LocalHydrationRepo: Could not update entry. Local ID not found for entry with Firestore ID: ${entry.id} or entry has no ID for user $effectiveUserId. Attempting to add as new.");
-      await addHydrationEntry(effectiveUserId, entry); // Pass effectiveUserId
+      await addHydrationEntry(effectiveUserId, entry);
     }
   }
 
-  // Updated method signature to match interface (will be HydrationEntry entryToDelete)
   @override
   Future<void> deleteHydrationEntry(
       String userId, HydrationEntry entryToDelete) async {
@@ -87,7 +85,6 @@ class LocalHydrationRepository implements HydrationRepository {
   @override
   Future<HydrationEntry?> getHydrationEntry(
       String userId, String entryId) async {
-    // entryId is assumed to be Firestore ID
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     int? localId =
         await _dbHelper.getLocalIdFromFirestoreId(entryId, effectiveUserId);
@@ -97,7 +94,11 @@ class LocalHydrationRepository implements HydrationRepository {
     return null;
   }
 
-  // New method specifically to get by localDbId if needed elsewhere (not part of HydrationRepository interface currently)
+  /// Retrieves a [HydrationEntry] by its local database ID.
+  ///
+  /// This method is not part of the `HydrationRepository` interface but is
+  /// useful for internal operations.
+  /// @return A `Future` that completes with the `HydrationEntry` or null.
   Future<HydrationEntry?> getHydrationEntryByLocalDbId(int localDbId) async {
     return _dbHelper.getHydrationEntryByLocalId(localDbId);
   }
@@ -123,36 +124,53 @@ class LocalHydrationRepository implements HydrationRepository {
     return getHydrationEntriesForDateRange(userId, startDate, endDate);
   }
 
+  /// Retrieves all new or updated entries for a user that are not yet synced.
+  ///
+  /// @return A list of unsynced `HydrationEntry` objects.
   Future<List<HydrationEntry>> getUnsyncedNewOrUpdatedEntries(
       String userId) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getUnsyncedNewOrUpdatedEntries(effectiveUserId);
   }
 
+  /// Marks a local entry as synced with Firestore.
   Future<void> markAsSynced(int localId, String firestoreId) async {
     await _dbHelper.markHydrationEntryAsSynced(localId, firestoreId);
   }
 
+  /// Retrieves all entries marked for deletion that have not yet been synced.
+  ///
+  /// @return A list of deleted, unsynced `HydrationEntry` objects.
   Future<List<HydrationEntry>> getDeletedUnsyncedEntries(String userId) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getDeletedUnsyncedEntries(effectiveUserId);
   }
 
+  /// Permanently deletes an entry from the local database by its local ID.
   Future<void> deletePermanentlyByLocalId(int localId) async {
     await _dbHelper.deleteHydrationEntryPermanentlyByLocalId(localId);
   }
 
+  /// Updates local entries from a guest ID to a new Firebase User ID.
+  ///
+  /// @return The number of rows affected.
   Future<int> updateGuestEntriesToUser(
       String guestId, String firebaseUserId) async {
     return await _dbHelper.updateGuestEntriesToUser(guestId, firebaseUserId);
   }
 
+  /// Retrieves the local database ID from a Firestore ID.
+  ///
+  /// @return The local ID, or null if not found.
   Future<int?> getLocalIdFromFirestoreId(
       String firestoreId, String userId) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     return _dbHelper.getLocalIdFromFirestoreId(firestoreId, effectiveUserId);
   }
 
+  /// Inserts or updates a [HydrationEntry] in the local database.
+  ///
+  /// @return The local ID of the inserted or updated row.
   Future<int> upsertHydrationEntry(HydrationEntry entry, String userId) async {
     final effectiveUserId = userId.isEmpty ? guestUserId : userId;
     final entryToUpsert = entry.copyWith(

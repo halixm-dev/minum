@@ -3,15 +3,20 @@ import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/data/repositories/auth_repository.dart';
-import 'package:minum/src/data/repositories/user_repository.dart'; // For creating user doc after registration
+import 'package:minum/src/data/repositories/user_repository.dart';
 import 'package:minum/main.dart'; // For logger
 
-// Concrete implementation of AuthRepository using Firebase Authentication.
+/// A concrete implementation of [AuthRepository] using Firebase Authentication.
 class FirebaseAuthRepository implements AuthRepository {
   final fb_auth.FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
-  final UserRepository _userRepository; // To create user document in Firestore
+  final UserRepository _userRepository;
 
+  /// Creates a `FirebaseAuthRepository` instance.
+  ///
+  /// If [firebaseAuth] or [googleSignIn] are not provided, default instances
+  /// will be used. A [userRepository] is required to manage user data in
+  /// Firestore.
   FirebaseAuthRepository({
     fb_auth.FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
@@ -27,13 +32,10 @@ class FirebaseAuthRepository implements AuthRepository {
         return null;
       }
       // Fetch our UserModel from Firestore.
-      // If it doesn't exist (e.g., first login with Google), it might be created here or by a dedicated UserProvider.
       UserModel? appUser = await _userRepository.getUser(fbUser.uid);
       if (appUser == null) {
-        // This case can happen if a user was authenticated but their Firestore doc was deleted,
-        // or if it's a new sign-up (e.g. Google) and the doc hasn't been created yet.
-        // For Google Sign-In, we might create a basic user profile here.
-        // For email/password, user creation is typically handled after registration.
+        // This can happen if a user was authenticated but their Firestore doc was deleted,
+        // or if it's a new sign-up (e.g., Google) and the doc hasn't been created yet.
         logger.w(
             "authStateChanges: No UserModel found for uid ${fbUser.uid}, creating a basic one if it's a new social sign-in.");
         if (fbUser.providerData
@@ -52,14 +54,12 @@ class FirebaseAuthRepository implements AuthRepository {
           } catch (e) {
             logger.e(
                 "Error creating user document during authStateChanges for Google user: $e");
-            return null; // Or a default UserModel indicating an issue
+            return null;
           }
         }
-        // If not a new social sign-in and no user doc, this might be an inconsistent state.
         return null;
       }
-      return appUser.copyWith(
-          lastLoginAt: DateTime.now()); // Update last login time conceptually
+      return appUser.copyWith(lastLoginAt: DateTime.now());
     });
   }
 
@@ -69,9 +69,8 @@ class FirebaseAuthRepository implements AuthRepository {
     if (fbUser == null) {
       return null;
     }
-    // This is tricky because we need to fetch from Firestore to get the full UserModel.
-    // For simplicity here, we return a basic UserModel. A UserProvider would typically handle this.
-    // Consider making this method async or relying on authStateChanges for the full UserModel.
+    // This provides a basic UserModel synchronously. For the full, up-to-date
+    // model from Firestore, rely on the `authStateChanges` stream.
     return UserModel(
         id: fbUser.uid,
         email: fbUser.email,
@@ -94,18 +93,12 @@ class FirebaseAuthRepository implements AuthRepository {
         throw fb_auth.FirebaseAuthException(
             code: 'user-not-found', message: 'User not found after sign in.');
       }
-      // Fetch or create user document
       UserModel? appUser = await _userRepository.getUser(fbUser.uid);
       if (appUser == null) {
-        // This shouldn't typically happen if registration creates the user doc.
-        // However, as a fallback:
         logger.w(
             "User document not found for ${fbUser.uid} after email/password sign in. This might indicate an issue.");
-        // Potentially create a basic user document here or throw a more specific error.
-        // For now, we'll assume the user document should exist.
         throw Exception('User profile not found in database.');
       }
-      // Update last login time in Firestore (UserRepository should handle this ideally)
       await _userRepository
           .updateUser(appUser.copyWith(lastLoginAt: DateTime.now()));
       return appUser.copyWith(lastLoginAt: DateTime.now());
@@ -137,7 +130,6 @@ class FirebaseAuthRepository implements AuthRepository {
       if (displayName != null && displayName.isNotEmpty) {
         await fbUser.updateDisplayName(displayName);
       }
-      // Create our user model and save to Firestore
       final newUser = UserModel(
         id: fbUser.uid,
         email: fbUser.email,
@@ -163,7 +155,6 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // User cancelled the sign-in
         return null;
       }
       final GoogleSignInAuthentication googleAuth =
@@ -183,7 +174,6 @@ class FirebaseAuthRepository implements AuthRepository {
             message: 'User not found after Google sign in.');
       }
 
-      // Check if user exists in Firestore, if not, create them
       UserModel? appUser = await _userRepository.getUser(fbUser.uid);
       if (appUser == null) {
         final newUser = UserModel(
@@ -197,7 +187,6 @@ class FirebaseAuthRepository implements AuthRepository {
         await _userRepository.createUser(newUser);
         return newUser;
       } else {
-        // User exists, update last login time
         await _userRepository.updateUser(appUser.copyWith(
             lastLoginAt: DateTime.now(),
             photoUrl: fbUser.photoURL,
@@ -234,8 +223,8 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut(); // Sign out from Google
-      await _firebaseAuth.signOut(); // Sign out from Firebase
+      await _googleSignIn.signOut();
+      await _firebaseAuth.signOut();
     } on fb_auth.FirebaseAuthException catch (e) {
       logger.e("FirebaseAuthException on signOut: ${e.code} - ${e.message}");
       throw _mapFirebaseAuthException(e);
@@ -245,9 +234,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
-  // Helper to map Firebase exceptions to a more generic or app-specific exception if needed
+  /// Maps a [fb_auth.FirebaseAuthException] to a more generic [Exception].
   Exception _mapFirebaseAuthException(fb_auth.FirebaseAuthException e) {
-    // You can customize this mapping based on your app's error handling strategy
     return Exception(e.message ?? 'An unknown authentication error occurred.');
   }
 }

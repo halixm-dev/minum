@@ -6,54 +6,63 @@ import 'package:minum/src/data/repositories/auth_repository.dart';
 import 'package:minum/src/data/repositories/user_repository.dart';
 import 'package:minum/main.dart'; // For logger
 
-// Service layer for authentication and user management.
-// It uses AuthRepository for authentication operations and
-// UserRepository for managing user-specific data in Firestore.
+/// A service layer for authentication and user management.
+///
+/// This class uses an [AuthRepository] for authentication operations and a
+/// [UserRepository] for managing user-specific data in a database.
 class AuthService {
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
 
+  /// Creates an `AuthService` instance.
+  ///
+  /// Requires an [authRepository] and a [userRepository].
   AuthService({
     required AuthRepository authRepository,
     required UserRepository userRepository,
   })  : _authRepository = authRepository,
         _userRepository = userRepository;
 
-  // Stream of authentication state changes.
-  // Emits UserModel if authenticated, null otherwise.
+  /// A stream that provides real-time updates on the authentication state.
+  ///
+  /// Emits a [UserModel] if a user is authenticated, otherwise `null`.
   Stream<UserModel?> get authStateChanges => _authRepository.authStateChanges;
 
-  // Get the current authenticated user.
+  /// Gets the currently authenticated user synchronously.
+  ///
+  /// This may not have the most up-to-date user profile information.
+  /// For real-time updates, use [authStateChanges].
   UserModel? get currentUser => _authRepository.currentUser;
 
-  // Sign in with email and password.
+  /// Signs in a user with their email and password.
+  ///
+  /// @return A `Future` that completes with the signed-in `UserModel`.
   Future<UserModel> signInWithEmailAndPassword(
       String email, String password) async {
     try {
       logger.i("AuthService: Attempting to sign in with email.");
       UserModel user =
           await _authRepository.signInWithEmailAndPassword(email, password);
-      // Additional logic after sign-in can go here, e.g., updating last login.
-      // The repository implementation already handles fetching/creating the UserModel.
       logger.i("AuthService: User ${user.id} signed in successfully.");
       return user;
     } on fb_auth.FirebaseAuthException catch (e) {
       logger.e(
           "AuthService: FirebaseAuthException during email sign in - ${e.code}: ${e.message}");
-      rethrow; // Re-throw to be handled by the UI/Provider
+      rethrow;
     } catch (e) {
       logger.e("AuthService: Unknown error during email sign in: $e");
       throw Exception("An unexpected error occurred during sign in.");
     }
   }
 
-  // Register a new user with email and password.
+  /// Registers a new user with an email and password.
+  ///
+  /// An optional [displayName] can be provided.
+  /// @return A `Future` that completes with the newly created `UserModel`.
   Future<UserModel> signUpWithEmailAndPassword(String email, String password,
       {String? displayName}) async {
     try {
       logger.i("AuthService: Attempting to register new user with email.");
-      // The repository implementation handles creating the Firebase Auth user
-      // AND the user document in Firestore.
       UserModel newUser = await _authRepository.createUserWithEmailAndPassword(
         email,
         password,
@@ -72,11 +81,13 @@ class AuthService {
     }
   }
 
-  // Sign in with Google.
+  /// Signs in a user using their Google account.
+  ///
+  /// @return A `Future` that completes with the `UserModel` or `null` if the
+  /// sign-in was cancelled.
   Future<UserModel?> signInWithGoogle() async {
     try {
       logger.i("AuthService: Attempting Google Sign-In.");
-      // The repository implementation handles Firebase Auth and Firestore user creation/update.
       UserModel? user = await _authRepository.signInWithGoogle();
       if (user != null) {
         logger.i(
@@ -95,7 +106,7 @@ class AuthService {
     }
   }
 
-  // Send a password reset email.
+  /// Sends a password reset email to the specified [email] address.
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       logger.i("AuthService: Sending password reset email to $email.");
@@ -112,7 +123,7 @@ class AuthService {
     }
   }
 
-  // Sign out the current user.
+  /// Signs out the currently authenticated user.
   Future<void> signOut() async {
     try {
       logger.i("AuthService: Signing out user.");
@@ -124,18 +135,20 @@ class AuthService {
     }
   }
 
-  // Fetch the full user profile data from UserRepository.
+  /// Fetches the user profile data for the given [uid].
+  ///
+  /// @return A `Future` that completes with the `UserModel` or `null`.
   Future<UserModel?> getUserProfile(String uid) async {
     try {
       logger.i("AuthService: Fetching user profile for $uid.");
       return await _userRepository.getUser(uid);
     } catch (e) {
       logger.e("AuthService: Error fetching user profile for $uid: $e");
-      return null; // Or rethrow, depending on desired error handling
+      return null;
     }
   }
 
-  // Update user profile data.
+  /// Updates the user's profile data.
   Future<void> updateUserProfile(UserModel user) async {
     try {
       logger.i("AuthService: Updating user profile for ${user.id}.");

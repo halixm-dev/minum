@@ -1,48 +1,45 @@
 // lib/src/data/repositories/auth_repository.dart
-// Alias to avoid name clash
-import 'package:minum/src/data/models/user_model.dart'; // We'll use our UserModel
+import 'package:minum/src/data/models/user_model.dart';
 
-// Abstract class defining the contract for authentication operations.
-// Implementations of this class (e.g., FirebaseAuthRepository) will provide
-// the concrete logic for interacting with an authentication service like Firebase.
+/// An abstract class defining the contract for authentication operations.
+///
+/// Implementations of this class (e.g., `FirebaseAuthRepository`) will provide
+/// the concrete logic for interacting with an authentication service like Firebase.
 abstract class AuthRepository {
-  // Stream to listen to authentication state changes.
-  // Emits a UserModel if a user is signed in, otherwise null.
+  /// A stream that emits the currently authenticated [UserModel] when the
+  /// authentication state changes. Emits `null` if the user is signed out.
   Stream<UserModel?> get authStateChanges;
 
-  // Get the current authenticated user, if any.
-  // Returns null if no user is currently signed in.
+  /// Gets the currently authenticated user.
+  ///
+  /// Returns the [UserModel] if a user is signed in, otherwise `null`.
   UserModel? get currentUser;
 
-  // Sign in with email and password.
-  // Returns a UserModel on success, throws an exception on failure.
+  /// Signs in a user with the given [email] and [password].
+  ///
+  /// Returns a [UserModel] on success. Throws an exception on failure.
+  /// @return A `Future` that completes with the signed-in `UserModel`.
   Future<UserModel> signInWithEmailAndPassword(String email, String password);
 
-  // Register a new user with email and password.
-  // Returns a UserModel on success, throws an exception on failure.
+  /// Creates a new user account with the given [email] and [password].
+  ///
+  /// An optional [displayName] can be provided.
+  /// Returns a [UserModel] on success. Throws an exception on failure.
+  /// @return A `Future` that completes with the created `UserModel`.
   Future<UserModel> createUserWithEmailAndPassword(
       String email, String password,
       {String? displayName});
 
-  // Sign in with Google.
-  // Returns a UserModel on success, throws an exception on failure or if the user cancels.
+  /// Signs in a user using Google Sign-In.
+  ///
+  /// Returns a [UserModel] on success. Returns `null` if the user cancels
+  /// the sign-in process. Throws an exception on failure.
+  /// @return A `Future` that completes with the signed-in `UserModel` or null.
   Future<UserModel?> signInWithGoogle();
 
-  // Send a password reset email to the given email address.
+  /// Sends a password reset email to the given [email] address.
   Future<void> sendPasswordResetEmail(String email);
 
-  // Sign out the current user.
+  /// Signs out the current user.
   Future<void> signOut();
-
-// (Optional) Link an anonymous account with a permanent one, e.g. Google
-// Future<UserModel> linkAnonymousAccount(fb_auth.AuthCredential credential);
-
-// (Optional) Update user's email
-// Future<void> updateUserEmail(String newEmail);
-
-// (Optional) Update user's password
-// Future<void> updateUserPassword(String newPassword);
-
-// (Optional) Delete user account
-// Future<void> deleteUserAccount();
 }

@@ -1,43 +1,57 @@
 // lib/src/presentation/providers/theme_provider.dart
-// dynamic_color import removed as CorePalette is no longer used.
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/core/theme/app_theme.dart';
 
+/// An enumeration of the possible sources for the application's theme.
 enum ThemeSource {
-  baseline, // For the standard AppTheme.lightTheme/darkTheme
+  /// The standard baseline theme.
+  baseline,
+  /// A medium contrast theme.
   mediumContrast,
+  /// A high contrast theme.
   highContrast,
+  /// A theme based on the system's dynamic colors (Android 12+).
   dynamicSystem,
+  /// A theme based on a user-selected custom seed color.
   customSeed,
 }
 
+/// A `ChangeNotifier` that manages the application's theme settings.
+///
+/// This provider handles loading and saving theme preferences, such as
+/// light/dark mode, theme source (e.g., baseline, dynamic), and custom
+/// seed colors.
 class ThemeProvider with ChangeNotifier {
-  static const String _themePrefKey =
-      'themePreference'; // For ThemeMode (light/dark/system)
+  static const String _themePrefKey = 'themePreference';
   static const String _themeSourceKey = 'themeSource';
   static const String _customSeedColorKey = 'customSeedColor';
 
   ThemeMode _themeMode = ThemeMode.system;
-  ThemeSource _themeSource = ThemeSource.baseline; // Default to baseline
-  ColorScheme? _lightDynamicScheme; // Changed from CorePalette
-  ColorScheme? _darkDynamicScheme; // Changed from CorePalette
-  Color? _customSeedColor; // Store the user's custom seed color
+  ThemeSource _themeSource = ThemeSource.baseline;
+  ColorScheme? _lightDynamicScheme;
+  ColorScheme? _darkDynamicScheme;
+  Color? _customSeedColor;
 
-  bool _isDisposed = false; // Flag to track disposal
+  bool _isDisposed = false;
 
-  // Cache variables for dynamic themes
   ThemeData? _cachedLightDynamicThemeData;
   ColorScheme? _lastLightDynamicScheme;
 
   ThemeData? _cachedDarkDynamicThemeData;
   ColorScheme? _lastDarkDynamicScheme;
 
+  /// The current theme mode (light, dark, or system).
   ThemeMode get themeMode => _themeMode;
-  ThemeSource get themeSource => _themeSource; // Expose for UI if needed
-  Color? get customSeedColor => _customSeedColor; // Expose for UI if needed
 
+  /// The current theme source.
+  ThemeSource get themeSource => _themeSource;
+
+  /// The custom seed color selected by the user.
+  Color? get customSeedColor => _customSeedColor;
+
+  /// The currently active light theme data, based on the selected theme source.
   ThemeData get currentLightThemeData {
     switch (_themeSource) {
       case ThemeSource.baseline:
@@ -51,19 +65,20 @@ class ThemeProvider with ChangeNotifier {
         return AppTheme.lightHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_lightDynamicScheme != null) {
-          if (identical(_lightDynamicScheme, _lastLightDynamicScheme) && _cachedLightDynamicThemeData != null) {
+          if (identical(_lightDynamicScheme, _lastLightDynamicScheme) &&
+              _cachedLightDynamicThemeData != null) {
             logger.i("Using cached dynamic system light theme.");
             return _cachedLightDynamicThemeData!;
           }
           logger.i("Rebuilding dynamic system light theme.");
           _lastLightDynamicScheme = _lightDynamicScheme;
           _cachedLightDynamicThemeData = AppTheme.buildThemeDataFromScheme(
-              _lightDynamicScheme!, AppTheme.lightTheme.textTheme); // Assuming AppTheme.lightTheme.textTheme is the correct base
+              _lightDynamicScheme!, AppTheme.lightTheme.textTheme);
           return _cachedLightDynamicThemeData!;
         }
         logger.w(
             "Dynamic system source selected for light theme, but _lightDynamicScheme is null. Falling back to baseline.");
-        return AppTheme.lightTheme; // Fallback
+        return AppTheme.lightTheme;
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger
@@ -73,10 +88,11 @@ class ThemeProvider with ChangeNotifier {
         }
         logger.w(
             "Custom seed source selected for light theme, but customSeedColor is null. Falling back to baseline.");
-        return AppTheme.lightTheme; // Fallback to baseline
+        return AppTheme.lightTheme;
     }
   }
 
+  /// The currently active dark theme data, based on the selected theme source.
   ThemeData get currentDarkThemeData {
     switch (_themeSource) {
       case ThemeSource.baseline:
@@ -90,19 +106,20 @@ class ThemeProvider with ChangeNotifier {
         return AppTheme.darkHighContrastTheme;
       case ThemeSource.dynamicSystem:
         if (_darkDynamicScheme != null) {
-          if (identical(_darkDynamicScheme, _lastDarkDynamicScheme) && _cachedDarkDynamicThemeData != null) {
+          if (identical(_darkDynamicScheme, _lastDarkDynamicScheme) &&
+              _cachedDarkDynamicThemeData != null) {
             logger.i("Using cached dynamic system dark theme.");
             return _cachedDarkDynamicThemeData!;
           }
           logger.i("Rebuilding dynamic system dark theme.");
           _lastDarkDynamicScheme = _darkDynamicScheme;
           _cachedDarkDynamicThemeData = AppTheme.buildThemeDataFromScheme(
-              _darkDynamicScheme!, AppTheme.darkTheme.textTheme); // Assuming AppTheme.darkTheme.textTheme is the correct base
+              _darkDynamicScheme!, AppTheme.darkTheme.textTheme);
           return _cachedDarkDynamicThemeData!;
         }
         logger.w(
             "Dynamic system source selected for dark theme, but _darkDynamicScheme is null. Falling back to baseline.");
-        return AppTheme.darkTheme; // Fallback
+        return AppTheme.darkTheme;
       case ThemeSource.customSeed:
         if (_customSeedColor != null) {
           logger.i("Using custom seed color for dark theme: $_customSeedColor");
@@ -111,12 +128,13 @@ class ThemeProvider with ChangeNotifier {
         }
         logger.w(
             "Custom seed source selected for dark theme, but customSeedColor is null. Falling back to baseline.");
-        return AppTheme.darkTheme; // Fallback to baseline
+        return AppTheme.darkTheme;
     }
   }
 
+  /// Creates a `ThemeProvider` instance and loads the theme preferences.
   ThemeProvider() {
-    _loadThemePreference(); // This will now load ThemeMode, ThemeSource, and CustomSeedColor
+    _loadThemePreference();
   }
 
   void _safeNotifyListeners() {
@@ -132,43 +150,40 @@ class ThemeProvider with ChangeNotifier {
     if (_isDisposed) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (_isDisposed) return; // Check again after await
+      if (_isDisposed) return;
 
-      // Load ThemeMode
       final themeModeString = prefs.getString(_themePrefKey);
       if (themeModeString == 'light') {
         _themeMode = ThemeMode.light;
       } else if (themeModeString == 'dark') {
         _themeMode = ThemeMode.dark;
       } else {
-        _themeMode = ThemeMode.system; // Default
+        _themeMode = ThemeMode.system;
       }
       logger.i("ThemeMode loaded: $_themeMode");
 
-      // Load ThemeSource
       final themeSourceString = prefs.getString(_themeSourceKey);
       _themeSource = ThemeSource.values.firstWhere(
         (e) => e.name == themeSourceString,
-        orElse: () => ThemeSource.baseline, // Default to baseline
+        orElse: () => ThemeSource.baseline,
       );
       logger.i("ThemeSource loaded: $_themeSource");
 
-      // Load CustomSeedColor
       final seedColorValue = prefs.getInt(_customSeedColorKey);
       if (seedColorValue != null) {
         _customSeedColor = Color(seedColorValue);
         logger.i("CustomSeedColor loaded: $_customSeedColor");
       } else {
-        _customSeedColor = null; // Ensure it's null if not found
+        _customSeedColor = null;
         logger.i("CustomSeedColor not found, set to null.");
       }
     } catch (e) {
       logger.e("Error loading theme preferences: $e");
-      // Defaults are already set at declaration
     }
     _safeNotifyListeners();
   }
 
+  /// Sets the dynamic color schemes obtained from the system.
   void setDynamicColorSchemes(ColorScheme? light, ColorScheme? dark) {
     if (_isDisposed) return;
 
@@ -176,18 +191,19 @@ class ThemeProvider with ChangeNotifier {
     bool darkChanged = !identical(dark, _darkDynamicScheme);
 
     if (lightChanged) {
-      _cachedLightDynamicThemeData = null; // Invalidate cache
+      _cachedLightDynamicThemeData = null;
       _lightDynamicScheme = light;
       logger.i("New light dynamic scheme set. Cache invalidated.");
     }
 
     if (darkChanged) {
-      _cachedDarkDynamicThemeData = null; // Invalidate cache
+      _cachedDarkDynamicThemeData = null;
       _darkDynamicScheme = dark;
       logger.i("New dark dynamic scheme set. Cache invalidated.");
     }
 
-    if ((lightChanged || darkChanged) && _themeSource == ThemeSource.dynamicSystem) {
+    if ((lightChanged || darkChanged) &&
+        _themeSource == ThemeSource.dynamicSystem) {
       logger.i(
           "Dynamic ColorSchemes updated and current source is dynamic. Notifying listeners.");
       _safeNotifyListeners();
@@ -200,6 +216,7 @@ class ThemeProvider with ChangeNotifier {
     }
   }
 
+  /// Sets the theme source and persists the choice.
   Future<void> setThemeSource(ThemeSource source) async {
     if (_themeSource == source || _isDisposed) return;
 
@@ -215,6 +232,7 @@ class ThemeProvider with ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  /// Sets the custom seed color and persists the choice.
   Future<void> setCustomSeedColor(Color color) async {
     if (_customSeedColor == color || _isDisposed) return;
 
@@ -235,16 +253,16 @@ class ThemeProvider with ChangeNotifier {
     } catch (e) {
       logger.e("Error saving CustomSeedColor preference: $e");
     }
-    // No notifyListeners here if not custom, as it's a preference for future use
   }
 
+  /// Sets the theme mode (light, dark, or system) and persists the choice.
   Future<void> setThemeMode(ThemeMode mode) async {
     if (_themeMode == mode || _isDisposed) return;
 
     _themeMode = mode;
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (_isDisposed) return; // Check again after await
+      if (_isDisposed) return;
 
       String themeString;
       switch (mode) {

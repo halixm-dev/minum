@@ -2,10 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
-import 'package:minum/src/navigation/app_routes.dart'; // For home route
+import 'package:minum/src/navigation/app_routes.dart';
 
+/// A screen that is displayed when a route is not found.
 class NotFoundScreen extends StatelessWidget {
+  /// The name of the route that was not found.
   final String? routeName;
+
+  /// Creates a `NotFoundScreen`.
+  ///
+  /// The [routeName] is optional and will be displayed in the error message.
   const NotFoundScreen({super.key, this.routeName});
 
   @override
@@ -22,8 +28,7 @@ class NotFoundScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Icon(
-                Icons
-                    .error, // Changed from Icons.error_outline to filled version for M3 emphasis
+                Icons.error,
                 color: Theme.of(context).colorScheme.error,
                 size: 80.sp,
               ),
@@ -31,24 +36,21 @@ class NotFoundScreen extends StatelessWidget {
               Text(
                 'Page Not Found',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight
-                          .bold, // fontWeight will be removed in text style audit if not M3 standard
+                      fontWeight: FontWeight.bold,
                     ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 12.h), // Changed from 10.h to 12.h
+              SizedBox(height: 12.h),
               Text(
                 routeName != null
                     ? "Sorry, the route '$routeName' could not be found."
-                    : AppStrings
-                        .anErrorOccurred, // Generic message if routeName is null
+                    : AppStrings.anErrorOccurred,
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 32.h), // Changed from 30.h to 32.h
+              SizedBox(height: 32.h),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to a safe route, like home or auth gate
                   Navigator.of(context)
                       .pushReplacementNamed(AppRoutes.authGate);
                 },
