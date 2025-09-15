@@ -32,7 +32,7 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart';
 import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
 
-// Global logger instance
+/// A global logger instance for logging messages throughout the application.
 final logger = Logger(
   printer: PrettyPrinter(
     methodCount: 1,
@@ -40,11 +40,14 @@ final logger = Logger(
     lineLength: 120,
     colors: true,
     printEmojis: true,
-    // Updated: Replaced 'printTime: false' with 'dateTimeFormat: DateTimeFormat.none'
     dateTimeFormat: DateTimeFormat.none,
   ),
 );
 
+/// The main entry point for the application.
+///
+/// This function initializes Firebase, sets up all the necessary services and
+/// providers, and runs the application.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -61,7 +64,6 @@ void main() async {
   await notificationService.init();
   logger.i("NotificationService initialized");
 
-  // Attempt to schedule daily reminders if needed (after notification service is ready)
   try {
     await notificationService.scheduleDailyRemindersIfNeeded();
     logger.i("Attempted to schedule daily reminders on startup.");
@@ -102,12 +104,9 @@ void main() async {
         Provider<NotificationService>.value(value: notificationService),
         Provider<UserRepository>.value(value: userRepository),
         Provider<HydrationRepository>.value(value: syncableHydrationRepository),
-
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(
-            create: (_) => BottomNavProvider()), // Add BottomNavProvider
-        ChangeNotifierProvider(
-            create: (_) => ReminderSettingsNotifier()), // <-- ADD THIS LINE
+        ChangeNotifierProvider(create: (_) => BottomNavProvider()),
+        ChangeNotifierProvider(create: (_) => ReminderSettingsNotifier()),
         ChangeNotifierProvider<AuthProvider>(
           create: (context) => AuthProvider(
             context.read<AuthService>(),

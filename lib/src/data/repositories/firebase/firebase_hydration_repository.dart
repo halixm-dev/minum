@@ -4,14 +4,20 @@ import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/repositories/hydration_repository.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// A concrete implementation of [HydrationRepository] using Cloud Firestore.
 class FirebaseHydrationRepository implements HydrationRepository {
   final FirebaseFirestore _firestore;
   static const String _usersCollection = 'users';
   static const String _hydrationEntriesSubcollection = 'hydrationEntries';
 
+  /// Creates a `FirebaseHydrationRepository` instance.
+  ///
+  /// If [firestore] is not provided, a default instance will be used.
   FirebaseHydrationRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  /// A helper method to get a reference to the `hydrationEntries` subcollection
+  /// for a specific user, with a type converter.
   CollectionReference<HydrationEntry> _hydrationEntriesRef(String userId) {
     return _firestore
         .collection(_usersCollection)
@@ -38,6 +44,10 @@ class FirebaseHydrationRepository implements HydrationRepository {
     }
   }
 
+  /// Adds a new [HydrationEntry] and returns it with the new Firestore ID.
+  ///
+  /// This is useful for immediately updating the local model with its remote ID.
+  /// @return A `Future` that completes with the new `HydrationEntry`.
   Future<HydrationEntry> addHydrationEntryReturnId(
       String userId, HydrationEntry entry) async {
     try {
@@ -77,7 +87,6 @@ class FirebaseHydrationRepository implements HydrationRepository {
     }
   }
 
-  // Updated method signature
   @override
   Future<void> deleteHydrationEntry(
       String userId, HydrationEntry entryToDelete) async {
@@ -100,7 +109,6 @@ class FirebaseHydrationRepository implements HydrationRepository {
   @override
   Future<HydrationEntry?> getHydrationEntry(
       String userId, String entryId) async {
-    // entryId is Firestore ID
     try {
       final docSnapshot = await _hydrationEntriesRef(userId).doc(entryId).get();
       if (docSnapshot.exists) {
@@ -154,6 +162,10 @@ class FirebaseHydrationRepository implements HydrationRepository {
     return getHydrationEntriesForDateRange(userId, startDate, endDate);
   }
 
+  /// Fetches all hydration entries for a given user.
+  ///
+  /// This is useful for initial data synchronization.
+  /// @return A `Future` that completes with a list of all `HydrationEntry` objects.
   Future<List<HydrationEntry>> getAllHydrationEntriesForUser(
       String userId) async {
     try {

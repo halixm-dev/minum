@@ -5,10 +5,12 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // To mark onboarding as completed
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/main.dart'; // For logger
 
+/// A screen that introduces the user to the app's features through a series of pages.
 class OnboardingScreen extends StatefulWidget {
+  /// Creates an `OnboardingScreen`.
   const OnboardingScreen({super.key});
 
   @override
@@ -43,22 +45,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  /// Marks onboarding as completed in `SharedPreferences` and navigates to the login screen.
   Future<void> _completeOnboarding() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('onboarding_completed', true);
       logger.i("Onboarding marked as completed.");
       if (mounted) {
-        // Navigate to the simplified LoginScreen
-        Navigator.of(context).pushReplacementNamed(
-            AppRoutes.login); // Changed from AppRoutes.welcome
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
         logger.i("OnboardingScreen: Navigating to LoginScreen.");
       }
     } catch (e) {
       logger.e("Error saving onboarding status or navigating: $e");
       if (mounted) {
-        Navigator.of(context)
-            .pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
         logger.w(
             "OnboardingScreen: Fallback navigation to LoginScreen due to error.");
       }
@@ -71,7 +71,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface, // Use M3 surface color
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -81,11 +81,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: EdgeInsets.only(top: 16.h, right: 16.w),
                 child: TextButton(
                   onPressed: _completeOnboarding,
-                  // TextButton style comes from TextButtonThemeData
                   child: Text(AppStrings.skip,
-                      style: TextStyle(
-                          fontSize:
-                              16.sp)), // Color will be colorScheme.primary
+                      style: TextStyle(fontSize: 16.sp)),
                 ),
               ),
             ),
@@ -100,7 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 itemBuilder: (context, index) {
                   return _buildOnboardingPage(
-                    context: context, // Pass context
+                    context: context,
                     imagePath: _onboardingPages[index]['image']!,
                     title: _onboardingPages[index]['title']!,
                     description: _onboardingPages[index]['description']!,
@@ -109,9 +106,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: 24.w,
-                  vertical: 32.h), // Adjusted vertical padding
+              padding:
+                  EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -119,14 +115,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       _onboardingPages.length,
-                      (idx) => _buildDot(
-                          idx, context, colorScheme), // Pass colorScheme
+                      (idx) => _buildDot(idx, context, colorScheme),
                     ),
                   ),
                   SizedBox(
-                    width: 150
-                        .w, // Slightly wider for potentially longer "Get Started" text
-                    height: 48.h, // M3 typical height for FilledButton
+                    width: 150.w,
+                    height: 48.h,
                     child: FilledButton(
                       onPressed: () {
                         if (_currentPage == _onboardingPages.length - 1) {
@@ -154,13 +148,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  /// Builds a single page for the onboarding `PageView`.
   Widget _buildOnboardingPage({
-    required BuildContext context, // Added context
+    required BuildContext context,
     required String imagePath,
     required String title,
     required String description,
   }) {
-    final theme = Theme.of(context); // Get theme from context
+    final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Padding(
@@ -177,12 +172,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               logger.e("Onboarding image error: $error for path $imagePath");
               return Container(
                 height: 280.h,
-                color: colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.3), // Use M3 color
+                color: colorScheme.surfaceContainerHighest.withAlpha(77),
                 child: Center(
                     child: Icon(Symbols.image_not_supported,
                         size: 100.sp,
-                        color: colorScheme.onSurfaceVariant)), // Use M3 color
+                        color: colorScheme.onSurfaceVariant)),
               );
             },
           ),
@@ -190,27 +184,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: colorScheme.primary, // Use M3 color
-              // fontWeight removed, use M3 theme's definition
-            ),
+            style: theme.textTheme.displaySmall
+                ?.copyWith(color: colorScheme.primary),
           ),
           SizedBox(height: 16.h),
           Text(
             description,
             textAlign: TextAlign.center,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant, // Use M3 color
-              height: 1.5,
-            ),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(color: colorScheme.onSurfaceVariant, height: 1.5),
           ),
         ],
       ),
     );
   }
 
+  /// Builds a single dot for the page indicator.
   Widget _buildDot(int index, BuildContext context, ColorScheme colorScheme) {
-    // Added colorScheme
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: EdgeInsets.only(right: 8.w),
@@ -219,7 +209,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       decoration: BoxDecoration(
         color: _currentPage == index
             ? colorScheme.primary
-            : colorScheme.surfaceContainerHighest, // Use M3 colors
+            : colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(5.r),
       ),
     );

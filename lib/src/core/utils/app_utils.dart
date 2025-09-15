@@ -4,30 +4,53 @@ import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart'; // For validation messages
 import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
 
+/// A utility class providing common functions for the application.
+///
+/// This class includes formatters, validators, UI helpers, and other
+/// miscellaneous utilities.
 class AppUtils {
-  AppUtils._(); // Private constructor
+  /// Private constructor to prevent instantiation.
+  AppUtils._();
 
   // --- Formatters ---
+  /// Formats a [DateTime] object into a string with the given [format].
+  ///
+  /// The default format is 'yyyy-MM-dd'.
+  /// @return The formatted date string.
   static String formatDate(DateTime date, {String format = 'yyyy-MM-dd'}) {
-    // Standard format
     return DateFormat(format).format(date);
   }
 
+  /// Formats a [DateTime] object into a time string with the given [format].
+  ///
+  /// The default format is 'hh:mm a'.
+  /// @return The formatted time string.
   static String formatTime(DateTime time, {String format = 'hh:mm a'}) {
     return DateFormat(format).format(time);
   }
 
+  /// Formats a [DateTime] object into a date and time string with the given [format].
+  ///
+  /// The default format is 'yyyy-MM-dd, hh:mm a'.
+  /// @return The formatted date and time string.
   static String formatDateTime(DateTime dateTime,
       {String format = 'yyyy-MM-dd, hh:mm a'}) {
-    // Standard format
     return DateFormat(format).format(dateTime);
   }
 
+  /// Formats a numeric [amount] into a string with a fixed number of decimal digits.
+  ///
+  /// The default number of decimal digits is 0.
+  /// @return The formatted amount string.
   static String formatAmount(double amount, {int decimalDigits = 0}) {
     return amount.toStringAsFixed(decimalDigits);
   }
 
   // --- Validators ---
+  /// Validates an email string.
+  ///
+  /// Returns an error message if the email is empty or invalid, otherwise null.
+  /// @return A validation error message or null.
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return AppStrings.fieldRequired;
@@ -40,6 +63,10 @@ class AppUtils {
     return null;
   }
 
+  /// Validates a password string.
+  ///
+  /// Returns an error message if the password is empty or too short, otherwise null.
+  /// @return A validation error message or null.
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return AppStrings.fieldRequired;
@@ -50,6 +77,11 @@ class AppUtils {
     return null;
   }
 
+  /// Validates that a confirmation password matches the original password.
+  ///
+  /// Returns an error message if the confirmation password is empty or does not
+  /// match, otherwise null.
+  /// @return A validation error message or null.
   static String? validateConfirmPassword(
       String? password, String? confirmPassword) {
     if (confirmPassword == null || confirmPassword.isEmpty) {
@@ -61,6 +93,11 @@ class AppUtils {
     return null;
   }
 
+  /// Validates that a string is not empty.
+  ///
+  /// Returns an error message if the string is empty, otherwise null.
+  /// The [fieldName] is used in the error message.
+  /// @return A validation error message or null.
   static String? validateNotEmpty(String? value,
       {String fieldName = "This field"}) {
     if (value == null || value.isEmpty) {
@@ -69,6 +106,10 @@ class AppUtils {
     return null;
   }
 
+  /// Validates that a string represents a valid number.
+  ///
+  /// Options to [allowDecimal] and [allowNegative] values.
+  /// @return A validation error message or null.
   static String? validateNumber(String? value,
       {bool allowDecimal = false, bool allowNegative = false}) {
     if (value == null || value.isEmpty) {
@@ -88,6 +129,9 @@ class AppUtils {
   }
 
   // --- UI Helpers ---
+  /// Shows a `SnackBar` with the given [message].
+  ///
+  /// The [isError] flag determines the background color of the `SnackBar`.
   static void showSnackBar(BuildContext context, String message,
       {bool isError = false}) {
     ScaffoldMessenger.of(context)
@@ -103,6 +147,9 @@ class AppUtils {
     );
   }
 
+  /// Shows a loading dialog with an optional [message].
+  ///
+  /// The dialog is not dismissible by the user.
   static Future<void> showLoadingDialog(BuildContext context,
       {String message = AppStrings.loading}) async {
     return showDialog<void>(
@@ -123,6 +170,7 @@ class AppUtils {
     );
   }
 
+  /// Hides the currently shown loading dialog.
   static void hideLoadingDialog(BuildContext context) {
     // Check if there's a dialog to pop to avoid errors
     if (Navigator.of(context, rootNavigator: true).canPop()) {
@@ -130,6 +178,12 @@ class AppUtils {
     }
   }
 
+  /// Shows a confirmation dialog with the given [title] and [content].
+  ///
+  /// Returns `true` if the user confirms, `false` if the user cancels, and
+  /// `null` if the dialog is dismissed.
+  /// The [confirmText] and [cancelText] can be customized.
+  /// @return A `Future` that resolves to a boolean or null.
   static Future<bool?> showConfirmationDialog(
     BuildContext context, {
     required String title,
@@ -158,6 +212,11 @@ class AppUtils {
   }
 
   // --- Unit Conversion Helper ---
+  /// Converts a value in milliliters to the user's preferred measurement unit.
+  ///
+  /// The [valueMl] is the value in milliliters.
+  /// The [unit] is the target `MeasurementUnit`.
+  /// @return The converted value.
   static double convertToPreferredUnit(double valueMl, MeasurementUnit unit) {
     if (unit == MeasurementUnit.oz) {
       return valueMl / 29.5735; // mL to fluid ounces conversion
@@ -167,7 +226,11 @@ class AppUtils {
 }
 
 // --- String Extension for Capitalization ---
+/// An extension on the `String` class to provide a `capitalize` method.
 extension StringExtension on String {
+  /// Capitalizes the first letter of the string and converts the rest to lowercase.
+  ///
+  /// @return The capitalized string.
   String capitalize() {
     if (isEmpty) return "";
     if (length == 1) return toUpperCase();

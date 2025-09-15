@@ -6,9 +6,10 @@ import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-// For logger
 
+/// A screen that allows users to request a password reset email.
 class ForgotPasswordScreen extends StatefulWidget {
+  /// Creates a `ForgotPasswordScreen`.
   const ForgotPasswordScreen({super.key});
 
   @override
@@ -26,6 +27,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
+  /// Sends a password reset email to the address entered in the text field.
   Future<void> _sendResetEmail() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -35,7 +37,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         await authProvider.sendPasswordResetEmail(_emailController.text.trim());
         if (mounted) {
           AppUtils.showSnackBar(context, AppStrings.passwordResetEmailSent);
-          // Optionally navigate back or to login after a delay
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) Navigator.of(context).pop();
           });
@@ -56,12 +57,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context); // Get theme for easy access
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reset Password'),
-        // elevation and centerTitle will be handled by appBarTheme from AppTheme
       ),
       body: SafeArea(
         child: Center(
@@ -76,27 +76,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   Icon(Symbols.lock_reset,
                       size: 64.h,
                       color:
-                          theme.colorScheme.primary), // Adjusted size slightly
+                          theme.colorScheme.primary),
                   SizedBox(height: 20.h),
                   Text(
                     'Forgot Your Password?',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: theme.colorScheme
-                          .onSurface, // Ensure text color is appropriate
-                      // fontWeight removed, use M3 theme's definition
-                    ),
+                    style: theme.textTheme.headlineSmall
+                        ?.copyWith(color: theme.colorScheme.onSurface),
                   ),
                   SizedBox(height: 12.h),
                   Text(
                     'Enter your email address below and we\'ll send you a link to reset your password.',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                        // Changed to bodyMedium for less emphasis
-                        color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                   SizedBox(height: 32.h),
-
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -110,7 +105,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     onFieldSubmitted: (_) => _sendResetEmail(),
                   ),
                   SizedBox(height: 24.h),
-
                   FilledButton(
                     onPressed: _isLoading ? null : _sendResetEmail,
                     child: _isLoading
@@ -123,7 +117,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         : const Text('Send Reset Link'),
                   ),
                   SizedBox(height: 20.h),
-
                   TextButton(
                     onPressed:
                         _isLoading ? null : () => Navigator.of(context).pop(),

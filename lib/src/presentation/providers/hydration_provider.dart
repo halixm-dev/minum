@@ -1,20 +1,27 @@
 // lib/src/presentation/providers/hydration_provider.dart
 import 'dart:async';
-import 'package:flutter/material.dart'; // For DateUtils
-import 'package:shared_preferences/shared_preferences.dart'; // For SharedPreferences
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/models/user_model.dart';
-import 'package:minum/src/services/notification_service.dart'; // For prefsPendingWaterAdditionMl
+import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/data/repositories/local/local_hydration_repository.dart'
     show guestUserId;
 
+/// An enumeration of the possible statuses for loading hydration logs.
 enum HydrationLogStatus { idle, loading, loaded, error }
 
+/// An enumeration of the possible statuses for hydration actions (add, update, delete).
 enum HydrationActionStatus { idle, processing, success, error }
 
+/// A `ChangeNotifier` that manages hydration data for the UI.
+///
+/// This provider interfaces with [HydrationService] and [AuthService] to
+/// fetch, display, and manipulate hydration data based on the current user
+/// and selected date.
 class HydrationProvider with ChangeNotifier {
   final HydrationService _hydrationService;
   final AuthService _authService;
@@ -31,14 +38,26 @@ class HydrationProvider with ChangeNotifier {
   String? _currentUserId;
   bool _isDisposed = false;
 
+  /// A list of hydration entries for the currently selected date.
   List<HydrationEntry> get dailyEntries => _dailyEntries;
+
+  /// The current status of loading hydration logs.
   HydrationLogStatus get logStatus => _logStatus;
+
+  /// The current status of the last hydration action (add, update, delete).
   HydrationActionStatus get actionStatus => _actionStatus;
+
+  /// The last error message.
   String? get errorMessage => _errorMessage;
+
+  /// The currently selected date for displaying hydration entries.
   DateTime get selectedDate => _selectedDate;
+
+  /// The total water intake for the currently selected date.
   double get totalIntakeToday =>
       _hydrationService.calculateTotalIntake(_dailyEntries);
 
+  /// Creates a `HydrationProvider` instance.
   HydrationProvider(
       {required HydrationService hydrationService,
       required AuthService authService})
@@ -91,6 +110,7 @@ class HydrationProvider with ChangeNotifier {
     _entriesSubscription = null;
   }
 
+  /// Sets the selected date and fetches the hydration entries for that date.
   void setSelectedDate(DateTime date) async {
     if (_isDisposed) return;
     final normalizedDate = DateTime(date.year, date.month, date.day);
@@ -110,6 +130,7 @@ class HydrationProvider with ChangeNotifier {
     }
   }
 
+  /// Fetches hydration entries for a specific date.
   Future<void> fetchHydrationEntriesForDate(DateTime date) async {
     if (_isDisposed) return;
     final userIdForFetch = _currentUserId ?? guestUserId;
@@ -155,6 +176,7 @@ class HydrationProvider with ChangeNotifier {
     );
   }
 
+  /// Retrieves a stream of hydration entries for a date range.
   Stream<List<HydrationEntry>> getEntriesForDateRangeStream(
       String userId, DateTime startDate, DateTime endDate) {
     if (_isDisposed) return Stream.value([]);
@@ -170,6 +192,7 @@ class HydrationProvider with ChangeNotifier {
         userIdForFetch, startDate, endDate);
   }
 
+  /// Adds a new hydration entry.
   Future<void> addHydrationEntry(double amountMl,
       {DateTime? entryTime, String? notes, String? source}) async {
     if (_isDisposed) return;
@@ -213,6 +236,7 @@ class HydrationProvider with ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  /// Updates an existing hydration entry.
   Future<void> updateHydrationEntry(HydrationEntry entry) async {
     if (_isDisposed) return;
     final userIdForAction = _currentUserId ?? guestUserId;
@@ -251,6 +275,7 @@ class HydrationProvider with ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  /// Deletes a hydration entry with an optimistic UI update.
   Future<void> deleteHydrationEntry(HydrationEntry entryToDelete) async {
     if (_isDisposed) return;
     final userIdForAction = _currentUserId ?? guestUserId;
@@ -263,7 +288,6 @@ class HydrationProvider with ChangeNotifier {
       return;
     }
 
-    // **Optimistic UI Update**
     final originalEntries = List<HydrationEntry>.from(_dailyEntries);
     final int entryIndex = _dailyEntries.indexWhere((e) =>
         (e.id != null && e.id == entryToDelete.id) ||
@@ -271,10 +295,9 @@ class HydrationProvider with ChangeNotifier {
 
     if (entryIndex != -1) {
       _dailyEntries.removeAt(entryIndex);
-      _actionStatus =
-          HydrationActionStatus.processing; // Still processing backend
+      _actionStatus = HydrationActionStatus.processing;
       _errorMessage = null;
-      _safeNotifyListeners(); // Notify UI immediately of the removal
+      _safeNotifyListeners();
       logger.d(
           "HydrationProvider: Optimistically removed entry (ID: ${entryToDelete.id ?? entryToDelete.localDbId}) from UI.");
     } else {
@@ -294,42 +317,29 @@ class HydrationProvider with ChangeNotifier {
       logger.i(
           "HydrationProvider: Entry ${entryToDelete.id ?? entryToDelete.localDbId} delete successful for $userIdForAction.");
 
-      // If the optimistic removal was for the selected date, the UI is already updated.
-      // If the backend deletion succeeded, we don't need to re-fetch unless there's a mismatch.
-      // However, if the deletion affected a different day than _selectedDate (less likely for this method's typical use)
-      // or to ensure absolute consistency after backend op, a selective re-fetch could be done.
-      // For now, the optimistic removal handles the immediate UI.
-      // If the entry was on the selected date and removed, the list is already correct.
-      // If it wasn't on the selected date (unlikely for this call path), no UI change needed here.
       if (entryIndex != -1 &&
           !DateUtils.isSameDay(_selectedDate, entryToDelete.timestamp)) {
-        // This case is less likely if deleteHydrationEntry is called for items on _selectedDate.
-        // But if it could happen, consider if a fetch for entryToDelete.timestamp is needed.
       } else if (entryIndex == -1) {
-        // If it wasn't in the daily list but deleted from backend, refresh current day
-        // in case it was an old entry from today that wasn't in the list due to pagination (if we had it)
         logger.d(
             "HydrationProvider: Entry deleted from backend, wasn't in current daily list. Refreshing for $_selectedDate.");
         await fetchHydrationEntriesForDate(_selectedDate);
       }
-      // If deletion failed, the optimistic removal needs to be reverted.
     } catch (e) {
       if (_isDisposed) return;
       _actionStatus = HydrationActionStatus.error;
       _errorMessage = "Failed to delete entry: ${e.toString()}";
       logger.e(
           "HydrationProvider: Error deleting entry ${entryToDelete.id ?? entryToDelete.localDbId}: $e");
-      // **Revert Optimistic UI Update on Failure**
       if (entryIndex != -1) {
-        _dailyEntries = originalEntries; // Restore the original list
+        _dailyEntries = originalEntries;
         logger.w(
             "HydrationProvider: Reverted optimistic removal due to backend error.");
       }
-      // No need to call fetchHydrationEntriesForDate here as we reverted.
     }
-    _safeNotifyListeners(); // Notify final status
+    _safeNotifyListeners();
   }
 
+  /// Resets the action status to idle.
   void resetActionStatus() {
     if (_isDisposed) return;
     if (_actionStatus != HydrationActionStatus.idle) {
@@ -349,6 +359,7 @@ class HydrationProvider with ChangeNotifier {
     super.dispose();
   }
 
+  /// Processes any pending water additions that were triggered from a notification action.
   Future<void> processPendingWaterAddition() async {
     if (_isDisposed) {
       logger.w(
@@ -365,20 +376,13 @@ class HydrationProvider with ChangeNotifier {
       if (pendingAmountMl != null && pendingAmountMl > 0) {
         logger.i(
             "HydrationProvider: Found pending water addition of $pendingAmountMl ml.");
-        // Ensure _currentUserId is available, might need a slight delay or check.
-        // For simplicity, assuming addHydrationEntry can handle if _currentUserId is briefly null
-        // or that this method is called after _currentUserId is likely set.
         if (_currentUserId == null) {
           logger.w(
               "HydrationProvider: User ID not yet available. Waiting a moment to process pending water.");
-          // This is a simple delay. A more robust solution might involve listening to user ID availability.
           await Future.delayed(const Duration(seconds: 2));
           if (_currentUserId == null) {
             logger.e(
                 "HydrationProvider: User ID still not available after delay. Cannot process pending water addition.");
-            // Optionally, do not remove the pref yet, so it can be retried.
-            // However, this could lead to repeated processing if not handled carefully.
-            // For now, we'll log and not process to avoid adding to a null user.
             return;
           }
         }
@@ -393,10 +397,6 @@ class HydrationProvider with ChangeNotifier {
     } catch (e) {
       logger
           .e("HydrationProvider: Error processing pending water addition: $e");
-      // Decide if to remove the preference key on error or leave for retry
-      // final prefs = await SharedPreferences.getInstance();
-      // await prefs.remove(prefsPendingWaterAdditionMl);
-      // logger.w("HydrationProvider: Removed pending water addition key due to error to prevent loop, but error was: $e");
     }
   }
 }

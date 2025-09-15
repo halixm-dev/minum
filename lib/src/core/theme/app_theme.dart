@@ -3,30 +3,58 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// A utility class for creating and managing Material 3 themes.
+///
+/// This class provides static methods to generate `ThemeData` for light, dark,
+/// and contrast themes, as well as themes from a seed color. It encapsulates
+/// the logic for color schemes, text themes, and component styles.
 class AppTheme {
-  AppTheme._(); // Private constructor
+  /// Private constructor to prevent instantiation.
+  AppTheme._();
 
   // Define base TextThemes
-  static final TextTheme _lightTextTheme = GoogleFonts.robotoTextTheme(ThemeData.light().textTheme);
-  static final TextTheme _darkTextTheme = GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
+  static final TextTheme _lightTextTheme =
+      GoogleFonts.robotoTextTheme(ThemeData.light().textTheme);
+  static final TextTheme _darkTextTheme =
+      GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
 
   // Create MaterialTheme instances
-  static final MaterialTheme _lightMaterialTheme = MaterialTheme(_lightTextTheme);
+  static final MaterialTheme _lightMaterialTheme =
+      MaterialTheme(_lightTextTheme);
   static final MaterialTheme _darkMaterialTheme = MaterialTheme(_darkTextTheme);
 
   // Static ThemeData getters using MaterialTheme
+  /// The default light theme for the application.
   static ThemeData get lightTheme => _lightMaterialTheme.light();
+
+  /// The default dark theme for the application.
   static ThemeData get darkTheme => _darkMaterialTheme.dark();
 
-  static ThemeData get lightMediumContrastTheme => _lightMaterialTheme.lightMediumContrast();
-  static ThemeData get lightHighContrastTheme => _lightMaterialTheme.lightHighContrast();
-  static ThemeData get darkMediumContrastTheme => _darkMaterialTheme.darkMediumContrast();
-  static ThemeData get darkHighContrastTheme => _darkMaterialTheme.darkHighContrast();
-  
+  /// A medium contrast light theme.
+  static ThemeData get lightMediumContrastTheme =>
+      _lightMaterialTheme.lightMediumContrast();
 
+  /// A high contrast light theme.
+  static ThemeData get lightHighContrastTheme =>
+      _lightMaterialTheme.lightHighContrast();
+
+  /// A medium contrast dark theme.
+  static ThemeData get darkMediumContrastTheme =>
+      _darkMaterialTheme.darkMediumContrast();
+
+  /// A high contrast dark theme.
+  static ThemeData get darkHighContrastTheme =>
+      _darkMaterialTheme.darkHighContrast();
+
+  /// Creates a `ThemeData` object from a seed color and brightness.
+  ///
+  /// The [seedColor] is used to generate a `ColorScheme`.
+  /// The [brightness] determines whether to use a light or dark theme.
+  /// @return A `ThemeData` object.
   static ThemeData themeFromSeed(
       {required Color seedColor, required Brightness brightness}) {
-    final colorScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
+    final colorScheme =
+        ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
     // Create a base TextTheme based on brightness for themeFromSeed
     final baseTextTheme = brightness == Brightness.light
         ? GoogleFonts.robotoTextTheme(ThemeData.light().textTheme)
@@ -34,7 +62,10 @@ class AppTheme {
     return buildThemeDataFromScheme(colorScheme, baseTextTheme);
   }
 
-  // Static style for Filled Tonal Button
+  /// Creates a `ButtonStyle` for a filled tonal button.
+  ///
+  /// The [colorScheme] and [textTheme] are used to style the button.
+  /// @return A `ButtonStyle` object.
   static ButtonStyle filledButtonTonalStyle(
       ColorScheme colorScheme, TextTheme textTheme) {
     return FilledButton.styleFrom(
@@ -47,9 +78,12 @@ class AppTheme {
     );
   }
 
-  // Static CardTheme for Elevated Card
-  static CardTheme cardThemeElevated(ColorScheme colorScheme) {
-    return CardTheme(
+  /// Creates a `CardThemeData` for an elevated card.
+  ///
+  /// The [colorScheme] is used to style the card.
+  /// @return A `CardThemeData` object.
+  static CardThemeData cardThemeElevated(ColorScheme colorScheme) {
+    return CardThemeData(
       elevation: 1.0,
       color: colorScheme.surface,
       surfaceTintColor: colorScheme.surfaceTint,
@@ -58,9 +92,12 @@ class AppTheme {
     );
   }
 
-  // Static CardTheme for Outlined Card
-  static CardTheme cardThemeOutlined(ColorScheme colorScheme) {
-    return CardTheme(
+  /// Creates a `CardThemeData` for an outlined card.
+  ///
+  /// The [colorScheme] is used to style the card.
+  /// @return A `CardThemeData` object.
+  static CardThemeData cardThemeOutlined(ColorScheme colorScheme) {
+    return CardThemeData(
       elevation: 0.0,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
@@ -76,16 +113,24 @@ class AppTheme {
   // (using AppTheme.themeFromSeed if necessary, or directly creating ColorScheme objects)
   // and then calling buildThemeDataFromScheme or themeFromSeed.
 
-  // Updated to accept a TextTheme instead of Brightness
+  /// Builds a `ThemeData` object from a `ColorScheme` and a base `TextTheme`.
+  ///
+  /// This is the main workhorse method for creating themes. It configures all
+  /// the component themes based on the provided color scheme and text theme.
+  ///
+  /// The [colorScheme] defines the colors for the theme.
+  /// The [baseTheme] defines the base typography for the theme.
+  /// @return A fully configured `ThemeData` object.
   static ThemeData buildThemeDataFromScheme(
       ColorScheme colorScheme, TextTheme baseTheme) {
     // Brightness can be derived from the colorScheme
     final brightness = colorScheme.brightness;
-    
+
     // The provided baseTheme is already a GoogleFonts.robotoTextTheme via MaterialTheme instance
     // or explicitly created in themeFromSeed.
     // So, m3BaseTextTheme is effectively the passed 'baseTheme'.
-    final TextTheme m3TextTheme = baseTheme.copyWith( // Apply color scheme specific colors to the passed text theme
+    final TextTheme m3TextTheme = baseTheme.copyWith(
+      // Apply color scheme specific colors to the passed text theme
       displayLarge: baseTheme.displayLarge?.copyWith(
           fontSize: 57.sp, // These sizes are examples, ensure they match your m3BaseTextTheme
           fontWeight: FontWeight.w400,
@@ -208,14 +253,14 @@ class AppTheme {
           backgroundColor: WidgetStateProperty.resolveWith<Color?>(
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withValues(alpha: 0.12);
+              return colorScheme.onSurface.withAlpha(31);
             }
             return colorScheme.surface; // Enabled
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>(
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withValues(alpha: 0.38);
+              return colorScheme.onSurface.withAlpha(97);
             }
             return colorScheme.primary; // Enabled
           }),
@@ -244,14 +289,14 @@ class AppTheme {
           backgroundColor: WidgetStateProperty.resolveWith<Color?>(
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withValues(alpha: 0.12);
+              return colorScheme.onSurface.withAlpha(31);
             }
             return colorScheme.primary; // Enabled
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>(
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withValues(alpha: 0.38);
+              return colorScheme.onSurface.withAlpha(97);
             }
             return colorScheme.onPrimary; // Enabled
           }),
@@ -275,7 +320,7 @@ class AppTheme {
           foregroundColor: WidgetStateProperty.resolveWith<Color?>(
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withValues(alpha: 0.38);
+              return colorScheme.onSurface.withAlpha(97);
             }
             return colorScheme.primary; // Enabled
           }),
@@ -283,7 +328,7 @@ class AppTheme {
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
               return BorderSide(
-                  color: colorScheme.onSurface.withValues(alpha: 0.12));
+                  color: colorScheme.onSurface.withAlpha(31));
             }
             if (states.contains(WidgetState.focused)) {
               // M3 focus indicator for outlined can be stronger border
@@ -308,7 +353,7 @@ class AppTheme {
           foregroundColor: WidgetStateProperty.resolveWith<Color?>(
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return colorScheme.onSurface.withValues(alpha: 0.38);
+              return colorScheme.onSurface.withAlpha(97);
             }
             return colorScheme.primary; // Enabled
           }),
@@ -344,7 +389,7 @@ class AppTheme {
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.r)),
           borderSide: BorderSide(
-              color: colorScheme.onSurface.withValues(alpha: 0.12), width: 1.0),
+              color: colorScheme.onSurface.withAlpha(31), width: 1.0),
         ),
         labelStyle: m3TextTheme.bodyLarge
             ?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -398,9 +443,9 @@ class AppTheme {
             .surfaceContainer, // M3 modal bottom sheet uses surfaceContainer
         modalBackgroundColor: colorScheme.surfaceContainer,
         elevation: 6.0, // M3 modal bottom sheet elevation (level 3 = 6dp)
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
-                top: Radius.circular(28.r)) // M3 "ExtraLarge" top corners
+                top: Radius.circular(28.0)) // M3 "ExtraLarge" top corners
             ),
         // surfaceTintColor: colorScheme.surfaceTint, // Optional: if elevation tint is desired
       ),
@@ -512,7 +557,7 @@ class AppTheme {
             return colorScheme.onPrimary;
           }
           if (states.contains(WidgetState.disabled)) {
-            return colorScheme.onSurface.withValues(alpha: 0.38);
+            return colorScheme.onSurface.withAlpha(97);
           }
           // For "today" specifically when it's not selected, todayForegroundColor handles it.
           // This is for other, non-today, non-selected, non-disabled days.
@@ -564,8 +609,20 @@ class AppTheme {
 }
 
 // --- ExtendedColor and ColorFamily Classes (as provided in issue) ---
+/// A class that holds a set of related colors for a custom color scheme.
 class ExtendedColor {
-  final Color seed, vibrant, vibrantTonal, onVibrant, onVibrantTonal;
+  /// The seed color used to generate the other colors.
+  final Color seed;
+  /// A vibrant color.
+  final Color vibrant;
+  /// A tonal variant of the vibrant color.
+  final Color vibrantTonal;
+  /// A color that is easy to see on top of [vibrant].
+  final Color onVibrant;
+  /// A color that is easy to see on top of [vibrantTonal].
+  final Color onVibrantTonal;
+
+  /// Creates an `ExtendedColor` object.
   ExtendedColor({
     required this.seed,
     required this.vibrant,
@@ -575,11 +632,19 @@ class ExtendedColor {
   });
 }
 
+/// A class that holds a color and its corresponding "on" color, container color,
+/// and "on container" color.
 class ColorFamily {
+  /// The main color.
   final Color color;
+  /// A color that is easy to see on top of [color].
   final Color onColor;
+  /// A container color derived from [color].
   final Color container;
+  /// A color that is easy to see on top of [container].
   final Color onContainer;
+
+  /// Creates a `ColorFamily` object.
   const ColorFamily({
     required this.color,
     required this.onColor,
@@ -589,10 +654,15 @@ class ColorFamily {
 }
 
 // --- MaterialTheme Class ---
+/// A class that creates `ThemeData` objects from a `TextTheme`.
 class MaterialTheme {
+  /// The base `TextTheme` for the theme.
   final TextTheme textTheme;
+
+  /// Creates a `MaterialTheme` object.
   const MaterialTheme(this.textTheme);
 
+  /// The default light `ColorScheme`.
   static ColorScheme lightScheme() {
     return const ColorScheme(
       brightness: Brightness.light,
@@ -644,8 +714,10 @@ class MaterialTheme {
     );
   }
 
+  /// Creates a light `ThemeData`.
   ThemeData light() => theme(lightScheme());
 
+  /// A medium contrast light `ColorScheme`.
   static ColorScheme lightMediumContrastScheme() {
     return const ColorScheme(
       brightness: Brightness.light,
@@ -697,8 +769,10 @@ class MaterialTheme {
     );
   }
 
+  /// Creates a medium contrast light `ThemeData`.
   ThemeData lightMediumContrast() => theme(lightMediumContrastScheme());
 
+  /// A high contrast light `ColorScheme`.
   static ColorScheme lightHighContrastScheme() {
     return const ColorScheme(
       brightness: Brightness.light,
@@ -750,8 +824,10 @@ class MaterialTheme {
     );
   }
 
+  /// Creates a high contrast light `ThemeData`.
   ThemeData lightHighContrast() => theme(lightHighContrastScheme());
 
+  /// The default dark `ColorScheme`.
   static ColorScheme darkScheme() {
     return const ColorScheme(
       brightness: Brightness.dark,
@@ -803,24 +879,37 @@ class MaterialTheme {
     );
   }
 
+  /// Creates a dark `ThemeData`.
   ThemeData dark() => theme(darkScheme());
 
+  /// A medium contrast dark `ColorScheme`.
   static ColorScheme darkMediumContrastScheme() {
     return const ColorScheme(
       brightness: Brightness.dark,
-      primary: Color(0xffb5e3ff), // This was 8fcef3, user provided b5e3ff for medium contrast primary
+      primary: Color(
+          0xffb5e3ff), // This was 8fcef3, user provided b5e3ff for medium contrast primary
       surfaceTint: Color(0xff8fcef3),
       onPrimary: Color(0xff00293a),
-      primaryContainer: Color(0xff5898bb), // This was 004c68, user provided 5898bb for medium contrast primaryContainer
-      onPrimaryContainer: Color(0xff000000), // This was c3e8ff, user provided 000000 for medium contrast onPrimaryContainer
-      secondary: Color(0xffcbdfed), // This was b5c9d7, user provided cbdfed for medium contrast secondary
-      onSecondary: Color(0xff152832), // This was 20333e, user provided 152832 for medium contrast onSecondary
-      secondaryContainer: Color(0xff8093a0), // This was 364955, user provided 8093a0 for medium contrast secondaryContainer
-      onSecondaryContainer: Color(0xff000000), // This was d1e5f4, user provided 000000 for medium contrast onSecondaryContainer
-      tertiary: Color(0xffe0d7ff), // This was cac1ea, user provided e0d7ff for medium contrast tertiary
-      onTertiary: Color(0xff272140), // This was 322c4c, user provided 272140 for medium contrast onTertiary
-      tertiaryContainer: Color(0xff938cb2), // This was 484264, user provided 938cb2 for medium contrast tertiaryContainer
-      onTertiaryContainer: Color(0xff000000), // This was e6deff, user provided 000000 for medium contrast onTertiaryContainer
+      primaryContainer: Color(
+          0xff5898bb), // This was 004c68, user provided 5898bb for medium contrast primaryContainer
+      onPrimaryContainer: Color(
+          0xff000000), // This was c3e8ff, user provided 000000 for medium contrast onPrimaryContainer
+      secondary: Color(
+          0xffcbdfed), // This was b5c9d7, user provided cbdfed for medium contrast secondary
+      onSecondary: Color(
+          0xff152832), // This was 20333e, user provided 152832 for medium contrast onSecondary
+      secondaryContainer: Color(
+          0xff8093a0), // This was 364955, user provided 8093a0 for medium contrast secondaryContainer
+      onSecondaryContainer: Color(
+          0xff000000), // This was d1e5f4, user provided 000000 for medium contrast onSecondaryContainer
+      tertiary: Color(
+          0xffe0d7ff), // This was cac1ea, user provided e0d7ff for medium contrast tertiary
+      onTertiary: Color(
+          0xff272140), // This was 322c4c, user provided 272140 for medium contrast onTertiary
+      tertiaryContainer: Color(
+          0xff938cb2), // This was 484264, user provided 938cb2 for medium contrast tertiaryContainer
+      onTertiaryContainer: Color(
+          0xff000000), // This was e6deff, user provided 000000 for medium contrast onTertiaryContainer
       error: Color(0xffffd2cc),
       onError: Color(0xff540003),
       errorContainer: Color(0xffff5449),
@@ -837,43 +926,62 @@ class MaterialTheme {
       primaryFixed: Color(0xffc3e8ff),
       onPrimaryFixed: Color(0xff00131d),
       primaryFixedDim: Color(0xff8fcef3),
-      onPrimaryFixedVariant: Color(0xff003b51), // This was 004c68, user provided 003b51
+      onPrimaryFixedVariant:
+          Color(0xff003b51), // This was 004c68, user provided 003b51
       secondaryFixed: Color(0xffd1e5f4),
-      onSecondaryFixed: Color(0xff01131d), // This was 091e28, user provided 01131d
+      onSecondaryFixed:
+          Color(0xff01131d), // This was 091e28, user provided 01131d
       secondaryFixedDim: Color(0xffb5c9d7),
-      onSecondaryFixedVariant: Color(0xff263943), // This was 364955, user provided 263943
+      onSecondaryFixedVariant:
+          Color(0xff263943), // This was 364955, user provided 263943
       tertiaryFixed: Color(0xffe6deff),
-      onTertiaryFixed: Color(0xff120c2b), // This was 1c1736, user provided 120c2b
+      onTertiaryFixed:
+          Color(0xff120c2b), // This was 1c1736, user provided 120c2b
       tertiaryFixedDim: Color(0xffcac1ea),
-      onTertiaryFixedVariant: Color(0xff373252), // This was 484264, user provided 373252
+      onTertiaryFixedVariant:
+          Color(0xff373252), // This was 484264, user provided 373252
       surfaceDim: Color(0xff0f1417),
-      surfaceBright: Color(0xff404549), // This was 353a3d, user provided 404549
-      surfaceContainerLowest: Color(0xff04080b), // This was 0a0f12, user provided 04080b
-      surfaceContainerLow: Color(0xff1a1e21), // This was 181c1f, user provided 1a1e21
-      surfaceContainer: Color(0xff24282c), // This was 1c2023, user provided 24282c
-      surfaceContainerHigh: Color(0xff2e3337), // This was 262b2e, user provided 2e3337
-      surfaceContainerHighest: Color(0xff3a3e42), // This was 313539, user provided 3a3e42
+      surfaceBright:
+          Color(0xff404549), // This was 353a3d, user provided 404549
+      surfaceContainerLowest:
+          Color(0xff04080b), // This was 0a0f12, user provided 04080b
+      surfaceContainerLow:
+          Color(0xff1a1e21), // This was 181c1f, user provided 1a1e21
+      surfaceContainer:
+          Color(0xff24282c), // This was 1c2023, user provided 24282c
+      surfaceContainerHigh:
+          Color(0xff2e3337), // This was 262b2e, user provided 2e3337
+      surfaceContainerHighest:
+          Color(0xff3a3e42), // This was 313539, user provided 3a3e42
     );
   }
 
+  /// Creates a medium contrast dark `ThemeData`.
   ThemeData darkMediumContrast() => theme(darkMediumContrastScheme());
 
+  /// A high contrast dark `ColorScheme`.
   static ColorScheme darkHighContrastScheme() {
     return const ColorScheme(
       brightness: Brightness.dark,
       primary: Color(0xffe1f2ff), // This was 8fcef3, user provided e1f2ff
       surfaceTint: Color(0xff8fcef3),
       onPrimary: Color(0xff000000), // This was 003549, user provided 000000
-      primaryContainer: Color(0xff8bcbef), // This was 004c68, user provided 8bcbef
-      onPrimaryContainer: Color(0xff000d15), // This was c3e8ff, user provided 000d15
+      primaryContainer:
+          Color(0xff8bcbef), // This was 004c68, user provided 8bcbef
+      onPrimaryContainer:
+          Color(0xff000d15), // This was c3e8ff, user provided 000d15
       secondary: Color(0xffe1f2ff), // This was b5c9d7, user provided e1f2ff
       onSecondary: Color(0xff000000), // This was 20333e, user provided 000000
-      secondaryContainer: Color(0xffb1c5d3), // This was 364955, user provided b1c5d3
-      onSecondaryContainer: Color(0xff000d15), // This was d1e5f4, user provided 000d15
+      secondaryContainer:
+          Color(0xffb1c5d3), // This was 364955, user provided b1c5d3
+      onSecondaryContainer:
+          Color(0xff000d15), // This was d1e5f4, user provided 000d15
       tertiary: Color(0xfff3edff), // This was cac1ea, user provided f3edff
       onTertiary: Color(0xff000000), // This was 322c4c, user provided 000000
-      tertiaryContainer: Color(0xffc6bde6), // This was 484264, user provided c6bde6
-      onTertiaryContainer: Color(0xff0c0625), // This was e6deff, user provided 0c0625
+      tertiaryContainer:
+          Color(0xffc6bde6), // This was 484264, user provided c6bde6
+      onTertiaryContainer:
+          Color(0xff0c0625), // This was e6deff, user provided 0c0625
       error: Color(0xffffece9),
       onError: Color(0xff000000),
       errorContainer: Color(0xffffaea4),
@@ -890,33 +998,49 @@ class MaterialTheme {
       primaryFixed: Color(0xffc3e8ff),
       onPrimaryFixed: Color(0xff000000), // This was 001e2c, user provided 000000
       primaryFixedDim: Color(0xff8fcef3),
-      onPrimaryFixedVariant: Color(0xff00131d), // This was 004c68, user provided 00131d
+      onPrimaryFixedVariant:
+          Color(0xff00131d), // This was 004c68, user provided 00131d
       secondaryFixed: Color(0xffd1e5f4),
-      onSecondaryFixed: Color(0xff000000), // This was 091e28, user provided 000000
+      onSecondaryFixed:
+          Color(0xff000000), // This was 091e28, user provided 000000
       secondaryFixedDim: Color(0xffb5c9d7),
-      onSecondaryFixedVariant: Color(0xff01131d), // This was 364955, user provided 01131d
+      onSecondaryFixedVariant:
+          Color(0xff01131d), // This was 364955, user provided 01131d
       tertiaryFixed: Color(0xffe6deff),
-      onTertiaryFixed: Color(0xff000000), // This was 1c1736, user provided 000000
+      onTertiaryFixed:
+          Color(0xff000000), // This was 1c1736, user provided 000000
       tertiaryFixedDim: Color(0xffcac1ea),
-      onTertiaryFixedVariant: Color(0xff120c2b), // This was 484264, user provided 120c2b
+      onTertiaryFixedVariant:
+          Color(0xff120c2b), // This was 484264, user provided 120c2b
       surfaceDim: Color(0xff0f1417),
-      surfaceBright: Color(0xff4c5154), // This was 353a3d, user provided 4c5154
-      surfaceContainerLowest: Color(0xff000000), // This was 0a0f12, user provided 000000
-      surfaceContainerLow: Color(0xff1c2023), // This was 181c1f, user provided 1c2023
-      surfaceContainer: Color(0xff2c3134), // This was 1c2023, user provided 2c3134
-      surfaceContainerHigh: Color(0xff373c3f), // This was 262b2e, user provided 373c3f
-      surfaceContainerHighest: Color(0xff43474b), // This was 313539, user provided 43474b
+      surfaceBright:
+          Color(0xff4c5154), // This was 353a3d, user provided 4c5154
+      surfaceContainerLowest:
+          Color(0xff000000), // This was 0a0f12, user provided 000000
+      surfaceContainerLow:
+          Color(0xff1c2023), // This was 181c1f, user provided 1c2023
+      surfaceContainer:
+          Color(0xff2c3134), // This was 1c2023, user provided 2c3134
+      surfaceContainerHigh:
+          Color(0xff373c3f), // This was 262b2e, user provided 373c3f
+      surfaceContainerHighest:
+          Color(0xff43474b), // This was 313539, user provided 43474b
     );
   }
 
+  /// Creates a high contrast dark `ThemeData`.
   ThemeData darkHighContrast() => theme(darkHighContrastScheme());
 
+  /// Creates a `ThemeData` from a `ColorScheme`.
+  ///
+  /// This method uses `AppTheme.buildThemeDataFromScheme` to create the theme.
+  /// @return A `ThemeData` object.
   ThemeData theme(ColorScheme colorScheme) {
     // This will call AppTheme.buildThemeDataFromScheme
     // The textTheme from the MaterialTheme instance will be used.
     // AppTheme.buildThemeDataFromScheme already handles applying bodyColor and displayColor
-    // from the colorScheme to the textTheme.    
-    // The `textTheme` parameter of MaterialTheme's constructor is expected to be a 
+    // from the colorScheme to the textTheme.
+    // The `textTheme` parameter of MaterialTheme's constructor is expected to be a
     // GoogleFonts.robotoTextTheme-ified TextTheme.
     // `buildThemeDataFromScheme` then takes this, and applies color scheme specific colors.
     return AppTheme.buildThemeDataFromScheme(colorScheme, textTheme);

@@ -4,16 +4,16 @@ Stay hydrated and on track with Minum, your smart water reminder app! Sync with 
 
 ## Features
 
--   **Smart Intake Calculation:** TODO: Integrates with Google Fit, Health Connect, and weather data to suggest ideal water intake.
--   **Firebase Authentication:** Secure login and registration using Google Sign-In and Email/Password.
--   **Manual & Automatic Targets:** Set your daily hydration goals.
--   **Intake Logging:** Easily log water consumption.
--   **Progress Tracking:** Monitor your daily and historical hydration levels (Depends on data layer).
--   **Customizable Reminders:** Get timely notifications to drink water.
--   **Health Data Input:** Manually add relevant health information (Potentially linked to smart features).
+-   **Smart Intake Calculation:** Integrates with health data (weight, age, activity level), and weather conditions to suggest an ideal daily water intake.
+-   **Firebase Authentication:** Secure login and registration using Google Sign-In.
+-   **Manual & Automatic Targets:** Set your daily hydration goals manually or use the app's smart suggestion.
+-   **Intake Logging:** Easily log water consumption with quick-add buttons for your favorite volumes.
+-   **Progress Tracking:** Monitor your daily and historical hydration levels with an interactive chart.
+-   **Customizable Reminders:** Get timely notifications to drink water throughout the day.
+-   **Health Data Input:** Manually add relevant health information to improve the accuracy of your suggested goal.
 -   **Responsive UI:** Material Design interface that adapts to various screen sizes.
--   **State Management:** Using Provider.
--   **API Integration:** TODO: Using Dio for network requests (e.g., for weather API, specific integrations).
+-   **State Management:** Using Provider for simple and effective state management.
+-   **Offline Support:** All your data is saved locally and synced with the cloud when you're online.
 
 ## Project Structure
 
@@ -23,7 +23,7 @@ minum/
 ├── ios/                # iOS specific files
 ├── lib/                # Main application Dart code
 │   ├── main.dart       # App entry point
-│   ├── firebase_options.dart # Firebase configuration 
+│   ├── firebase_options.dart # Firebase configuration
 │   ├── src/            # Core application logic
 │       ├── app.dart    # MaterialApp and routing setup
 │       ├── core/       # Constants, themes, utils
@@ -73,19 +73,19 @@ This project uses Firebase for authentication and potentially for data storage.
 
 1.  **Create a Firebase Project:** Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
 2.  **Register your app:**
-    * Add an Android app to your Firebase project:
-        * Package name: `com.halixm.minum`
-        * Follow the instructions to download `google-services.json` and place it in `android/app/`.
-    * Add an iOS app to your Firebase project:
-        * Bundle ID: `com.halixm.minum`
-        * Follow the instructions to download `GoogleService-Info.plist` and place it in `ios/Runner/`.
-3.  **Enable Authentication Methods:** In the Firebase console, go to "Authentication" -> "Sign-in method" and enable "Email/Password" and "Google".
-    * **For Google Sign-In on Android:** You'll need to add your SHA-1 fingerprint to the Firebase project settings. You can get it by running `cd android && ./gradlew signingReport`.
+    *   Add an Android app to your Firebase project:
+        *   Package name: `com.halixm.minum`
+        *   Follow the instructions to download `google-services.json` and place it in `android/app/`.
+    *   Add an iOS app to your Firebase project:
+        *   Bundle ID: `com.halixm.minum`
+        *   Follow the instructions to download `GoogleService-Info.plist` and place it in `ios/Runner/`.
+3.  **Enable Authentication Methods:** In the Firebase console, go to "Authentication" -> "Sign-in method" and enable "Google".
+    *   **For Google Sign-In on Android:** You'll need to add your SHA-1 fingerprint to the Firebase project settings. You can get it by running `cd android && ./gradlew signingReport`.
 4.  **Initialize Firebase in Flutter:**
-    * Install the Firebase CLI: `npm install -g firebase-tools` (or other methods from Firebase docs).
-    * Login to Firebase: `firebase login`.
-    * Install FlutterFire CLI: `dart pub global activate flutterfire_cli`.
-    * Configure your project: `flutterfire configure`. This will autogenerate the `lib/firebase_options.dart` file. Make sure to select the Firebase project you created.
+    *   Install the Firebase CLI: `npm install -g firebase-tools` (or other methods from Firebase docs).
+    *   Login to Firebase: `firebase login`.
+    *   Install FlutterFire CLI: `dart pub global activate flutterfire_cli`.
+    *   Configure your project: `flutterfire configure`. This will autogenerate the `lib/firebase_options.dart` file. Make sure to select the Firebase project you created.
 
     *If `flutterfire configure` gives issues, you might need to manually create `lib/firebase_options.dart` based on the Firebase project settings (less recommended).*
 
@@ -108,7 +108,7 @@ If you integrate a weather API:
 1.  Sign up for a weather API service (e.g., OpenWeatherMap).
 2.  Obtain an API key.
 3.  Store this key securely, preferably using environment variables or a configuration file not committed to version control. For this project, you might place it in a constants file initially, but for production, use a more secure method.
-    * Example: `lib/src/core/constants/api_keys.dart` (ensure this file is in `.gitignore` if it contains sensitive keys).
+    *   Example: `lib/src/core/constants/api_keys.dart` (ensure this file is in `.gitignore` if it contains sensitive keys).
 
 ### 6. Run the App
 
@@ -167,4 +167,4 @@ Please make sure to update tests as appropriate.
 
 ## License
 
-A `LICENSE.md` file has not yet been added to this project. It is recommended to add one, for example, using the MIT License template.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.

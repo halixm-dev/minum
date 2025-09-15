@@ -8,19 +8,19 @@ import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
-import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart'; // Added import
+import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
 import 'package:minum/src/presentation/widgets/home/daily_progress_card.dart';
 import 'package:minum/src/presentation/widgets/home/hydration_log_list_item.dart';
 import 'package:minum/src/presentation/widgets/home/quick_add_buttons.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // For date formatting
-import 'package:awesome_notifications/awesome_notifications.dart'; // For NotificationModel and NotificationCalendar
-import 'package:minum/src/services/notification_service.dart'; // For NotificationService
+import 'package:intl/intl.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:minum/src/services/notification_service.dart';
 
-// For logger - assuming it's available via another import or globally, if not, add:
-// import 'package:minum/main.dart';
-
+/// The main view displayed on the home screen, showing daily hydration progress,
+/// quick-add buttons, and a log of the day's entries.
 class MainHydrationView extends StatefulWidget {
+  /// Creates a `MainHydrationView`.
   const MainHydrationView({super.key});
 
   @override
@@ -31,12 +31,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
     with WidgetsBindingObserver {
   NotificationModel? _nextReminder;
   bool _isLoadingReminder = true;
-  ReminderSettingsNotifier? _reminderSettingsNotifier; // Added field
+  ReminderSettingsNotifier? _reminderSettingsNotifier;
 
-  // Added listener method
   void _onReminderSettingsChanged() {
-    // Optional: Add a logger call here if you want to see when it's triggered.
-    // logger.d("MainHydrationView: Reminder settings changed, fetching next reminder.");
     _fetchNextReminder();
   }
 
@@ -44,9 +41,8 @@ class _MainHydrationViewState extends State<MainHydrationView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _fetchNextReminder(); // Initial fetch
+    _fetchNextReminder();
 
-    // Add listener after the first frame to ensure context is fully available for Provider.of
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _reminderSettingsNotifier =
@@ -59,8 +55,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _reminderSettingsNotifier
-        ?.removeListener(_onReminderSettingsChanged); // Remove listener
+    _reminderSettingsNotifier?.removeListener(_onReminderSettingsChanged);
     super.dispose();
   }
 
@@ -68,19 +63,13 @@ class _MainHydrationViewState extends State<MainHydrationView>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      // logger.d("App resumed, fetching next reminder and processing pending water.");
       _fetchNextReminder();
-      // Process any pending water additions from notification actions
       Provider.of<HydrationProvider>(context, listen: false)
-          .processPendingWaterAddition()
-          .then((_) {
-        // logger.d("MainHydrationView: processPendingWaterAddition call completed on resume.");
-      }).catchError((e) {
-        // logger.e("MainHydrationView: Error calling processPendingWaterAddition on resume: $e");
-      });
+          .processPendingWaterAddition();
     }
   }
 
+  /// Fetches the next scheduled reminder and updates the UI.
   Future<void> _fetchNextReminder() async {
     if (!mounted) return;
     setState(() {
@@ -101,9 +90,6 @@ class _MainHydrationViewState extends State<MainHydrationView>
       for (var notification in scheduledNotifications) {
         if (notification.schedule is NotificationCalendar) {
           final schedule = notification.schedule as NotificationCalendar;
-          // Note: NotificationCalendar might not have year, month, day for repeating schedules.
-          // We assume daily reminders are scheduled for the current day by NotificationService.
-          // Thus, we construct DateTime for today using hour/minute from schedule.
           if (schedule.hour != null && schedule.minute != null) {
             DateTime scheduledDateTime = DateTime(
               now.year,
@@ -113,11 +99,6 @@ class _MainHydrationViewState extends State<MainHydrationView>
               schedule.minute!,
               schedule.second ?? 0,
             );
-
-            // If the scheduled time today is in the past, check if it's for a repeating daily alarm.
-            // For simplicity here, we're just looking for the next one *today*.
-            // A more robust solution might need to check if it repeats and calculate next occurrence.
-            // The NotificationService.scheduleDailyRemindersIfNeeded ensures only today's are scheduled.
             if (scheduledDateTime.isAfter(now)) {
               if (soonestTime == null ||
                   scheduledDateTime.isBefore(soonestTime)) {
@@ -135,11 +116,10 @@ class _MainHydrationViewState extends State<MainHydrationView>
         });
       }
     } catch (e) {
-      // logger.e("Error fetching next reminder: $e");
       if (mounted) {
         setState(() {
           _isLoadingReminder = false;
-          _nextReminder = null; // Clear reminder on error
+          _nextReminder = null;
         });
       }
     }
@@ -165,12 +145,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
         final DateTime reminderTime = DateTime(
             now.year, now.month, now.day, schedule.hour!, schedule.minute!);
 
-        // Check if this reminder time is actually in the future (it should be due to _fetchNextReminder logic)
         if (reminderTime.isAfter(now)) {
           return Card(
-            // Will use M3 filled card style from theme
-            margin: EdgeInsets.symmetric(vertical: 8.h), // M3 standard margin
-            // elevation removed, will use theme's default (0 for filled, 1 for elevated)
+            margin: EdgeInsets.symmetric(vertical: 8.h),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               child: Row(
@@ -180,15 +157,14 @@ class _MainHydrationViewState extends State<MainHydrationView>
                       color: Theme.of(context).colorScheme.primary),
                   SizedBox(width: 12.w),
                   Text("Next Reminder:",
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall), // Changed to titleSmall for better hierarchy
+                      style: Theme.of(context).textTheme.titleSmall),
                   const Spacer(),
                   Text(
                     DateFormat.jm().format(reminderTime),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight
-                            .w600), // Retained bold for emphasis on time
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -197,7 +173,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
         }
       }
     }
-    return const SizedBox.shrink(); // No reminder to display
+    return const SizedBox.shrink();
   }
 
   @override
@@ -215,7 +191,6 @@ class _MainHydrationViewState extends State<MainHydrationView>
         context.read<HydrationProvider>().resetActionStatus();
       } else if (hydrationProvider.actionStatus ==
           HydrationActionStatus.success) {
-        // AppUtils.showSnackBar(context, "Action successful!"); // Optional generic success
         context.read<HydrationProvider>().resetActionStatus();
       }
     });
@@ -226,24 +201,22 @@ class _MainHydrationViewState extends State<MainHydrationView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildDateNavigationHeader(context, hydrationProvider),
-          SizedBox(height: 16.h), // Standard M3 spacing
+          SizedBox(height: 16.h),
           _buildDailyProgressSection(context, userProvider, hydrationProvider),
           if (DateUtils.isSameDay(
               hydrationProvider.selectedDate, DateTime.now()))
             _buildNextReminderSection(),
           SizedBox(
-              height: _nextReminder != null && !_isLoadingReminder
-                  ? 8.h
-                  : 16.h), // Adjusted spacing
+              height: _nextReminder != null && !_isLoadingReminder ? 8.h : 16.h),
           _buildQuickAddSection(context, userProvider, hydrationProvider),
           if (currentUser != null &&
               DateUtils.isSameDay(
                   hydrationProvider.selectedDate, DateTime.now()))
-            SizedBox(height: 24.h), // Standard M3 spacing
+            SizedBox(height: 24.h),
           _buildLogTitle(context, hydrationProvider),
           _LogList(
               hydrationProvider: hydrationProvider, currentUser: currentUser),
-          SizedBox(height: 80.h), // Space for FAB or bottom elements
+          SizedBox(height: 80.h),
         ],
       ),
     );
@@ -267,22 +240,17 @@ class _MainHydrationViewState extends State<MainHydrationView>
         ),
         Text(
           DateFormat('EEEE, MMM d').format(hydrationProvider.selectedDate),
-          style: Theme.of(context).textTheme.titleLarge, // fontWeight removed
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         IconButton(
           icon: Icon(Symbols.chevron_right, size: 28.sp),
           color: DateUtils.isSameDay(
                   hydrationProvider.selectedDate, DateTime.now())
-              ? Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.38) // M3 disabled color
-              : Theme.of(context)
-                  .iconTheme
-                  .color, // Use default icon theme color
+              ? Theme.of(context).colorScheme.onSurface.withAlpha(97)
+              : Theme.of(context).iconTheme.color,
           onPressed: DateUtils.isSameDay(
                   hydrationProvider.selectedDate, DateTime.now())
-              ? null // Disabled
+              ? null
               : () {
                   context.read<HydrationProvider>().setSelectedDate(
                         hydrationProvider.selectedDate
@@ -307,10 +275,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
         unit: currentUser.preferredUnit,
       );
     } else {
-      // M3 styled loading placeholder for the card
       return Card(
           child: SizedBox(
-              height: 150.h, // Approximate height of DailyProgressCard
+              height: 150.h,
               child: Center(
                   child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -350,17 +317,13 @@ class _MainHydrationViewState extends State<MainHydrationView>
     final List<HydrationEntry> todaysEntries = hydrationProvider.dailyEntries;
     if (todaysEntries.isNotEmpty ||
         hydrationProvider.logStatus == HydrationLogStatus.loading) {
-      // Show title if loading or has entries
       return Padding(
-        padding: EdgeInsets.only(
-            bottom: 8.h, left: 4.w, top: 8.h), // Added top padding
+        padding: EdgeInsets.only(bottom: 8.h, left: 4.w, top: 8.h),
         child: Text(
           DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())
               ? "Today's Log"
               : "Log for ${DateFormat.MMMd().format(hydrationProvider.selectedDate)}",
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge, // Changed from headlineSmall for better hierarchy
+          style: Theme.of(context).textTheme.titleLarge,
         ),
       );
     }
@@ -392,27 +355,31 @@ class _LogList extends StatelessWidget {
     }
     if (todaysEntries.isEmpty) {
       return Padding(
-        padding: EdgeInsets.symmetric(vertical: 32.h), // Changed from 30.h
+        padding: EdgeInsets.symmetric(vertical: 32.h),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Symbols.water_full,
                   size: 56.sp,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant), // Adjusted size
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
               SizedBox(height: 16.h),
               Text(
                 'No water logged yet for today.',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               SizedBox(height: 8.h),
               Text(
                 'Tap the (+) button to add your first drink!',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -421,7 +388,6 @@ class _LogList extends StatelessWidget {
       );
     }
     return ListView.builder(
-      // No separator needed as ListTiles can have their own dividers if desired by theme
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: todaysEntries.length,

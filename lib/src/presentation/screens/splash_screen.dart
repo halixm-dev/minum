@@ -6,9 +6,14 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/main.dart';
 
+/// A screen that displays a splash screen while the app initializes.
+///
+/// This screen checks if the user has completed onboarding and navigates
+/// to the appropriate screen.
 class SplashScreen extends StatefulWidget {
+  /// Creates a `SplashScreen`.
   const SplashScreen({super.key});
 
   @override
@@ -23,6 +28,10 @@ class _SplashScreenState extends State<SplashScreen> {
     _navigateToNextScreen();
   }
 
+  /// Navigates to the next screen after a delay.
+  ///
+  /// This method checks if the user has completed onboarding and navigates
+  /// to the appropriate screen.
   Future<void> _navigateToNextScreen() async {
     logger.i("SplashScreen: _navigateToNextScreen called.");
     await Future.delayed(const Duration(seconds: 3));
@@ -52,12 +61,11 @@ class _SplashScreenState extends State<SplashScreen> {
               "SplashScreen: Context not available for onboarding navigation.");
         }
       } else {
-        // If onboarding IS completed, navigate to the simplified LoginScreen
         logger.i(
             "SplashScreen: Onboarding complete. Navigating to LoginScreen (AppRoutes.login).");
         if (mounted) {
           Navigator.of(context).pushReplacementNamed(
-              AppRoutes.login); // Changed from AppRoutes.welcome
+              AppRoutes.login);
         } else {
           logger.w(
               "SplashScreen: Context not available for login screen navigation.");
@@ -70,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
         logger.w(
             "SplashScreen: Fallback navigation to LoginScreen due to error.");
         Navigator.of(context)
-            .pushReplacementNamed(AppRoutes.login); // Fallback to LoginScreen
+            .pushReplacementNamed(AppRoutes.login);
       } else {
         logger
             .e("SplashScreen: Context not available for fallback navigation.");
@@ -86,8 +94,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     return Scaffold(
       backgroundColor: theme.brightness == Brightness.light
-          ? colorScheme.primary // Use M3 color
-          : colorScheme.surface, // Use M3 color for dark splash background
+          ? colorScheme.primary
+          : colorScheme.surface,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -96,7 +104,6 @@ class _SplashScreenState extends State<SplashScreen> {
               AppAssets.appLogo,
               width: 150.w,
               height: 150.h,
-              // For M3, if the logo is simple, consider tinting with onPrimary or onSurface
               color: theme.brightness == Brightness.light
                   ? colorScheme.onPrimary
                   : colorScheme.primary,
@@ -113,17 +120,15 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Minum',
               style: theme.textTheme.displaySmall?.copyWith(
-                // M3 text style
                 color: theme.brightness == Brightness.light
                     ? colorScheme.onPrimary
                     : colorScheme.primary,
               ),
             ),
-            SizedBox(height: 8.h), // Changed from 10.h to 8.h
+            SizedBox(height: 8.h),
             Text(
               'Stay Hydrated, Stay Healthy',
               style: theme.textTheme.titleMedium?.copyWith(
-                // M3 text style
                 color: theme.brightness == Brightness.light
                     ? colorScheme.onPrimary.withValues(alpha: 0.8)
                     : colorScheme.onSurfaceVariant,

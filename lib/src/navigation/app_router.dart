@@ -17,7 +17,16 @@ import 'package:minum/src/presentation/screens/stats/hydration_history_screen.da
 
 import 'app_routes.dart';
 
+/// A utility class for handling navigation and routing within the application.
+///
+/// This class centralizes route generation and provides static methods for
+/// common navigation patterns.
 class AppRouter {
+  /// Generates a route based on the provided [RouteSettings].
+  ///
+  /// This method is used by the `onGenerateRoute` property of `MaterialApp`.
+  /// It maps route names to their corresponding screen widgets.
+  /// @return A `Route` object for the requested route.
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments;
 
@@ -26,16 +35,13 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case AppRoutes.onboarding:
         return MaterialPageRoute(builder: (_) => const OnboardingScreen());
-      // case AppRoutes.welcome: // Removed
-      //   return MaterialPageRoute(builder: (_) => const WelcomeScreen());
       case AppRoutes.authGate:
         return MaterialPageRoute(builder: (_) => const AuthGateScreen());
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
-      case AppRoutes
-            .register: // Kept for potential direct access or future re-introduction
+      case AppRoutes.register:
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
-      case AppRoutes.forgotPassword: // Kept for potential direct access
+      case AppRoutes.forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
       case AppRoutes.home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
@@ -62,16 +68,19 @@ class AppRouter {
     }
   }
 
+  /// Navigates to a new screen.
   static void navigateTo(BuildContext context, String routeName,
       {Object? arguments}) {
     Navigator.pushNamed(context, routeName, arguments: arguments);
   }
 
+  /// Navigates to a new screen and replaces the current screen.
   static void navigateToAndReplace(BuildContext context, String routeName,
       {Object? arguments}) {
     Navigator.pushReplacementNamed(context, routeName, arguments: arguments);
   }
 
+  /// Navigates to a new screen and removes all previous screens from the stack.
   static void navigateToAndRemoveUntil(BuildContext context, String routeName,
       {Object? arguments}) {
     Navigator.pushNamedAndRemoveUntil(
@@ -79,6 +88,7 @@ class AppRouter {
         arguments: arguments);
   }
 
+  /// Pops the current screen from the navigation stack.
   static void pop(BuildContext context, [Object? result]) {
     Navigator.pop(context, result);
   }
