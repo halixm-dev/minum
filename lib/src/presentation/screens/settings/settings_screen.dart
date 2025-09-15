@@ -248,7 +248,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Text("Mode", style: TextStyle(fontWeight: FontWeight.bold)),
                 ...ThemeMode.values.map((mode) {
                   return RadioListTile<ThemeMode>(
-                    title: Text(mode.name.capitalize()),
+                    title: Text(StringExtension(mode.name).capitalize()),
                     value: mode,
                     groupValue: themeProvider.themeMode,
                     onChanged: (ThemeMode? value) {
