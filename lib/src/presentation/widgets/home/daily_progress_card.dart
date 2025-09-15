@@ -1,6 +1,7 @@
 // lib/src/presentation/widgets/home/daily_progress_card.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
@@ -80,8 +81,9 @@ class DailyProgressCard extends StatelessWidget {
                 ),
                 SizedBox(width: 8.w),
                 if (progress >= 1.0)
-                  Icon(Icons.check_circle_rounded,
-                      color: theme.colorScheme.tertiary, size: 28.sp)
+                  Icon(Symbols.check_circle_rounded,
+                      color: theme.colorScheme.tertiary,
+                      size: 28.sp) // Adjusted size
                 else
                   Text(
                     '${AppUtils.formatAmount(remainingInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString left',

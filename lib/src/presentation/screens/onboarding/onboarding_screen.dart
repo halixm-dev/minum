@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/onboarding/onboarding_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
@@ -173,7 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 280.h,
                 color: colorScheme.surfaceContainerHighest.withAlpha(77),
                 child: Center(
-                    child: Icon(Icons.image_not_supported_outlined,
+                    child: Icon(Symbols.image_not_supported,
                         size: 100.sp,
                         color: colorScheme.onSurfaceVariant)),
               );

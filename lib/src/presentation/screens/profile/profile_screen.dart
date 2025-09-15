@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/profile/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
@@ -557,9 +558,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         TextFormField(
           controller: _displayNameController,
           focusNode: _displayNameFocusNode,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Display Name',
-            prefixIcon: Icon(Icons.person_outline),
+            prefixIcon: Icon(Symbols.person),
           ),
           validator: (value) =>
               AppUtils.validateNotEmpty(value, fieldName: "Display name"),
@@ -570,9 +571,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         TextFormField(
           controller: _emailController,
           focusNode: _emailFocusNode,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: AppStrings.email,
-            prefixIcon: Icon(Icons.email_outlined),
+            prefixIcon: Icon(Symbols.email),
           ),
           readOnly: true,
           enabled: false,
@@ -609,15 +610,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
           },
           itemAsString: _getGenderDisplayString,
-          prefixIcon: Icons.wc,
+          prefixIcon: Symbols.wc,
         ),
         SizedBox(height: 16.h),
         TextFormField(
           controller: _heightController,
           focusNode: _heightFocusNode,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Height (cm)',
-            prefixIcon: Icon(Icons.height_outlined),
+            prefixIcon: Icon(Symbols.height),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
@@ -633,9 +634,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         TextFormField(
           controller: _weightController,
           focusNode: _weightFocusNode,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: '${AppStrings.weight} (${AppStrings.kg})',
-            prefixIcon: Icon(Icons.monitor_weight_outlined),
+            prefixIcon: Icon(Symbols.monitor_weight),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           validator: (value) => (value == null || value.isEmpty)
@@ -677,7 +678,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
           },
           itemAsString: _getActivityLevelDisplayString,
-          prefixIcon: Icons.directions_run_outlined,
+          prefixIcon: Symbols.directions_run,
         ),
         SizedBox(height: 16.h),
         _buildMultiSelectChipGroup<HealthCondition>(
@@ -708,7 +709,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
           },
           itemAsString: _getWeatherConditionDisplayString,
-          prefixIcon: Icons.thermostat,
+          prefixIcon: Symbols.thermostat,
         ),
       ],
     );
@@ -733,7 +734,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           focusNode: _dailyGoalFocusNode,
           decoration: InputDecoration(
             labelText: 'Daily Goal (${user.preferredUnit.displayName})',
-            prefixIcon: const Icon(Icons.flag_outlined),
+            prefixIcon: const Icon(Symbols.flag),
           ),
           keyboardType: goalKeyboardType,
           inputFormatters: goalInputFormatters,
@@ -770,7 +771,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Icon(Icons.calendar_today_outlined),
+        prefixIcon: const Icon(Symbols.calendar_today),
+        // The rest of the styling (border, fillColor, filled, contentPadding)
+        // should come from the app's InputDecorationTheme.
       ),
       onTap: () => _selectDateOfBirth(context),
     );

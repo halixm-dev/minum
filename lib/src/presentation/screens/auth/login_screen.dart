@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/auth/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
@@ -109,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 100.h,
                   color: colorScheme.primary,
                   errorBuilder: (context, error, stackTrace) => Icon(
-                      Icons.water_drop_rounded,
+                      Symbols.water_drop,
                       size: 100.h,
                       color: colorScheme.primary),
                 ),

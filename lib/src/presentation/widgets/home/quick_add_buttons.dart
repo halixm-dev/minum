@@ -1,6 +1,7 @@
 // lib/src/presentation/widgets/home/quick_add_buttons.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 
@@ -70,9 +71,11 @@ class QuickAddButtons extends StatelessWidget {
 
               return ActionChip(
                 avatar: Icon(
-                  Icons.add_circle_outline,
-                  size: chipTheme.iconTheme?.size ?? 18.sp,
-                  color: theme.colorScheme.onSecondaryContainer,
+                  Symbols.add_circle,
+                  size: chipTheme.iconTheme?.size ??
+                      18.sp, // Use theme's icon size
+                  color: theme.colorScheme
+                      .onSecondaryContainer,
                 ),
                 label: Text('$displayAmount $_unitString'),
                 labelStyle: filledChipStyle.labelStyle,

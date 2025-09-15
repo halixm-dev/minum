@@ -1,6 +1,7 @@
 // lib/src/presentation/widgets/common/social_login_button.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 /// A customizable button for social login actions.
 ///
@@ -68,7 +69,7 @@ class SocialLoginButton extends StatelessWidget {
             height: 20.h,
             width: 20.w,
             errorBuilder: (context, error, stackTrace) {
-              return Icon(Icons.login,
+              return Icon(Symbols.login,
                   size: 20.sp, color: progressIndicatorColor);
             },
           ),

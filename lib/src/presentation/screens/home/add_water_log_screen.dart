@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/home/add_water_log_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
@@ -241,7 +242,9 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
         actions: [
           if (_isEditMode)
             IconButton(
-              icon: Icon(Icons.delete, color: theme.colorScheme.error),
+              icon: Icon(Symbols.delete,
+                  color:
+                      theme.colorScheme.error),
               tooltip: "Delete Log",
               onPressed: _deleteLog,
             ),
@@ -260,10 +263,10 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
               SizedBox(height: 8.h),
               TextFormField(
                 controller: _amountController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: AppStrings.enterAmount,
                   hintText: 'e.g., 250 or 8',
-                  prefixIcon: Icon(Icons.local_drink_outlined),
+                  prefixIcon: Icon(Symbols.water_full_rounded),
                 ),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
@@ -278,9 +281,9 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
               TextFormField(
                 controller: _dateTimeController,
                 readOnly: true,
-                decoration: const InputDecoration(
-                  labelText: 'Date & Time',
-                  prefixIcon: Icon(Icons.edit_calendar_outlined),
+                decoration: InputDecoration(
+                  labelText: 'Date & Time', // Label integrated here
+                  prefixIcon: Icon(Symbols.edit_calendar),
                 ),
                 onTap: _selectDateTime,
               ),

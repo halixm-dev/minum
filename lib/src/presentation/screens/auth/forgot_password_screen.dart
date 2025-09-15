@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/auth/forgot_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
@@ -72,8 +73,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Icon(Icons.lock_reset_outlined,
-                      size: 64.h, color: theme.colorScheme.primary),
+                  Icon(Symbols.lock_reset,
+                      size: 64.h,
+                      color:
+                          theme.colorScheme.primary),
                   SizedBox(height: 20.h),
                   Text(
                     'Forgot Your Password?',
@@ -91,10 +94,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   SizedBox(height: 32.h),
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: AppStrings.email,
                       hintText: 'you@example.com',
-                      prefixIcon: Icon(Icons.email_outlined),
+                      prefixIcon: Icon(Symbols.email),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: AppUtils.validateEmail,

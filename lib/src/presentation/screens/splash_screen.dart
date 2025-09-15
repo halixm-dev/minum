@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -108,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   : colorScheme.primary,
               errorBuilder: (context, error, stackTrace) {
                 logger.e("SplashScreen: Error loading app logo: $error");
-                return Icon(Icons.water_drop_outlined,
+                return Icon(Symbols.water_drop,
                     size: 100.sp,
                     color: theme.brightness == Brightness.light
                         ? colorScheme.onPrimary

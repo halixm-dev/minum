@@ -1,6 +1,7 @@
 // lib/src/presentation/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:minum/src/presentation/providers/auth_provider.dart';
@@ -71,7 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
               },
               tooltip: "Log Water Intake",
-              child: Icon(Icons.add, size: 28.sp),
+              child: Icon(Symbols.add,
+                  size: 28.sp), // Icon color will also be from theme
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -80,20 +82,28 @@ class _HomeScreenState extends State<HomeScreen> {
         onDestinationSelected: (index) {
           bottomNavProvider.setCurrentIndex(index);
         },
-        destinations: const <Widget>[
+        // Styling for NavigationBar comes from navigationBarTheme in AppTheme:
+        // - backgroundColor: colorScheme.surfaceContainer
+        // - indicatorColor: colorScheme.secondaryContainer
+        // - iconTheme: (selected: onSecondaryContainer, unselected: onSurfaceVariant)
+        // - labelTextStyle: (selected: onSurface, unselected: onSurfaceVariant, using labelMedium)
+        // - height: 80.h
+        // - elevation: 2.0
+        destinations: <Widget>[
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
+            icon: Icon(Symbols.home),
+            selectedIcon: Icon(
+                Symbols.home), // M3 often uses filled icons for selected state
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
+            icon: Icon(Symbols.bar_chart),
+            selectedIcon: Icon(Symbols.bar_chart),
             label: 'History',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+            icon: Icon(Symbols.settings),
+            selectedIcon: Icon(Symbols.settings),
             label: 'Settings',
           ),
         ],

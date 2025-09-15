@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
@@ -242,15 +243,15 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
       child: SegmentedButton<HistoryViewType>(
-        segments: const <ButtonSegment<HistoryViewType>>[
+        segments: <ButtonSegment<HistoryViewType>>[
           ButtonSegment<HistoryViewType>(
               value: HistoryViewType.weekly,
               label: Text('Weekly'),
-              icon: Icon(Icons.calendar_view_week_outlined)),
+              icon: Icon(Symbols.calendar_view_week)),
           ButtonSegment<HistoryViewType>(
               value: HistoryViewType.monthly,
               label: Text('Monthly'),
-              icon: Icon(Icons.calendar_today_outlined)),
+              icon: Icon(Symbols.calendar_today)),
         ],
         selected: {_selectedViewType},
         onSelectionChanged: (Set<HistoryViewType> newSelection) {
@@ -297,7 +298,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(Icons.chevron_left,
+            icon: Icon(Symbols.chevron_left,
                 size: 28.sp, color: theme.colorScheme.onSurfaceVariant),
             onPressed: () {
               if (_selectedViewType == HistoryViewType.weekly) _changeWeek(-1);
@@ -316,7 +317,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.chevron_right,
+            icon: Icon(Symbols.chevron_right,
                 size: 28.sp, color: theme.colorScheme.onSurfaceVariant),
             onPressed: () {
               if (_selectedViewType == HistoryViewType.weekly) _changeWeek(1);
@@ -397,7 +398,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         children: [
-          Icon(Icons.sync_outlined,
+          Icon(Symbols.sync,
               color: theme.colorScheme.onTertiaryContainer, size: 28.sp),
           SizedBox(width: 12.w),
           Expanded(
@@ -431,7 +432,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.no_drinks_outlined,
+            Icon(Symbols.bar_chart_off,
                 size: 64.sp,
                 color: theme.colorScheme.onSurfaceVariant),
             SizedBox(height: 20.h),
