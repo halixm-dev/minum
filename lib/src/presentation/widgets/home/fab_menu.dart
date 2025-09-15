@@ -49,7 +49,7 @@ class _FabMenuState extends State<FabMenu> with SingleTickerProviderStateMixin {
       child: GestureDetector(
         onTap: _toggleMenu,
         child: Container(
-          color: Theme.of(context).scrim.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.scrim.withOpacity(0.5),
         ),
       ),
     );
@@ -58,7 +58,9 @@ class _FabMenuState extends State<FabMenu> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
-    final quickAddVolumes = userProvider.userProfile?.quickAddVolumes ?? [];
+    final quickAddVolumes = (userProvider.userProfile?.favoriteIntakeVolumes ?? [])
+        .map((e) => int.tryParse(e) ?? 0)
+        .toList();
 
     return Stack(
       alignment: Alignment.bottomRight,
@@ -83,13 +85,9 @@ class _FabMenuState extends State<FabMenu> with SingleTickerProviderStateMixin {
                   },
                   child: _isOpen
                       ? const Icon(Symbols.close,
-                          key: ValueKey('close'),
-                          weight: 600,
-                          fontFamily: MaterialSymbols.rounded)
+                          key: ValueKey('close'), weight: 600)
                       : const Icon(Symbols.add,
-                          key: ValueKey('add'),
-                          weight: 600,
-                          fontFamily: MaterialSymbols.rounded),
+                          key: ValueKey('add'), weight: 600),
                 ),
               ),
             ],
@@ -124,7 +122,9 @@ class _FabMenuState extends State<FabMenu> with SingleTickerProviderStateMixin {
         icon: Symbols.water_drop,
         onPressed: () {
           _toggleMenu();
-          context.read<HydrationProvider>().addWater(volume.toDouble());
+          context
+              .read<HydrationProvider>()
+              .addHydrationEntry(volume.toDouble());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Added ${volume}ml'),
@@ -143,7 +143,7 @@ class _FabMenuState extends State<FabMenu> with SingleTickerProviderStateMixin {
 class _FabMenuItem extends StatelessWidget {
   final Animation<double> animation;
   final String label;
-  final int icon;
+  final IconData icon;
   final VoidCallback onPressed;
 
   const _FabMenuItem({
@@ -174,7 +174,7 @@ class _FabMenuItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadow.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -203,7 +203,7 @@ class _FabMenuItem extends StatelessWidget {
 
 class _PressableFab extends StatefulWidget {
   final VoidCallback onPressed;
-  final int icon;
+  final IconData icon;
 
   const _PressableFab({required this.onPressed, required this.icon});
 
@@ -232,7 +232,7 @@ class __PressableFabState extends State<_PressableFab> {
         onPressed: () {}, // NOP; handled by GestureDetector
         heroTag: null, // Needed for multiple FABs on one screen
         child: Icon(
-          IconData(widget.icon, fontFamily: MaterialSymbols.rounded),
+          widget.icon,
           weight: 600,
           fill: _isPressed ? 1.0 : 0.0,
         ),

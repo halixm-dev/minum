@@ -86,3 +86,6 @@ flutter:
 
   assets:
     - assets/images/
+
+material_symbols_icons:
+  style: rounded

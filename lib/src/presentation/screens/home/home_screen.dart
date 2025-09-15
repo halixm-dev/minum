@@ -74,24 +74,18 @@ class _HomeScreenState extends State<HomeScreen> {
             // Styling for NavigationBar comes from navigationBarTheme in AppTheme
             destinations: const <Widget>[
               NavigationDestination(
-                icon: Icon(Symbols.home,
-                    weight: 600, fontFamily: MaterialSymbols.rounded),
-                selectedIcon: Icon(Symbols.home,
-                    fill: 1, weight: 600, fontFamily: MaterialSymbols.rounded),
+            icon: Icon(Symbols.home, weight: 600),
+            selectedIcon: Icon(Symbols.home, fill: 1, weight: 600),
                 label: 'Home',
               ),
               NavigationDestination(
-                icon: Icon(Symbols.bar_chart,
-                    weight: 600, fontFamily: MaterialSymbols.rounded),
-                selectedIcon: Icon(Symbols.bar_chart,
-                    fill: 1, weight: 600, fontFamily: MaterialSymbols.rounded),
+            icon: Icon(Symbols.bar_chart, weight: 600),
+            selectedIcon: Icon(Symbols.bar_chart, fill: 1, weight: 600),
                 label: 'History',
               ),
               NavigationDestination(
-                icon: Icon(Symbols.settings,
-                    weight: 600, fontFamily: MaterialSymbols.rounded),
-                selectedIcon: Icon(Symbols.settings,
-                    fill: 1, weight: 600, fontFamily: MaterialSymbols.rounded),
+            icon: Icon(Symbols.settings, weight: 600),
+            selectedIcon: Icon(Symbols.settings, fill: 1, weight: 600),
                 label: 'Settings',
               ),
             ],
