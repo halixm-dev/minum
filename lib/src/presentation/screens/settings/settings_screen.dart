@@ -21,14 +21,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// SharedPreferences key for enabling/disabling reminders.
 const String prefsRemindersEnabled = 'prefs_reminders_enabled';
+
 /// SharedPreferences key for the reminder interval in hours.
 const String prefsReminderIntervalHours = 'prefs_reminder_interval_hours';
+
 /// SharedPreferences key for the reminder start time hour.
 const String prefsReminderStartTimeHour = 'prefs_reminder_start_time_hour';
+
 /// SharedPreferences key for the reminder start time minute.
 const String prefsReminderStartTimeMinute = 'prefs_reminder_start_time_minute';
+
 /// SharedPreferences key for the reminder end time hour.
 const String prefsReminderEndTimeHour = 'prefs_reminder_end_time_hour';
+
 /// SharedPreferences key for the reminder end time minute.
 const String prefsReminderEndTimeMinute = 'prefs_reminder_end_time_minute';
 
@@ -245,36 +250,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text("Mode", style: TextStyle(fontWeight: FontWeight.bold)),
-                ...ThemeMode.values.map((mode) {
-                  return RadioListTile<ThemeMode>(
-                    title: Text(StringExtension(mode.name).capitalize()),
-                    value: mode,
-                    groupValue: themeProvider.themeMode,
-                    onChanged: (ThemeMode? value) {
-                      if (value != null) themeProvider.setThemeMode(value);
-                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                    },
-                  );
-                }),
+                const Text("Mode",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                RadioGroup<ThemeMode>(
+                  groupValue: themeProvider.themeMode,
+                  onChanged: (ThemeMode? value) {
+                    if (value != null) themeProvider.setThemeMode(value);
+                    if (dialogContext.mounted)
+                      Navigator.of(dialogContext).pop();
+                  },
+                  child: Column(
+                    children: ThemeMode.values.map((mode) {
+                      return RadioListTile<ThemeMode>(
+                        title: Text(StringExtension(mode.name).capitalize()),
+                        value: mode,
+                      );
+                    }).toList(),
+                  ),
+                ),
                 Divider(height: 20.h),
-                const Text("Color Scheme", style: TextStyle(fontWeight: FontWeight.bold)),
-                ...ThemeSource.values.map((source) {
-                  return RadioListTile<ThemeSource>(
-                    title: Text(_getThemeSourceName(source)),
-                    value: source,
-                    groupValue: themeProvider.themeSource,
-                    onChanged: (ThemeSource? value) {
-                      if (value != null) {
-                        themeProvider.setThemeSource(value);
-                        if (value == ThemeSource.customSeed && themeProvider.customSeedColor == null) {
-                           logger.i("Custom seed selected, but no color is set yet.");
-                        }
+                const Text("Color Scheme",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                RadioGroup<ThemeSource>(
+                  groupValue: themeProvider.themeSource,
+                  onChanged: (ThemeSource? value) {
+                    if (value != null) {
+                      themeProvider.setThemeSource(value);
+                      if (value == ThemeSource.customSeed &&
+                          themeProvider.customSeedColor == null) {
+                        logger.i(
+                            "Custom seed selected, but no color is set yet.");
                       }
-                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                    },
-                  );
-                }),
+                    }
+                    if (dialogContext.mounted)
+                      Navigator.of(dialogContext).pop();
+                  },
+                  child: Column(
+                    children: ThemeSource.values.map((source) {
+                      return RadioListTile<ThemeSource>(
+                        title: Text(_getThemeSourceName(source)),
+                        value: source,
+                      );
+                    }).toList(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -458,9 +477,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                RadioListTile<MeasurementUnit>(
-                  title: const Text(AppStrings.ml),
-                  value: MeasurementUnit.ml,
+                RadioGroup<MeasurementUnit>(
                   groupValue: _tempSelectedUnit,
                   onChanged: (MeasurementUnit? value) {
                     if (value != null) {
@@ -469,18 +486,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       });
                     }
                   },
-                ),
-                RadioListTile<MeasurementUnit>(
-                  title: const Text(AppStrings.oz),
-                  value: MeasurementUnit.oz,
-                  groupValue: _tempSelectedUnit,
-                  onChanged: (MeasurementUnit? value) {
-                    if (value != null) {
-                      setDialogState(() {
-                        _tempSelectedUnit = value;
-                      });
-                    }
-                  },
+                  child: Column(
+                    children: [
+                      RadioListTile<MeasurementUnit>(
+                        title: const Text(AppStrings.ml),
+                        value: MeasurementUnit.ml,
+                      ),
+                      RadioListTile<MeasurementUnit>(
+                        title: const Text(AppStrings.oz),
+                        value: MeasurementUnit.oz,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -607,10 +624,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (adjustedToMinimum) {
       if (context.mounted) {
-        AppUtils.showSnackBar(context,
-            "Minimum reminder interval is 15 minutes. Setting to 15m.",
-            isError: false
-            );
+        AppUtils.showSnackBar(
+            context, "Minimum reminder interval is 15 minutes. Setting to 15m.",
+            isError: false);
       }
     }
   }
@@ -675,8 +691,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-            horizontal: 16.w, vertical: 16.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -776,7 +791,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
           secondary: Icon(Symbols.notifications_active,
               color: theme.colorScheme.onSurfaceVariant),
-          activeColor: theme.colorScheme.primary,
+          activeThumbColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
           inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
         ),
@@ -1087,9 +1102,7 @@ class _EditFavoriteVolumesDialogContentState
                     ),
                     IconButton(
                       icon: Icon(Symbols.remove,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .error),
+                          color: Theme.of(context).colorScheme.error),
                       onPressed: _volumeControllers.length > 1
                           ? () => _removeVolumeField(index)
                           : null,
@@ -1107,8 +1120,7 @@ class _EditFavoriteVolumesDialogContentState
                   label: const Text("Add Volume"),
                 ),
               ),
-            if (_volumeControllers
-                .isEmpty)
+            if (_volumeControllers.isEmpty)
               Padding(
                 padding: EdgeInsets.only(top: 8.h),
                 child: Text("Add at least one volume.",
@@ -1142,6 +1154,7 @@ class _EditFavoriteVolumesDialogContentState
 class _EditDailyGoalDialogContent extends StatefulWidget {
   /// The initial goal value.
   final String initialGoal;
+
   /// The user provider instance.
   final UserProvider userProvider;
 
@@ -1243,8 +1256,8 @@ class _EditDailyGoalDialogContentState
 
 /// An extension on [String] to capitalize the first letter.
 extension StringExtension on String {
-    /// Capitalizes the first letter of the string.
-    String capitalize() {
-      return "${this[0].toUpperCase()}${substring(1)}";
-    }
+  /// Capitalizes the first letter of the string.
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
+  }
 }
