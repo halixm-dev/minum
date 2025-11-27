@@ -16,7 +16,7 @@ class DatabaseHelper {
 
   /// The version of the database schema.
   static const _databaseVersion =
-      1; // Increment this if you change the schema in the future
+      2; // Increment this if you change the schema in the future
 
   /// The name of the hydration entries table.
   static const tableHydrationEntries = 'hydration_entries';
@@ -42,6 +42,9 @@ class DatabaseHelper {
 
   /// The source of the entry (e.g., 'manual', 'google_fit').
   static const columnSource = 'source';
+
+  /// The ID of the entry in Health Connect.
+  static const columnHealthConnectId = 'health_connect_id';
 
   /// A flag indicating if the entry is synced with Firestore (0 or 1).
   static const columnIsSynced = 'is_synced';
@@ -73,7 +76,7 @@ class DatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
-      // onUpgrade: _onUpgrade, // Define this for future schema migrations
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -88,11 +91,22 @@ class DatabaseHelper {
         $columnTimestamp TEXT NOT NULL, 
         $columnNotes TEXT,
         $columnSource TEXT,
+        $columnHealthConnectId TEXT,
         $columnIsSynced INTEGER NOT NULL DEFAULT 0,
         $columnIsDeleted INTEGER NOT NULL DEFAULT 0 
       )
       ''');
     logger.i("Table $tableHydrationEntries created successfully.");
+  }
+
+  /// Called when the database needs to be upgraded.
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    logger.i("Upgrading database from version $oldVersion to $newVersion");
+    if (oldVersion < 2) {
+      await db.execute(
+          'ALTER TABLE $tableHydrationEntries ADD COLUMN $columnHealthConnectId TEXT');
+      logger.i("Added column $columnHealthConnectId to $tableHydrationEntries");
+    }
   }
 
   // --- CRUD Operations ---
@@ -123,6 +137,22 @@ class DatabaseHelper {
       where:
           '$columnId = ? AND $columnIsDeleted = 0', // Only get non-deleted entries
       whereArgs: [localId],
+      limit: 1,
+    );
+    if (maps.isNotEmpty) {
+      return HydrationEntry.fromDbMap(maps.first);
+    }
+    return null;
+  }
+
+  /// Retrieves a [HydrationEntry] by its Health Connect ID.
+  Future<HydrationEntry?> getHydrationEntryByHealthConnectId(
+      String healthConnectId) async {
+    final db = await instance.database;
+    final maps = await db.query(
+      tableHydrationEntries,
+      where: '$columnHealthConnectId = ? AND $columnIsDeleted = 0',
+      whereArgs: [healthConnectId],
       limit: 1,
     );
     if (maps.isNotEmpty) {

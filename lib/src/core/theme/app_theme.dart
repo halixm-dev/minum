@@ -1,7 +1,6 @@
 // lib/src/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// A utility class for creating and managing Material 3 themes.
 ///
@@ -13,10 +12,8 @@ class AppTheme {
   AppTheme._();
 
   // Define base TextThemes
-  static final TextTheme _lightTextTheme =
-      GoogleFonts.robotoTextTheme(ThemeData.light().textTheme);
-  static final TextTheme _darkTextTheme =
-      GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
+  static final TextTheme _lightTextTheme = ThemeData.light().textTheme;
+  static final TextTheme _darkTextTheme = ThemeData.dark().textTheme;
 
   // Create MaterialTheme instances
   static final MaterialTheme _lightMaterialTheme =
@@ -57,8 +54,8 @@ class AppTheme {
         ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
     // Create a base TextTheme based on brightness for themeFromSeed
     final baseTextTheme = brightness == Brightness.light
-        ? GoogleFonts.robotoTextTheme(ThemeData.light().textTheme)
-        : GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme);
+        ? ThemeData.light().textTheme
+        : ThemeData.dark().textTheme;
     return buildThemeDataFromScheme(colorScheme, baseTextTheme);
   }
 
@@ -132,7 +129,8 @@ class AppTheme {
     final TextTheme m3TextTheme = baseTheme.copyWith(
       // Apply color scheme specific colors to the passed text theme
       displayLarge: baseTheme.displayLarge?.copyWith(
-          fontSize: 57.sp, // These sizes are examples, ensure they match your m3BaseTextTheme
+          fontSize: 57
+              .sp, // These sizes are examples, ensure they match your m3BaseTextTheme
           fontWeight: FontWeight.w400,
           letterSpacing: 0,
           height: 64.0 / 57.0,
@@ -327,8 +325,7 @@ class AppTheme {
           side: WidgetStateProperty.resolveWith<BorderSide?>(
               (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
-              return BorderSide(
-                  color: colorScheme.onSurface.withAlpha(31));
+              return BorderSide(color: colorScheme.onSurface.withAlpha(31));
             }
             if (states.contains(WidgetState.focused)) {
               // M3 focus indicator for outlined can be stronger border
@@ -613,12 +610,16 @@ class AppTheme {
 class ExtendedColor {
   /// The seed color used to generate the other colors.
   final Color seed;
+
   /// A vibrant color.
   final Color vibrant;
+
   /// A tonal variant of the vibrant color.
   final Color vibrantTonal;
+
   /// A color that is easy to see on top of [vibrant].
   final Color onVibrant;
+
   /// A color that is easy to see on top of [vibrantTonal].
   final Color onVibrantTonal;
 
@@ -637,10 +638,13 @@ class ExtendedColor {
 class ColorFamily {
   /// The main color.
   final Color color;
+
   /// A color that is easy to see on top of [color].
   final Color onColor;
+
   /// A container color derived from [color].
   final Color container;
+
   /// A color that is easy to see on top of [container].
   final Color onContainer;
 
@@ -922,7 +926,8 @@ class MaterialTheme {
       shadow: Color(0xff000000),
       scrim: Color(0xff000000),
       inverseSurface: Color(0xffdfe3e7),
-      inversePrimary: Color(0xff004e6a), // This was 1b6585, user provided 004e6a
+      inversePrimary:
+          Color(0xff004e6a), // This was 1b6585, user provided 004e6a
       primaryFixed: Color(0xffc3e8ff),
       onPrimaryFixed: Color(0xff00131d),
       primaryFixedDim: Color(0xff8fcef3),
@@ -941,8 +946,7 @@ class MaterialTheme {
       onTertiaryFixedVariant:
           Color(0xff373252), // This was 484264, user provided 373252
       surfaceDim: Color(0xff0f1417),
-      surfaceBright:
-          Color(0xff404549), // This was 353a3d, user provided 404549
+      surfaceBright: Color(0xff404549), // This was 353a3d, user provided 404549
       surfaceContainerLowest:
           Color(0xff04080b), // This was 0a0f12, user provided 04080b
       surfaceContainerLow:
@@ -994,9 +998,11 @@ class MaterialTheme {
       shadow: Color(0xff000000),
       scrim: Color(0xff000000),
       inverseSurface: Color(0xffdfe3e7),
-      inversePrimary: Color(0xff004e6a), // This was 1b6585, user provided 004e6a
+      inversePrimary:
+          Color(0xff004e6a), // This was 1b6585, user provided 004e6a
       primaryFixed: Color(0xffc3e8ff),
-      onPrimaryFixed: Color(0xff000000), // This was 001e2c, user provided 000000
+      onPrimaryFixed:
+          Color(0xff000000), // This was 001e2c, user provided 000000
       primaryFixedDim: Color(0xff8fcef3),
       onPrimaryFixedVariant:
           Color(0xff00131d), // This was 004c68, user provided 00131d
@@ -1013,8 +1019,7 @@ class MaterialTheme {
       onTertiaryFixedVariant:
           Color(0xff120c2b), // This was 484264, user provided 120c2b
       surfaceDim: Color(0xff0f1417),
-      surfaceBright:
-          Color(0xff4c5154), // This was 353a3d, user provided 4c5154
+      surfaceBright: Color(0xff4c5154), // This was 353a3d, user provided 4c5154
       surfaceContainerLowest:
           Color(0xff000000), // This was 0a0f12, user provided 000000
       surfaceContainerLow:

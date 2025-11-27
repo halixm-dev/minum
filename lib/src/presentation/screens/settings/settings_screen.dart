@@ -13,6 +13,7 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/services/notification_service.dart';
+import 'package:minum/src/services/health_service.dart';
 import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// SharedPreferences key for enabling/disabling reminders.
 const String prefsRemindersEnabled = 'prefs_reminders_enabled';
+
+/// SharedPreferences key for Health Connect integration.
+const String prefsHealthConnectEnabled = 'prefs_health_connect_enabled';
 
 /// SharedPreferences key for the reminder interval in hours.
 const String prefsReminderIntervalHours = 'prefs_reminder_interval_hours';
@@ -68,6 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _appVersion = 'Loading...';
 
   bool _enableReminders = true;
+  bool _healthConnectEnabled = false;
   double _selectedIntervalHours = 1.0;
   TimeOfDay _selectedStartTime = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _selectedEndTime = const TimeOfDay(hour: 22, minute: 0);
@@ -80,6 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _loadAppVersion();
     _loadReminderSettings();
+    _loadHealthConnectSettings();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -147,6 +153,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
         minute: prefs.getInt(prefsReminderEndTimeMinute) ?? 0,
       );
     });
+  }
+
+  /// Loads Health Connect settings from [SharedPreferences].
+  Future<void> _loadHealthConnectSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _healthConnectEnabled = prefs.getBool(prefsHealthConnectEnabled) ?? false;
+    });
+  }
+
+  /// Toggles Health Connect integration.
+  Future<void> _toggleHealthConnect(bool value) async {
+    if (value) {
+      // Request permissions
+      final healthService = HealthService();
+      bool granted = await healthService.requestPermissions();
+      if (!granted) {
+        if (mounted) {
+          AppUtils.showSnackBar(context, "Google Fit permissions denied.",
+              isError: true);
+        }
+        return;
+      }
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(prefsHealthConnectEnabled, value);
+    if (!mounted) return;
+    setState(() {
+      _healthConnectEnabled = value;
+    });
+
+    if (value) {
+      AppUtils.showSnackBar(context, "Google Fit Sync enabled!");
+    } else {
+      AppUtils.showSnackBar(context, "Google Fit Sync disabled.");
+    }
   }
 
   /// Saves the current reminder settings to [SharedPreferences] and reschedules notifications.
@@ -256,8 +300,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   groupValue: themeProvider.themeMode,
                   onChanged: (ThemeMode? value) {
                     if (value != null) themeProvider.setThemeMode(value);
-                    if (dialogContext.mounted)
+                    if (dialogContext.mounted) {
                       Navigator.of(dialogContext).pop();
+                    }
                   },
                   child: Column(
                     children: ThemeMode.values.map((mode) {
@@ -282,8 +327,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             "Custom seed selected, but no color is set yet.");
                       }
                     }
-                    if (dialogContext.mounted)
+                    if (dialogContext.mounted) {
                       Navigator.of(dialogContext).pop();
+                    }
                   },
                   child: Column(
                     children: ThemeSource.values.map((source) {
@@ -697,11 +743,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: <Widget>[
             _buildGeneralSettingsSection(
                 context, theme, themeProvider, userProvider, hydrationService),
+            _buildIntegrationsSection(context, theme),
             _buildRemindersSection(context, theme),
             _buildAccountActionsSection(context, theme, authProvider),
           ],
         ),
       ),
+    );
+  }
+
+  /// Builds the integrations settings section.
+  Widget _buildIntegrationsSection(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle("Integrations", theme),
+        SwitchListTile(
+          title: const Text("Google Fit Sync"),
+          subtitle: const Text("Sync water intake data"),
+          value: _healthConnectEnabled,
+          onChanged: _toggleHealthConnect,
+          secondary: Icon(Symbols.ecg_heart,
+              color: theme.colorScheme.onSurfaceVariant),
+          activeThumbColor: theme.colorScheme.primary,
+          inactiveThumbColor: theme.colorScheme.outline,
+          inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
+        ),
+      ],
     );
   }
 
@@ -731,18 +799,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context: context,
           icon: Symbols.color_lens,
           title: AppStrings.theme,
-          subtitle:
-              "${_getThemeSourceName(themeProvider.themeSource)} / ${themeProvider.currentThemeName}",
+          subtitle: themeProvider.currentThemeName,
           onTap: () => _showThemeDialog(context, themeProvider),
         ),
         _buildSettingsTile(
           context: context,
           icon: Symbols.water_drop,
           title: AppStrings.dailyWaterGoal,
-          subtitle: userProfile != null
-              ? unit_converter.formatVolume(
-                  userProfile.dailyGoalMl, userProfile.preferredUnit)
-              : 'N/A',
+          subtitle:
+              "${userProfile?.dailyGoalMl.toInt() ?? 2000} ${userProfile?.preferredUnit.displayName ?? AppStrings.ml}",
           onTap: () => _showDailyGoalOptionsDialog(
               context, userProvider, hydrationService),
         ),
@@ -755,41 +820,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         _buildSettingsTile(
           context: context,
-          icon: Symbols.format_list_numbered,
-          title: "Quick Add Volumes",
-          subtitle: userProfile != null &&
-                  userProfile.favoriteIntakeVolumes.isNotEmpty
-              ? '${userProfile.favoriteIntakeVolumes.map((volStr) {
-                  double volMl = double.tryParse(volStr) ?? 0;
-                  return unit_converter.formatVolume(
-                      volMl, userProfile.preferredUnit,
-                      includeUnitString: false);
-                }).join(', ')} ${userProfile.preferredUnit.displayName}'
-              : "N/A",
+          icon: Symbols.favorite,
+          title: "Favorite Volumes",
+          subtitle: "Customize quick add buttons",
           onTap: () => _showEditFavoriteVolumesDialog(context, userProvider),
         ),
       ],
     );
   }
 
-  /// Builds the reminders settings section of the screen.
+  /// Builds the reminders settings section.
   Widget _buildRemindersSection(BuildContext context, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(AppStrings.reminders, theme),
         SwitchListTile(
-          title: Text(AppStrings.enableReminders,
-              style: theme.textTheme.titleMedium),
+          title: const Text(AppStrings.enableReminders),
           value: _enableReminders,
           onChanged: (bool value) {
-            if (!mounted) return;
             setState(() {
               _enableReminders = value;
             });
             _saveReminderSettings();
           },
-          secondary: Icon(Symbols.notifications_active,
+          secondary: Icon(Symbols.notifications,
               color: theme.colorScheme.onSurfaceVariant),
           activeThumbColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
@@ -798,40 +853,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (_enableReminders) ...[
           _buildSettingsTile(
             context: context,
-            icon: Symbols.hourglass_empty,
-            title: "Reminder Interval",
-            subtitle: () {
-              if (_selectedIntervalHours <= 0) return "N/A";
-              int totalMinutes = (_selectedIntervalHours * 60).round();
-              int hours = totalMinutes ~/ 60;
-              int minutes = totalMinutes % 60;
-              if (hours > 0 && minutes > 0) return "${hours}h ${minutes}m";
-              if (hours > 0 && minutes == 0) return "${hours}h";
-              if (hours == 0 && minutes > 0) return "${minutes}m";
-              return "${minutes}m";
-            }(),
+            icon: Symbols.timer,
+            title: AppStrings.reminderInterval,
+            subtitle: _formatInterval(_selectedIntervalHours),
             onTap: () => _showIntervalPicker(context),
           ),
           _buildSettingsTile(
             context: context,
             icon: Symbols.schedule,
-            title: "Reminder Start Time",
+            title: AppStrings.startTime,
             subtitle: _selectedStartTime.format(context),
             onTap: () => _selectTime(context, true),
           ),
           _buildSettingsTile(
             context: context,
-            icon: Symbols.watch_later,
-            title: "Reminder End Time",
+            icon: Symbols.bedtime,
+            title: AppStrings.endTime,
             subtitle: _selectedEndTime.format(context),
             onTap: () => _selectTime(context, false),
           ),
-          _buildSettingsTile(
-            context: context,
-            icon: Symbols.notifications_none,
-            title: "Send Test Notification",
-            subtitle:
-                "Tap to send an immediate test notification to check if notifications are working.",
+          ListTile(
+            leading: Icon(Symbols.notification_important,
+                color: theme.colorScheme.onSurfaceVariant),
+            title: const Text("Send Test Notification"),
             onTap: _sendTestNotification,
           ),
         ],
@@ -839,326 +883,90 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Builds the account actions section of the screen.
+  /// Builds the account actions section.
   Widget _buildAccountActionsSection(
       BuildContext context, ThemeData theme, AuthProvider authProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Divider(
-            height: 32.h,
-            thickness: 1,
-            color: theme.colorScheme.outlineVariant),
+        _buildSectionTitle(AppStrings.account, theme),
         if (authProvider.isAuthenticated)
-          _buildSettingsTile(
-            context: context,
-            icon: Symbols.logout,
-            title: AppStrings.logout,
+          ListTile(
+            leading: Icon(Symbols.logout, color: theme.colorScheme.error),
+            title: Text(AppStrings.logout,
+                style: TextStyle(color: theme.colorScheme.error)),
             onTap: _handleLogout,
-            textColor: theme.colorScheme.error,
-            iconColor: theme.colorScheme.error,
           )
         else
-          _buildSettingsTile(
-            context: context,
-            icon: Symbols.login,
-            title: "Login / Sign Up",
+          ListTile(
+            leading: Icon(Symbols.login, color: theme.colorScheme.primary),
+            title: Text(AppStrings.login,
+                style: TextStyle(color: theme.colorScheme.primary)),
             onTap: _handleLogin,
-            textColor: theme.colorScheme.primary,
-            iconColor: theme.colorScheme.primary,
           ),
-        SizedBox(height: 24.h),
-        Center(
-          child: Text(
-            '${AppStrings.appName} - Version: $_appVersion',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-          ),
+        ListTile(
+          leading:
+              Icon(Symbols.info, color: theme.colorScheme.onSurfaceVariant),
+          title: const Text("App Version"),
+          subtitle: Text(_appVersion),
         ),
-        SizedBox(height: 24.h),
       ],
     );
   }
 
-  /// Builds a title widget for a settings section.
+  /// Helper widget to build a section title.
   Widget _buildSectionTitle(String title, ThemeData theme) {
     return Padding(
-      padding: EdgeInsets.only(top: 16.h, bottom: 8.h),
+      padding: EdgeInsets.only(top: 24.h, bottom: 8.h, left: 16.w),
       child: Text(
         title,
-        style: theme.textTheme.titleLarge?.copyWith(
+        style: theme.textTheme.titleMedium?.copyWith(
           color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  /// Builds a generic settings tile (ListTile) for the settings screen.
+  /// Helper widget to build a settings tile.
   Widget _buildSettingsTile({
     required BuildContext context,
     required IconData icon,
     required String title,
-    String? subtitle,
+    required String subtitle,
     required VoidCallback onTap,
-    Color? textColor,
-    Color? iconColor,
   }) {
     final theme = Theme.of(context);
-
-    final Color finalIconColor =
-        iconColor ?? theme.colorScheme.onSurfaceVariant;
-    final Color finalTitleColor = textColor ?? theme.colorScheme.onSurface;
-    final Color finalSubtitleColor =
-        textColor?.withValues(alpha: 0.7) ?? theme.colorScheme.onSurfaceVariant;
-
     return ListTile(
-      leading: Icon(icon, color: finalIconColor),
-      title: Text(title,
-          style: theme.textTheme.titleMedium?.copyWith(color: finalTitleColor)),
-      subtitle: subtitle != null
-          ? Text(subtitle,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: finalSubtitleColor))
-          : null,
+      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
+      title: Text(title),
+      subtitle: Text(subtitle),
       onTap: onTap,
     );
   }
-}
 
-/// A stateful widget for the content of the "Edit Favorite Volumes" dialog.
-class _EditFavoriteVolumesDialogContent extends StatefulWidget {
-  /// The user provider instance.
-  final UserProvider userProvider;
-
-  /// Creates an `_EditFavoriteVolumesDialogContent`.
-  const _EditFavoriteVolumesDialogContent({required this.userProvider});
-
-  @override
-  State<_EditFavoriteVolumesDialogContent> createState() =>
-      _EditFavoriteVolumesDialogContentState();
-}
-
-class _EditFavoriteVolumesDialogContentState
-    extends State<_EditFavoriteVolumesDialogContent> {
-  final List<TextEditingController> _volumeControllers = [];
-  final List<FocusNode> _volumeFocusNodes = [];
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    final userProfile = widget.userProvider.userProfile;
-    final initialVolumes =
-        userProfile?.favoriteIntakeVolumes ?? ['250', '500', '750'];
-    final displayUnit = userProfile?.preferredUnit ?? MeasurementUnit.ml;
-
-    if (initialVolumes.isEmpty) {
-      _addVolumeField(
-          text: displayUnit == MeasurementUnit.oz
-              ? unit_converter.convertMlToOz(250).toStringAsFixed(1)
-              : '250');
+  /// Formats the interval hours into a readable string.
+  String _formatInterval(double hours) {
+    if (hours < 1.0) {
+      int minutes = (hours * 60).round();
+      return "$minutes minutes";
     } else {
-      for (var volStr in initialVolumes) {
-        double volMl = double.tryParse(volStr) ?? 0;
-        String displayText;
-        if (displayUnit == MeasurementUnit.oz) {
-          displayText = unit_converter.convertMlToOz(volMl).toStringAsFixed(1);
-        } else {
-          displayText = volMl.toInt().toString();
-        }
-        _addVolumeField(text: displayText);
-      }
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _volumeFocusNodes.isNotEmpty) {
-        _volumeFocusNodes.last.requestFocus();
-      }
-    });
-  }
-
-  /// Adds a new volume field to the dialog.
-  void _addVolumeField({String? text}) {
-    if (_volumeControllers.length < 3) {
-      final controller = TextEditingController(text: text ?? '');
-      final focusNode = FocusNode();
-      setState(() {
-        _volumeControllers.add(controller);
-        _volumeFocusNodes.add(focusNode);
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          focusNode.requestFocus();
-        }
-      });
-    }
-  }
-
-  /// Removes a volume field from the dialog.
-  void _removeVolumeField(int index) {
-    if (_volumeControllers.length > 1) {
-      _volumeFocusNodes[index].dispose();
-      _volumeControllers[index].dispose();
-      setState(() {
-        _volumeControllers.removeAt(index);
-        _volumeFocusNodes.removeAt(index);
-      });
-    } else {
-      AppUtils.showSnackBar(
-          context, "At least one favorite volume is required.",
-          isError: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    for (var controller in _volumeControllers) {
-      controller.dispose();
-    }
-    for (var focusNode in _volumeFocusNodes) {
-      focusNode.dispose();
-    }
-    super.dispose();
-  }
-
-  /// Saves the favorite volumes to the user's profile.
-  Future<void> _saveFavoriteVolumes() async {
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
-    final displayUnit =
-        widget.userProvider.userProfile?.preferredUnit ?? MeasurementUnit.ml;
-    final List<String> newVolumesInMl = _volumeControllers.map((controller) {
-      String text = controller.text.trim();
-      if (text.isEmpty) return '';
-      double? val = double.tryParse(text);
-      if (val == null) return '';
-
-      if (displayUnit == MeasurementUnit.oz) {
-        return unit_converter.convertOzToMl(val).round().toString();
+      // Handle cases like 1.5 hours
+      if (hours % 1 == 0) {
+        return "${hours.toInt()} hour${hours.toInt() > 1 ? 's' : ''}";
       } else {
-        return val.round().toString();
-      }
-    }).where((text) {
-      if (text.isEmpty) return false;
-      final val = double.tryParse(text);
-      return val != null && val > 0 && val < 5000;
-    }).toList();
-
-    final List<String> volumesToSave = newVolumesInMl.isNotEmpty
-        ? newVolumesInMl
-        : const ['250', '500', '750'];
-
-    try {
-      await widget.userProvider.updateFavoriteIntakeVolumes(volumesToSave);
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (e) {
-      logger.e("Error saving favorite volumes: $e");
-      if (mounted) {
-        AppUtils.showSnackBar(
-            context, "Failed to save volumes. Please try again.",
-            isError: true);
+        int h = hours.floor();
+        int m = ((hours - h) * 60).round();
+        return "$h hr $m min";
       }
     }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ...List.generate(_volumeControllers.length, (index) {
-              return Padding(
-                padding: EdgeInsets.symmetric(vertical: 4.h),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _volumeControllers[index],
-                        focusNode: _volumeFocusNodes[index],
-                        decoration: InputDecoration(
-                          labelText: "Volume ${index + 1}",
-                          hintText:
-                              "e.g., ${widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz ? unit_converter.convertMlToOz(250).toStringAsFixed(1) : '250'}",
-                        ),
-                        keyboardType: TextInputType.numberWithOptions(
-                            decimal: widget
-                                    .userProvider.userProfile?.preferredUnit ==
-                                MeasurementUnit.oz),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(
-                              widget.userProvider.userProfile?.preferredUnit ==
-                                      MeasurementUnit.oz
-                                  ? r'^\d*\.?\d*$'
-                                  : r'^\d*'))
-                        ],
-                        validator: (val) => AppUtils.validateNumber(val,
-                            allowDecimal: widget
-                                    .userProvider.userProfile?.preferredUnit ==
-                                MeasurementUnit.oz),
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Symbols.remove,
-                          color: Theme.of(context).colorScheme.error),
-                      onPressed: _volumeControllers.length > 1
-                          ? () => _removeVolumeField(index)
-                          : null,
-                    ),
-                  ],
-                ),
-              );
-            }),
-            if (_volumeControllers.length < 3)
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => _addVolumeField(),
-                  icon: Icon(Symbols.add_circle),
-                  label: const Text("Add Volume"),
-                ),
-              ),
-            if (_volumeControllers.isEmpty)
-              Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: Text("Add at least one volume.",
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.error)),
-              ),
-            SizedBox(height: 20.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    if (mounted) Navigator.of(context).pop(false);
-                  },
-                  child: const Text(AppStrings.cancel),
-                ),
-                TextButton(
-                  onPressed: _saveFavoriteVolumes,
-                  child: const Text(AppStrings.save),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-/// A stateful widget for the content of the "Edit Daily Goal" dialog.
 class _EditDailyGoalDialogContent extends StatefulWidget {
-  /// The initial goal value.
   final String initialGoal;
-
-  /// The user provider instance.
   final UserProvider userProvider;
 
-  /// Creates an `_EditDailyGoalDialogContent`.
   const _EditDailyGoalDialogContent({
     required this.initialGoal,
     required this.userProvider,
@@ -1171,93 +979,154 @@ class _EditDailyGoalDialogContent extends StatefulWidget {
 
 class _EditDailyGoalDialogContentState
     extends State<_EditDailyGoalDialogContent> {
-  late TextEditingController _goalController;
-  late FocusNode _goalFocusNode;
-  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _goalController = TextEditingController(text: widget.initialGoal);
-    _goalFocusNode = FocusNode();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _goalFocusNode.requestFocus();
+    _controller = TextEditingController(text: widget.initialGoal);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: const InputDecoration(
+            labelText: "Daily Goal (mL)",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        SizedBox(height: 16.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(AppStrings.cancel),
+            ),
+            TextButton(
+              onPressed: () async {
+                final double? newGoal = double.tryParse(_controller.text);
+                if (newGoal != null && newGoal > 0) {
+                  await widget.userProvider.updateDailyGoal(newGoal);
+                  if (context.mounted) {
+                    Navigator.of(context).pop(true);
+                  }
+                } else {
+                  // Show error if needed
+                }
+              },
+              child: const Text(AppStrings.save),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _EditFavoriteVolumesDialogContent extends StatefulWidget {
+  final UserProvider userProvider;
+
+  const _EditFavoriteVolumesDialogContent({required this.userProvider});
+
+  @override
+  State<_EditFavoriteVolumesDialogContent> createState() =>
+      _EditFavoriteVolumesDialogContentState();
+}
+
+class _EditFavoriteVolumesDialogContentState
+    extends State<_EditFavoriteVolumesDialogContent> {
+  late List<TextEditingController> _controllers;
+  final int _maxVolumes = 3; // Fixed number of favorite volumes for now
+
+  @override
+  void initState() {
+    super.initState();
+    final favorites =
+        widget.userProvider.userProfile?.favoriteIntakeVolumes ?? [];
+    _controllers = List.generate(_maxVolumes, (index) {
+      if (index < favorites.length) {
+        return TextEditingController(text: favorites[index]);
+      } else {
+        // Default values if empty
+        if (index == 0) return TextEditingController(text: '100');
+        if (index == 1) return TextEditingController(text: '250');
+        return TextEditingController(text: '500');
       }
     });
   }
 
   @override
   void dispose() {
-    _goalController.dispose();
-    _goalFocusNode.dispose();
-    super.dispose();
-  }
-
-  /// Saves the daily goal to the user's profile.
-  Future<void> _saveGoal() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final newGoal = double.tryParse(_goalController.text);
-      if (newGoal != null && newGoal > 0) {
-        await widget.userProvider.updateDailyGoal(newGoal);
-        if (mounted) {
-          Navigator.of(context).pop(true);
-        }
-      } else {
-        if (mounted) {
-          AppUtils.showSnackBar(context, "Please enter a valid goal.",
-              isError: true);
-        }
-      }
+    for (var controller in _controllers) {
+      controller.dispose();
     }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          TextFormField(
-            controller: _goalController,
-            focusNode: _goalFocusNode,
-            decoration: const InputDecoration(
-              labelText: "Goal (${AppStrings.ml})",
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < _maxVolumes; i++)
+          Padding(
+            padding: EdgeInsets.only(bottom: 8.h),
+            child: TextField(
+              controller: _controllers[i],
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: "Volume ${i + 1}",
+                border: const OutlineInputBorder(),
+              ),
             ),
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            validator: (val) => AppUtils.validateNumber(val),
-            onFieldSubmitted: (_) => _saveGoal(),
           ),
-          SizedBox(height: 20.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              TextButton(
-                onPressed: () {
-                  if (mounted) {
-                    Navigator.of(context).pop(false);
-                  }
-                },
-                child: const Text(AppStrings.cancel),
-              ),
-              TextButton(
-                onPressed: _saveGoal,
-                child: const Text(AppStrings.save),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+        SizedBox(height: 16.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(AppStrings.cancel),
+            ),
+            TextButton(
+              onPressed: () async {
+                final List<String> newVolumes = _controllers
+                    .map((c) => c.text)
+                    .where((text) =>
+                        text.isNotEmpty && double.tryParse(text) != null)
+                    .toList();
 
-/// An extension on [String] to capitalize the first letter.
-extension StringExtension on String {
-  /// Capitalizes the first letter of the string.
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1)}";
+                if (newVolumes.isNotEmpty) {
+                  await widget.userProvider
+                      .updateFavoriteIntakeVolumes(newVolumes);
+                  if (context.mounted) {
+                    Navigator.of(context).pop(true);
+                  }
+                }
+              },
+              child: const Text(AppStrings.save),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

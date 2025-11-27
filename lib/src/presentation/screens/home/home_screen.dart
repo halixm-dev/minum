@@ -11,6 +11,7 @@ import 'package:minum/src/presentation/screens/home/main_hydration_view.dart';
 import 'package:minum/src/presentation/screens/settings/settings_screen.dart';
 import 'package:minum/src/presentation/screens/stats/hydration_history_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/main.dart'; // For logger
 
 /// The main screen of the application after the user is authenticated.
@@ -51,6 +52,16 @@ class _HomeScreenState extends State<HomeScreen> {
             "HomeScreen initState: User profile is null, UserProvider should fetch it via auth state changes.");
       }
     }
+
+    // Trigger Health Connect Sync
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authUser =
+          Provider.of<AuthProvider>(context, listen: false).currentUser;
+      if (authUser != null) {
+        Provider.of<HydrationService>(context, listen: false)
+            .syncHealthConnectData(authUser.id);
+      }
+    });
   }
 
   @override

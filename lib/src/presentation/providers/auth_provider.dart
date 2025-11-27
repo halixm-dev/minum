@@ -130,7 +130,7 @@ class AuthProvider with ChangeNotifier {
   /// `false` otherwise.
   Future<bool> signInWithGoogle() async {
     if (_isDisposed) return false;
-    _setAuthStatus(AuthStatus.authenticating);
+    // _setAuthStatus(AuthStatus.authenticating); // Removed to keep LoginScreen mounted
     try {
       final UserModel? userFromService = await _authService.signInWithGoogle();
       if (_isDisposed) return false;

@@ -52,7 +52,7 @@ dependencies:
   package_info_plus: ^8.0.0
 
   # Device Info
-  device_info_plus: ^11.4.0
+  device_info_plus: ^12.1.0
 
   # Permissions
   permission_handler: ^12.0.0+1
@@ -68,6 +68,7 @@ dependencies:
 
 
   path: any
+  health: ^13.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

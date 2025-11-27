@@ -28,6 +28,9 @@ class HydrationEntry extends Equatable {
   /// The source of the entry (e.g., "manual", "quick_add_250ml", "google_fit").
   final String? source;
 
+  /// The ID of the entry in Health Connect. Used for deduplication and deletion sync.
+  final String? healthConnectId;
+
   /// A flag indicating if this entry has been successfully synced to Firestore.
   /// This field is for local use only and is not stored in Firestore.
   final bool isSynced;
@@ -45,6 +48,7 @@ class HydrationEntry extends Equatable {
     required this.timestamp,
     this.notes,
     this.source,
+    this.healthConnectId,
     this.isSynced = false,
     this.isLocallyDeleted = false,
   });
@@ -69,6 +73,7 @@ class HydrationEntry extends Equatable {
       timestamp: (data['timestamp'] as Timestamp).toDate(),
       notes: data['notes'] as String?,
       source: data['source'] as String?,
+      healthConnectId: data['healthConnectId'] as String?,
       isSynced: isSynced,
       isLocallyDeleted: false,
     );
@@ -84,6 +89,7 @@ class HydrationEntry extends Equatable {
       timestamp: DateTime.parse(map['timestamp'] as String),
       notes: map['notes'] as String?,
       source: map['source'] as String?,
+      healthConnectId: map['health_connect_id'] as String?,
       isSynced: (map['is_synced'] as int? ?? 0) == 1,
       isLocallyDeleted: (map['is_deleted'] as int? ?? 0) == 1,
     );
@@ -100,6 +106,7 @@ class HydrationEntry extends Equatable {
       'timestamp': Timestamp.fromDate(timestamp),
       'notes': notes,
       'source': source,
+      'healthConnectId': healthConnectId,
     };
   }
 
@@ -116,6 +123,7 @@ class HydrationEntry extends Equatable {
       'timestamp': timestamp.toIso8601String(),
       'notes': notes,
       'source': source,
+      'health_connect_id': healthConnectId,
       'is_synced': isSynced ? 1 : 0,
       'is_deleted': isLocallyDeleted ? 1 : 0,
     };
@@ -130,6 +138,7 @@ class HydrationEntry extends Equatable {
     DateTime? timestamp,
     String? notes,
     String? source,
+    String? healthConnectId,
     bool? isSynced,
     bool? isLocallyDeleted,
   }) {
@@ -141,6 +150,7 @@ class HydrationEntry extends Equatable {
       timestamp: timestamp ?? this.timestamp,
       notes: notes ?? this.notes,
       source: source ?? this.source,
+      healthConnectId: healthConnectId ?? this.healthConnectId,
       isSynced: isSynced ?? this.isSynced,
       isLocallyDeleted: isLocallyDeleted ?? this.isLocallyDeleted,
     );
@@ -155,6 +165,7 @@ class HydrationEntry extends Equatable {
         timestamp,
         notes,
         source,
+        healthConnectId,
         isSynced,
         isLocallyDeleted
       ];

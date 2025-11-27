@@ -24,6 +24,8 @@ import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/services/hydration_service.dart';
 
+import 'package:minum/src/services/health_service.dart';
+
 // Presentation Layer: Providers
 import 'package:minum/src/presentation/providers/auth_provider.dart';
 import 'package:minum/src/presentation/providers/theme_provider.dart';
@@ -92,8 +94,11 @@ void main() async {
     authService: authService,
   );
 
+  final HealthService healthService = HealthService();
+
   final HydrationService hydrationService = HydrationService(
     hydrationRepository: syncableHydrationRepository,
+    healthService: healthService,
   );
 
   runApp(
@@ -101,6 +106,7 @@ void main() async {
       providers: [
         Provider<AuthService>.value(value: authService),
         Provider<HydrationService>.value(value: hydrationService),
+        Provider<HealthService>.value(value: healthService),
         Provider<NotificationService>.value(value: notificationService),
         Provider<UserRepository>.value(value: userRepository),
         Provider<HydrationRepository>.value(value: syncableHydrationRepository),

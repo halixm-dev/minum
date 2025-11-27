@@ -6,117 +6,79 @@ This document provides instructions for AI agents working on the Minum codebase.
 
 Minum is a smart water reminder app that helps users stay hydrated. It syncs with Google Account, Google Fit, and Health Connect to calculate ideal water intake based on weather, calories burned, and weight data.
 
-## Key Technologies
+## Tech Stack
 
--   **Frontend:** Flutter
+-   **Frontend:** Flutter (SDK >=3.5.0)
 -   **State Management:** Provider
 -   **Backend:** Firebase (Authentication, Firestore)
--   **API:** Dio (for network requests)
+-   **Networking:** Dio
+-   **Local Storage:** Shared Preferences, Sqflite
+-   **UI/Design:**
+    -   `flutter_screenutil` for responsive design.
+    -   `google_fonts` for typography.
+    -   `material_symbols_icons` and `cupertino_icons`.
+-   **Charts:** `fl_chart`
+-   **Notifications:** `awesome_notifications`
 
-## Getting Started
+## Project Structure
 
-### Prerequisites
-
--   Flutter SDK (version 3.0.0 or higher)
--   Dart SDK (version 3.0.0 or higher)
--   Firebase account
--   (Optional) Google Fit and Health Connect APIs access
-
-### Setup
-
-1.  **Install Dependencies:**
-    ```bash
-    flutter pub get
-    ```
-2.  **Firebase Setup:**
-    -   Place `google-services.json` in `android/app/`.
-    -   Place `GoogleService-Info.plist` in `ios/Runner/`.
-    -   Enable "Email/Password" and "Google" authentication in the Firebase console.
-    -   For Google Sign-In on Android, add your SHA-1 fingerprint to the Firebase project settings.
-    -   Run `flutterfire configure` to generate `lib/firebase_options.dart`.
-
-## Development Guidelines
-
-### Project Structure
-
-The target project structure is as follows:
+The project follows a clean architecture approach:
 
 ```
 minum/
 ├── lib/
 │   ├── src/
-│   │   ├── app.dart
-│   │   ├── core/
-│   │   ├── data/
-│   │   ├── presentation/
-│   │   ├── services/
-│   │   └── navigation/
-│   └── config/
+│   │   ├── app.dart           # MaterialApp and routing setup
+│   │   ├── core/              # Constants (AppStrings), themes, utils
+│   │   ├── data/              # Models, repositories, API providers
+│   │   ├── presentation/      # UI (screens, widgets) and state management (providers)
+│   │   ├── services/          # Business logic services
+│   │   └── navigation/        # Navigation logic
+│   ├── config/                # Configuration files (e.g., Firebase)
+│   ├── main.dart              # App entry point
+│   └── firebase_options.dart  # Firebase configuration
 ```
 
--   **`main.dart`:** App entry point.
--   **`src/app.dart`:** MaterialApp and routing setup.
--   **`src/core/`:** Constants, themes, utils.
--   **`src/data/`:** Models, repositories, API providers.
--   **`src/presentation/`:** UI (screens, widgets) and state management (providers).
--   **`src/services/`:** Business logic services.
--   **`src/navigation/`:** Navigation logic.
--   **`config/`:** Firebase configuration.
+## Development Guidelines
+
+### Coding Standards
+
+1.  **Strings:** Always use `AppStrings` class in `lib/src/core/constants/app_strings.dart` for UI text. Do not hardcode strings in widgets.
+2.  **Responsiveness:** Use `flutter_screenutil` extensions (e.g., `.w`, `.h`, `.sp`) for sizing to ensure the UI adapts to different screen sizes.
+3.  **State Management:** Use `Provider` for managing state. Avoid `setState` for complex state logic.
+4.  **Async Operations:** Use `Dio` for network requests. Handle errors gracefully.
 
 ### Testing
 
--   Run all tests with:
-    ```bash
-    flutter test
-    ```
--   Widget tests are in `test/`.
--   Unit tests should be placed in `test/unit/`.
--   Integration tests should be placed in `integration_test/`.
+-   **Run Tests:** `flutter test`
+-   **Widget Tests:** Place in `test/`
+-   **Unit Tests:** Place in `test/unit/`
 
-### Building for Release
+### Building
 
--   **Android:**
-    ```bash
-    flutter build apk --release
-    flutter build appbundle --release
-    ```
--   **iOS:**
-    ```bash
-    flutter build ios --release
-    ```
+-   **Android:** `flutter build apk --release`
+-   **iOS:** `flutter build ios --release`
 
-### Committing and Contributing
+## Agent Workflow
 
--   Pull requests are welcome.
--   Open an issue to discuss major changes.
--   Update tests as appropriate.
--   Follow standard git commit message conventions.
--   The `AGENTS.md` file is a guide for the agent's interactions with the repository. Do not modify the file.
--   The agent is responsible for creating and maintaining its own `AGENTS.md` file.
--   The agent is expected to follow the instructions in the `AGENTS.md` file.
--   The agent is expected to use the tools provided to it to complete the task.
--   The agent is expected to be resourceful and to use the tools at its disposal to accomplish its goals.
--   The agent is expected to be a helpful software engineer for the user.
--   The agent is expected to understand the problem, research the scope of work and the codebase, make a plan, and begin working on changes (and verify them as you go) using the tools available to you.
--   The agent is expected to always verify its work.
--   The agent is expected to edit source, not artifacts.
--   The agent is expected to practice proactive testing.
--   The agent is expected to diagnose before changing the environment.
--   The agent is expected to strive to solve problems autonomously.
--   The agent is expected to ask for help using `request_user_input` in the following situations:
-    1) The user's request is ambiguous and you need clarification.
-    2) You have tried multiple approaches to solve a problem and are still stuck.
-    3) You need to make a decision that would significantly alter the scope of the original request.
--   The agent is expected to remember that it is resourceful, and will use the tools available to it to perform its work and subtasks.
+1.  **Understand the Goal:** Read the user's request carefully. If ambiguous, use `notify_user` to ask for clarification.
+2.  **Explore:** Use `list_dir` and `view_file` to understand the relevant parts of the codebase.
+3.  **Plan:**
+    -   Create a `task.md` or `implementation_plan.md` if the task is complex.
+    -   Use `task_boundary` to define the current task and status.
+4.  **Execute:**
+    -   Make changes using `replace_file_content` or `multi_replace_file_content`.
+    -   **Always** verify changes.
+5.  **Verify:**
+    -   Run tests using `run_command`.
+    -   If UI changes are made, verify that they match the design guidelines.
+6.  **Communicate:**
+    -   Use `task_boundary` to keep the user updated on progress.
+    -   Use `notify_user` when the task is complete or if you need user input.
 
-### Agent Instructions
+### Key Behaviors
 
-1.  **Understand the Goal:** Read the user's request carefully to understand the desired outcome.
-2.  **Explore the Codebase:** Use `ls` and `read_files` to understand the project structure and existing code.
-3.  **Formulate a Plan:** Create a step-by-step plan using `set_plan`. The plan should include:
-    -   What you will do.
-    -   Where you will make changes.
-    -   How you will verify the changes.
-4.  **Execute the Plan:** Follow your plan, using the available tools to modify the code.
-5.  **Verify Your Work:** After each change, use `read_files` or `flutter test` to ensure the code is correct.
-6.  **Submit:** Once the task is complete and verified, use `submit` to create a pull request.
+-   **Be Proactive:** Fix obvious bugs or improvements you see while working on the main task, but don't deviate significantly without asking.
+-   **Be Resourceful:** Use the tools available. If a tool fails, try to understand why or use an alternative approach.
+-   **Edit Source, Not Artifacts:** Focus on `lib/` and `test/` for code changes.
+-   **Verify First:** Before declaring a task done, ensure the code compiles and tests pass (if applicable).

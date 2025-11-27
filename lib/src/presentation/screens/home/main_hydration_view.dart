@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:minum/src/services/notification_service.dart';
+import 'package:minum/src/services/hydration_service.dart';
 
 /// The main view displayed on the home screen, showing daily hydration progress,
 /// quick-add buttons, and a log of the day's entries.
@@ -195,29 +196,51 @@ class _MainHydrationViewState extends State<MainHydrationView>
       }
     });
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDateNavigationHeader(context, hydrationProvider),
-          SizedBox(height: 16.h),
-          _buildDailyProgressSection(context, userProvider, hydrationProvider),
-          if (DateUtils.isSameDay(
-              hydrationProvider.selectedDate, DateTime.now()))
-            _buildNextReminderSection(),
-          SizedBox(
-              height: _nextReminder != null && !_isLoadingReminder ? 8.h : 16.h),
-          _buildQuickAddSection(context, userProvider, hydrationProvider),
-          if (currentUser != null &&
-              DateUtils.isSameDay(
-                  hydrationProvider.selectedDate, DateTime.now()))
-            SizedBox(height: 24.h),
-          _buildLogTitle(context, hydrationProvider),
-          _LogList(
-              hydrationProvider: hydrationProvider, currentUser: currentUser),
-          SizedBox(height: 80.h),
-        ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        final hydrationProvider =
+            Provider.of<HydrationProvider>(context, listen: false);
+        final userId = userProvider.userProfile?.id;
+        final selectedDate = hydrationProvider.selectedDate;
+
+        if (userId != null) {
+          await Provider.of<HydrationService>(context, listen: false)
+              .syncHealthConnectData(userId, date: selectedDate);
+
+          // Force refresh of the hydration provider to show any new synced entries
+          if (context.mounted) {
+            await hydrationProvider.fetchHydrationEntriesForDate(selectedDate);
+          }
+        }
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDateNavigationHeader(context, hydrationProvider),
+            SizedBox(height: 16.h),
+            _buildDailyProgressSection(
+                context, userProvider, hydrationProvider),
+            if (DateUtils.isSameDay(
+                hydrationProvider.selectedDate, DateTime.now()))
+              _buildNextReminderSection(),
+            SizedBox(
+                height:
+                    _nextReminder != null && !_isLoadingReminder ? 8.h : 16.h),
+            _buildQuickAddSection(context, userProvider, hydrationProvider),
+            if (currentUser != null &&
+                DateUtils.isSameDay(
+                    hydrationProvider.selectedDate, DateTime.now()))
+              SizedBox(height: 24.h),
+            _buildLogTitle(context, hydrationProvider),
+            _LogList(
+                hydrationProvider: hydrationProvider, currentUser: currentUser),
+            SizedBox(height: 80.h),
+          ],
+        ),
       ),
     );
   }
@@ -366,20 +389,14 @@ class _LogList extends StatelessWidget {
               SizedBox(height: 16.h),
               Text(
                 'No water logged yet for today.',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               SizedBox(height: 8.h),
               Text(
                 'Tap the (+) button to add your first drink!',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],

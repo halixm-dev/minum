@@ -2,12 +2,13 @@ plugins {
     id("com.android.application")
     id("dev.flutter.flutter-gradle-plugin")
     id("kotlin-android")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.halixm.minum"
-    compileSdk = 35
-    ndkVersion = "27.2.12479018"
+    compileSdk = 36
+    ndkVersion = "28.2.13676358"
 
 
     compileOptions {

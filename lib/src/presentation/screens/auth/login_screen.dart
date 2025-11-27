@@ -29,6 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _loginWithGoogle() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final BuildContext dialogContext = context;
+    // Capture the navigator to ensure we can dismiss the dialog even if the context is unmounted
+    final NavigatorState navigator = Navigator.of(context, rootNavigator: true);
+
     final String? returnToRoute =
         ModalRoute.of(dialogContext)?.settings.arguments as String?;
 
@@ -50,8 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
           .e("LoginScreen: Unexpected error during signInWithGoogle call: $e");
       loginError = "An unexpected error occurred. Please try again.";
     } finally {
-      if (dialogContext.mounted) {
-        AppUtils.hideLoadingDialog(dialogContext);
+      // Use the captured navigator to pop the dialog
+      if (navigator.canPop()) {
+        navigator.pop();
       }
     }
 
