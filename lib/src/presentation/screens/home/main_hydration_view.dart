@@ -46,8 +46,10 @@ class _MainHydrationViewState extends State<MainHydrationView>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _reminderSettingsNotifier =
-            Provider.of<ReminderSettingsNotifier>(context, listen: false);
+        _reminderSettingsNotifier = Provider.of<ReminderSettingsNotifier>(
+          context,
+          listen: false,
+        );
         _reminderSettingsNotifier?.addListener(_onReminderSettingsChanged);
       }
     });
@@ -65,8 +67,10 @@ class _MainHydrationViewState extends State<MainHydrationView>
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       _fetchNextReminder();
-      Provider.of<HydrationProvider>(context, listen: false)
-          .processPendingWaterAddition();
+      Provider.of<HydrationProvider>(
+        context,
+        listen: false,
+      ).processPendingWaterAddition();
     }
   }
 
@@ -78,10 +82,12 @@ class _MainHydrationViewState extends State<MainHydrationView>
     });
 
     try {
-      final notificationService =
-          Provider.of<NotificationService>(context, listen: false);
-      List<NotificationModel> scheduledNotifications =
-          await notificationService.listScheduledNotifications();
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
+      List<NotificationModel> scheduledNotifications = await notificationService
+          .listScheduledNotifications();
 
       NotificationModel? soonestReminder;
       DateTime? soonestTime;
@@ -131,10 +137,12 @@ class _MainHydrationViewState extends State<MainHydrationView>
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 8.h),
         child: const Center(
-            child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator.adaptive(strokeWidth: 2))),
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+          ),
+        ),
       );
     }
 
@@ -144,7 +152,12 @@ class _MainHydrationViewState extends State<MainHydrationView>
       if (schedule.hour != null && schedule.minute != null) {
         final DateTime now = DateTime.now();
         final DateTime reminderTime = DateTime(
-            now.year, now.month, now.day, schedule.hour!, schedule.minute!);
+          now.year,
+          now.month,
+          now.day,
+          schedule.hour!,
+          schedule.minute!,
+        );
 
         if (reminderTime.isAfter(now)) {
           return Card(
@@ -153,19 +166,22 @@ class _MainHydrationViewState extends State<MainHydrationView>
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               child: Row(
                 children: [
-                  Icon(Symbols.alarm,
-                      size: 24.sp,
-                      color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Symbols.alarm,
+                    size: 24.sp,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   SizedBox(width: 12.w),
-                  Text("Next Reminder:",
-                      style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    "Next Reminder:",
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const Spacer(),
                   Text(
                     DateFormat.jm().format(reminderTime),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -187,8 +203,11 @@ class _MainHydrationViewState extends State<MainHydrationView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (hydrationProvider.actionStatus == HydrationActionStatus.error &&
           hydrationProvider.errorMessage != null) {
-        AppUtils.showSnackBar(context, hydrationProvider.errorMessage!,
-            isError: true);
+        AppUtils.showSnackBar(
+          context,
+          hydrationProvider.errorMessage!,
+          isError: true,
+        );
         context.read<HydrationProvider>().resetActionStatus();
       } else if (hydrationProvider.actionStatus ==
           HydrationActionStatus.success) {
@@ -199,14 +218,18 @@ class _MainHydrationViewState extends State<MainHydrationView>
     return RefreshIndicator(
       onRefresh: () async {
         final userProvider = Provider.of<UserProvider>(context, listen: false);
-        final hydrationProvider =
-            Provider.of<HydrationProvider>(context, listen: false);
+        final hydrationProvider = Provider.of<HydrationProvider>(
+          context,
+          listen: false,
+        );
         final userId = userProvider.userProfile?.id;
         final selectedDate = hydrationProvider.selectedDate;
 
         if (userId != null) {
-          await Provider.of<HydrationService>(context, listen: false)
-              .syncHealthConnectData(userId, date: selectedDate);
+          await Provider.of<HydrationService>(
+            context,
+            listen: false,
+          ).syncHealthConnectData(userId, date: selectedDate);
 
           // Force refresh of the hydration provider to show any new synced entries
           if (context.mounted) {
@@ -227,19 +250,30 @@ class _MainHydrationViewState extends State<MainHydrationView>
                   _buildDateNavigationHeader(context, hydrationProvider),
                   SizedBox(height: 16.h),
                   _buildDailyProgressSection(
-                      context, userProvider, hydrationProvider),
+                    context,
+                    userProvider,
+                    hydrationProvider,
+                  ),
                   if (DateUtils.isSameDay(
-                      hydrationProvider.selectedDate, DateTime.now()))
+                    hydrationProvider.selectedDate,
+                    DateTime.now(),
+                  ))
                     _buildNextReminderSection(),
                   SizedBox(
-                      height: _nextReminder != null && !_isLoadingReminder
-                          ? 8.h
-                          : 16.h),
+                    height: _nextReminder != null && !_isLoadingReminder
+                        ? 8.h
+                        : 16.h,
+                  ),
                   _buildQuickAddSection(
-                      context, userProvider, hydrationProvider),
+                    context,
+                    userProvider,
+                    hydrationProvider,
+                  ),
                   if (currentUser != null &&
                       DateUtils.isSameDay(
-                          hydrationProvider.selectedDate, DateTime.now()))
+                        hydrationProvider.selectedDate,
+                        DateTime.now(),
+                      ))
                     SizedBox(height: 24.h),
                   _buildLogTitle(context, hydrationProvider),
                 ],
@@ -247,28 +281,29 @@ class _MainHydrationViewState extends State<MainHydrationView>
             ),
           ),
           _buildSliverLogList(hydrationProvider, currentUser),
-          SliverToBoxAdapter(
-            child: SizedBox(height: 80.h),
-          ),
+          SliverToBoxAdapter(child: SizedBox(height: 80.h)),
         ],
       ),
     );
   }
 
   Widget _buildDateNavigationHeader(
-      BuildContext context, HydrationProvider hydrationProvider) {
+    BuildContext context,
+    HydrationProvider hydrationProvider,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         IconButton(
-          icon: Icon(Symbols.chevron_left,
-              size: 28.sp), // Size can be themed via IconTheme
+          icon: Icon(
+            Symbols.chevron_left,
+            size: 28.sp,
+          ), // Size can be themed via IconTheme
           onPressed: () {
             context.read<HydrationProvider>().setSelectedDate(
-                  hydrationProvider.selectedDate
-                      .subtract(const Duration(days: 1)),
-                );
+              hydrationProvider.selectedDate.subtract(const Duration(days: 1)),
+            );
           },
         ),
         Text(
@@ -277,26 +312,34 @@ class _MainHydrationViewState extends State<MainHydrationView>
         ),
         IconButton(
           icon: Icon(Symbols.chevron_right, size: 28.sp),
-          color: DateUtils.isSameDay(
-                  hydrationProvider.selectedDate, DateTime.now())
+          color:
+              DateUtils.isSameDay(
+                hydrationProvider.selectedDate,
+                DateTime.now(),
+              )
               ? Theme.of(context).colorScheme.onSurface.withAlpha(97)
               : Theme.of(context).iconTheme.color,
-          onPressed: DateUtils.isSameDay(
-                  hydrationProvider.selectedDate, DateTime.now())
+          onPressed:
+              DateUtils.isSameDay(
+                hydrationProvider.selectedDate,
+                DateTime.now(),
+              )
               ? null
               : () {
                   context.read<HydrationProvider>().setSelectedDate(
-                        hydrationProvider.selectedDate
-                            .add(const Duration(days: 1)),
-                      );
+                    hydrationProvider.selectedDate.add(const Duration(days: 1)),
+                  );
                 },
         ),
       ],
     );
   }
 
-  Widget _buildDailyProgressSection(BuildContext context,
-      UserProvider userProvider, HydrationProvider hydrationProvider) {
+  Widget _buildDailyProgressSection(
+    BuildContext context,
+    UserProvider userProvider,
+    HydrationProvider hydrationProvider,
+  ) {
     final UserModel? currentUser = userProvider.userProfile;
     final double totalIntakeToday = hydrationProvider.totalIntakeToday;
     final double dailyGoal = currentUser?.dailyGoalMl ?? 2000.0;
@@ -309,23 +352,31 @@ class _MainHydrationViewState extends State<MainHydrationView>
       );
     } else {
       return Card(
-          child: SizedBox(
-              height: 150.h,
-              child: Center(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator.adaptive(),
-                  SizedBox(height: 16.h),
-                  Text("Loading user data...",
-                      style: Theme.of(context).textTheme.bodyMedium),
-                ],
-              ))));
+        child: SizedBox(
+          height: 150.h,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator.adaptive(),
+                SizedBox(height: 16.h),
+                Text(
+                  "Loading user data...",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
   }
 
-  Widget _buildQuickAddSection(BuildContext context, UserProvider userProvider,
-      HydrationProvider hydrationProvider) {
+  Widget _buildQuickAddSection(
+    BuildContext context,
+    UserProvider userProvider,
+    HydrationProvider hydrationProvider,
+  ) {
     final UserModel? currentUser = userProvider.userProfile;
     if (currentUser != null &&
         DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())) {
@@ -334,11 +385,13 @@ class _MainHydrationViewState extends State<MainHydrationView>
         unit: currentUser.preferredUnit,
         onQuickAdd: (volumeMl) {
           context.read<HydrationProvider>().addHydrationEntry(
-                volumeMl,
-                source: 'quick_add_${volumeMl}ml',
-              );
-          AppUtils.showSnackBar(context,
-              "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} added!");
+            volumeMl,
+            source: 'quick_add_${volumeMl}ml',
+          );
+          AppUtils.showSnackBar(
+            context,
+            "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} added!",
+          );
         },
       );
     }
@@ -346,7 +399,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
   }
 
   Widget _buildLogTitle(
-      BuildContext context, HydrationProvider hydrationProvider) {
+    BuildContext context,
+    HydrationProvider hydrationProvider,
+  ) {
     final List<HydrationEntry> todaysEntries = hydrationProvider.dailyEntries;
     if (todaysEntries.isNotEmpty ||
         hydrationProvider.logStatus == HydrationLogStatus.loading) {
@@ -364,7 +419,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
   }
 
   Widget _buildSliverLogList(
-      HydrationProvider hydrationProvider, UserModel? currentUser) {
+    HydrationProvider hydrationProvider,
+    UserModel? currentUser,
+  ) {
     final List<HydrationEntry> todaysEntries = hydrationProvider.dailyEntries;
 
     if (hydrationProvider.logStatus == HydrationLogStatus.loading &&
@@ -376,8 +433,10 @@ class _MainHydrationViewState extends State<MainHydrationView>
     if (hydrationProvider.logStatus == HydrationLogStatus.error) {
       return SliverToBoxAdapter(
         child: Center(
-            child: Text(
-                hydrationProvider.errorMessage ?? AppStrings.anErrorOccurred)),
+          child: Text(
+            hydrationProvider.errorMessage ?? AppStrings.anErrorOccurred,
+          ),
+        ),
       );
     }
     if (todaysEntries.isEmpty) {
@@ -388,20 +447,24 @@ class _MainHydrationViewState extends State<MainHydrationView>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Symbols.water_full,
-                    size: 56.sp,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                Icon(
+                  Symbols.water_full,
+                  size: 56.sp,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 SizedBox(height: 16.h),
                 Text(
                   'No water logged yet for today.',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
                   'Tap the (+) button to add your first drink!',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -412,22 +475,20 @@ class _MainHydrationViewState extends State<MainHydrationView>
     }
 
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final entry = todaysEntries[index];
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: HydrationLogListItem(
-              entry: entry,
-              unit: currentUser?.preferredUnit ?? MeasurementUnit.ml,
-              onDismissed: () {
-                context.read<HydrationProvider>().deleteHydrationEntry(entry);
-              },
-            ),
-          );
-        },
-        childCount: todaysEntries.length,
-      ),
+      key: const Key('hydration_log_list'),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final entry = todaysEntries[index];
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: HydrationLogListItem(
+            entry: entry,
+            unit: currentUser?.preferredUnit ?? MeasurementUnit.ml,
+            onDismissed: () {
+              context.read<HydrationProvider>().deleteHydrationEntry(entry);
+            },
+          ),
+        );
+      }, childCount: todaysEntries.length),
     );
   }
 }

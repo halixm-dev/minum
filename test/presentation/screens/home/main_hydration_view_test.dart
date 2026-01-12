@@ -1,5 +1,6 @@
 // test/presentation/screens/home/main_hydration_view_test.dart
 import 'package:flutter/material.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -21,14 +22,14 @@ import 'package:minum/src/data/models/hydration_entry_model.dart';
 class MockUserProvider extends ChangeNotifier implements UserProvider {
   @override
   UserModel? get userProfile => UserModel(
-        id: 'test_user',
-        email: 'test@example.com',
-        displayName: 'Test User',
-        createdAt: DateTime.now(),
-        dailyGoalMl: 2000,
-        preferredUnit: MeasurementUnit.ml,
-        favoriteIntakeVolumes: ['250', '500'],
-      );
+    id: 'test_user',
+    email: 'test@example.com',
+    displayName: 'Test User',
+    createdAt: DateTime.now(),
+    dailyGoalMl: 2000,
+    preferredUnit: MeasurementUnit.ml,
+    favoriteIntakeVolumes: ['250', '500'],
+  );
 
   @override
   UserProfileStatus get status => UserProfileStatus.loaded;
@@ -71,7 +72,8 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
 
   @override
   Future<void> updateHealthConditions(
-      List<HealthCondition> newConditions) async {}
+    List<HealthCondition> newConditions,
+  ) async {}
 
   @override
   Future<void> updateSelectedWeather(WeatherCondition newWeather) async {}
@@ -80,7 +82,9 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
   bool listEquals<T>(List<T>? a, List<T>? b) => true;
 
   @override
-  void dispose() {}
+  void dispose() {
+    super.dispose();
+  }
 }
 
 class MockHydrationProvider extends ChangeNotifier
@@ -93,19 +97,21 @@ class MockHydrationProvider extends ChangeNotifier
 
   @override
   List<HydrationEntry> get dailyEntries => [
-        HydrationEntry(
-            id: '1',
-            userId: 'test_user',
-            amountMl: 250,
-            timestamp: DateTime.now(),
-            source: 'test'),
-        HydrationEntry(
-            id: '2',
-            userId: 'test_user',
-            amountMl: 250,
-            timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-            source: 'test'),
-      ];
+    HydrationEntry(
+      id: '1',
+      userId: 'test_user',
+      amountMl: 250,
+      timestamp: DateTime.now(),
+      source: 'test',
+    ),
+    HydrationEntry(
+      id: '2',
+      userId: 'test_user',
+      amountMl: 250,
+      timestamp: DateTime.now().subtract(const Duration(hours: 1)),
+      source: 'test',
+    ),
+  ];
 
   @override
   HydrationLogStatus get logStatus => HydrationLogStatus.loaded;
@@ -123,8 +129,12 @@ class MockHydrationProvider extends ChangeNotifier
   Future<void> fetchHydrationEntriesForDate(DateTime date) async {}
 
   @override
-  Future<void> addHydrationEntry(double amount,
-      {DateTime? entryTime, String? notes, String? source}) async {}
+  Future<void> addHydrationEntry(
+    double amount, {
+    DateTime? entryTime,
+    String? notes,
+    String? source,
+  }) async {}
 
   @override
   Future<void> updateHydrationEntry(HydrationEntry entry) async {}
@@ -140,11 +150,15 @@ class MockHydrationProvider extends ChangeNotifier
 
   @override
   Stream<List<HydrationEntry>> getEntriesForDateRangeStream(
-          String userId, DateTime startDate, DateTime endDate) =>
-      Stream.value([]);
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  ) => Stream.value([]);
 
   @override
-  void dispose() {}
+  void dispose() {
+    super.dispose();
+  }
 }
 
 class MockNotificationService extends Mock implements NotificationService {
@@ -155,7 +169,9 @@ class MockNotificationService extends Mock implements NotificationService {
 class MockReminderSettingsNotifier extends ChangeNotifier
     implements ReminderSettingsNotifier {
   @override
-  bool get remindersEnabled => false;
+  void notifySettingsChanged() {
+    notifyListeners();
+  }
 }
 
 class MockHydrationService extends Mock implements HydrationService {
@@ -164,27 +180,31 @@ class MockHydrationService extends Mock implements HydrationService {
 }
 
 void main() {
-  testWidgets('MainHydrationView renders correctly with CustomScrollView',
-      (WidgetTester tester) async {
+  testWidgets('MainHydrationView renders correctly with CustomScrollView', (
+    WidgetTester tester,
+  ) async {
     // Arrange
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider<UserProvider>(
-              create: (_) => MockUserProvider()),
+            create: (_) => MockUserProvider(),
+          ),
           ChangeNotifierProvider<HydrationProvider>(
-              create: (_) => MockHydrationProvider()),
+            create: (_) => MockHydrationProvider(),
+          ),
           Provider<NotificationService>(
-              create: (_) => MockNotificationService()),
+            create: (_) => MockNotificationService(),
+          ),
           ChangeNotifierProvider<ReminderSettingsNotifier>(
-              create: (_) => MockReminderSettingsNotifier()),
+            create: (_) => MockReminderSettingsNotifier(),
+          ),
           Provider<HydrationService>(create: (_) => MockHydrationService()),
         ],
         child: ScreenUtilInit(
           designSize: const Size(375, 812),
-          builder: (context, child) => const MaterialApp(
-            home: Scaffold(body: MainHydrationView()),
-          ),
+          builder: (context, child) =>
+              const MaterialApp(home: Scaffold(body: MainHydrationView())),
         ),
       ),
     );
@@ -194,7 +214,7 @@ void main() {
 
     // Assert
     expect(find.byType(CustomScrollView), findsOneWidget);
-    expect(find.byType(SliverList), findsOneWidget);
+    expect(find.byKey(const Key('hydration_log_list')), findsOneWidget);
     expect(find.text('Today\'s Log'), findsOneWidget);
     expect(find.byType(HydrationLogListItem), findsNWidgets(2));
   });
