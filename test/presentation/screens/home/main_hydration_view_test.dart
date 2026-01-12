@@ -81,10 +81,7 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
   @override
   bool listEquals<T>(List<T>? a, List<T>? b) => true;
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+
 }
 
 class MockHydrationProvider extends ChangeNotifier
@@ -155,10 +152,7 @@ class MockHydrationProvider extends ChangeNotifier
     DateTime endDate,
   ) => Stream.value([]);
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+
 }
 
 class MockNotificationService extends Mock implements NotificationService {
