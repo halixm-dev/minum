@@ -1051,23 +1051,23 @@ class _EditFavoriteVolumesDialogContent extends StatefulWidget {
 class _EditFavoriteVolumesDialogContentState
     extends State<_EditFavoriteVolumesDialogContent> {
   late List<TextEditingController> _controllers;
-  final int _maxVolumes = 3; // Fixed number of favorite volumes for now
 
   @override
   void initState() {
     super.initState();
     final favorites =
         widget.userProvider.userProfile?.favoriteIntakeVolumes ?? [];
-    _controllers = List.generate(_maxVolumes, (index) {
-      if (index < favorites.length) {
-        return TextEditingController(text: favorites[index]);
-      } else {
-        // Default values if empty
-        if (index == 0) return TextEditingController(text: '100');
-        if (index == 1) return TextEditingController(text: '250');
-        return TextEditingController(text: '500');
-      }
-    });
+    if (favorites.isNotEmpty) {
+      _controllers =
+          favorites.map((vol) => TextEditingController(text: vol)).toList();
+    } else {
+      // Default values if empty
+      _controllers = [
+        TextEditingController(text: '100'),
+        TextEditingController(text: '250'),
+        TextEditingController(text: '500'),
+      ];
+    }
   }
 
   @override
@@ -1078,55 +1078,100 @@ class _EditFavoriteVolumesDialogContentState
     super.dispose();
   }
 
+  void _addVolume() {
+    setState(() {
+      _controllers.add(TextEditingController());
+    });
+  }
+
+  void _removeVolume(int index) {
+    setState(() {
+      _controllers[index].dispose();
+      _controllers.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int i = 0; i < _maxVolumes; i++)
-          Padding(
-            padding: EdgeInsets.only(bottom: 8.h),
-            child: TextField(
-              controller: _controllers[i],
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
-                labelText: "Volume ${i + 1}",
-                border: const OutlineInputBorder(),
-              ),
+    return SizedBox(
+      width: double.maxFinite,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _controllers.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controllers[index],
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          decoration: InputDecoration(
+                            labelText: "Volume ${index + 1}",
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Symbols.delete),
+                        onPressed: () => _removeVolume(index),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
-        SizedBox(height: 16.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(AppStrings.cancel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final List<String> newVolumes = _controllers
-                    .map((c) => c.text)
-                    .where((text) =>
-                        text.isNotEmpty && double.tryParse(text) != null)
-                    .toList();
+          SizedBox(height: 8.h),
+          TextButton.icon(
+            onPressed: _addVolume,
+            icon: const Icon(Symbols.add),
+            label: const Text(AppStrings.add),
+          ),
+          SizedBox(height: 16.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(AppStrings.cancel),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final List<String> newVolumes = _controllers
+                      .map((c) => c.text)
+                      .where((text) =>
+                          text.isNotEmpty && double.tryParse(text) != null)
+                      .toList();
 
-                if (newVolumes.isNotEmpty) {
-                  await widget.userProvider
-                      .updateFavoriteIntakeVolumes(newVolumes);
-                  if (context.mounted) {
-                    Navigator.of(context).pop(true);
+                  if (newVolumes.isNotEmpty) {
+                    await widget.userProvider
+                        .updateFavoriteIntakeVolumes(newVolumes);
+                    if (context.mounted) {
+                      Navigator.of(context).pop(true);
+                    }
+                  } else {
+                    AppUtils.showSnackBar(
+                        context, "Please add at least one volume.",
+                        isError: true);
                   }
-                }
-              },
-              child: const Text(AppStrings.save),
-            ),
-          ],
-        ),
-      ],
+                },
+                child: const Text(AppStrings.save),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
