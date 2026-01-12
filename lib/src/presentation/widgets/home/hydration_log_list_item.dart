@@ -41,11 +41,24 @@ class HydrationLogListItem extends StatelessWidget {
     return Symbols.water_drop; // Default
   }
 
+  String _getSourceLabel() {
+    if (entry.source == null) return "Manual Entry";
+    if (entry.source!.startsWith('quick_add')) return "Quick Add";
+    if (entry.source!.contains('google_fit')) {
+      return "Google Fit";
+    }
+    if (entry.source!.contains('health_connect')) {
+      return "Health Connect";
+    }
+    return "Manual Entry"; // Default
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final double amountInPreferredUnit =
         AppUtils.convertToPreferredUnit(entry.amountMl, unit);
+    final sourceLabel = _getSourceLabel();
 
     return Dismissible(
       key: Key(entry.id ??
@@ -64,10 +77,17 @@ class HydrationLogListItem extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: Icon(_getSourceIcon(),
-              color: theme.colorScheme.onPrimaryContainer, size: 24.sp),
+        leading: Tooltip(
+          message: sourceLabel,
+          child: CircleAvatar(
+            backgroundColor: theme.colorScheme.primaryContainer,
+            child: Icon(
+              _getSourceIcon(),
+              color: theme.colorScheme.onPrimaryContainer,
+              size: 24.sp,
+              semanticLabel: sourceLabel,
+            ),
+          ),
         ),
         title: Text(
           '${AppUtils.formatAmount(amountInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString',
