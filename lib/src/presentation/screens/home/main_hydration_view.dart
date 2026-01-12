@@ -214,33 +214,43 @@ class _MainHydrationViewState extends State<MainHydrationView>
           }
         }
       },
-      child: SingleChildScrollView(
+      child: CustomScrollView(
+        // Optimization: Use CustomScrollView for better performance with lists
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDateNavigationHeader(context, hydrationProvider),
-            SizedBox(height: 16.h),
-            _buildDailyProgressSection(
-                context, userProvider, hydrationProvider),
-            if (DateUtils.isSameDay(
-                hydrationProvider.selectedDate, DateTime.now()))
-              _buildNextReminderSection(),
-            SizedBox(
-                height:
-                    _nextReminder != null && !_isLoadingReminder ? 8.h : 16.h),
-            _buildQuickAddSection(context, userProvider, hydrationProvider),
-            if (currentUser != null &&
-                DateUtils.isSameDay(
-                    hydrationProvider.selectedDate, DateTime.now()))
-              SizedBox(height: 24.h),
-            _buildLogTitle(context, hydrationProvider),
-            _LogList(
-                hydrationProvider: hydrationProvider, currentUser: currentUser),
-            SizedBox(height: 80.h),
-          ],
-        ),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDateNavigationHeader(context, hydrationProvider),
+                  SizedBox(height: 16.h),
+                  _buildDailyProgressSection(
+                      context, userProvider, hydrationProvider),
+                  if (DateUtils.isSameDay(
+                      hydrationProvider.selectedDate, DateTime.now()))
+                    _buildNextReminderSection(),
+                  SizedBox(
+                      height: _nextReminder != null && !_isLoadingReminder
+                          ? 8.h
+                          : 16.h),
+                  _buildQuickAddSection(
+                      context, userProvider, hydrationProvider),
+                  if (currentUser != null &&
+                      DateUtils.isSameDay(
+                          hydrationProvider.selectedDate, DateTime.now()))
+                    SizedBox(height: 24.h),
+                  _buildLogTitle(context, hydrationProvider),
+                ],
+              ),
+            ),
+          ),
+          _buildSliverLogList(hydrationProvider, currentUser),
+          SliverToBoxAdapter(
+            child: SizedBox(height: 80.h),
+          ),
+        ],
       ),
     );
   }
@@ -352,72 +362,72 @@ class _MainHydrationViewState extends State<MainHydrationView>
     }
     return const SizedBox.shrink();
   }
-}
 
-class _LogList extends StatelessWidget {
-  const _LogList({
-    required this.hydrationProvider,
-    required this.currentUser,
-  });
-
-  final HydrationProvider hydrationProvider;
-  final UserModel? currentUser;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSliverLogList(
+      HydrationProvider hydrationProvider, UserModel? currentUser) {
     final List<HydrationEntry> todaysEntries = hydrationProvider.dailyEntries;
 
     if (hydrationProvider.logStatus == HydrationLogStatus.loading &&
         todaysEntries.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const SliverToBoxAdapter(
+        child: Center(child: CircularProgressIndicator()),
+      );
     }
     if (hydrationProvider.logStatus == HydrationLogStatus.error) {
-      return Center(
-          child: Text(
-              hydrationProvider.errorMessage ?? AppStrings.anErrorOccurred));
+      return SliverToBoxAdapter(
+        child: Center(
+            child: Text(
+                hydrationProvider.errorMessage ?? AppStrings.anErrorOccurred)),
+      );
     }
     if (todaysEntries.isEmpty) {
-      return Padding(
+      return SliverPadding(
         padding: EdgeInsets.symmetric(vertical: 32.h),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Symbols.water_full,
-                  size: 56.sp,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
-              SizedBox(height: 16.h),
-              Text(
-                'No water logged yet for today.',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        sliver: SliverToBoxAdapter(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Symbols.water_full,
+                    size: 56.sp,
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                'Tap the (+) button to add your first drink!',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
+                SizedBox(height: 16.h),
+                Text(
+                  'No water logged yet for today.',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Tap the (+) button to add your first drink!',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: todaysEntries.length,
-      itemBuilder: (context, index) {
-        final entry = todaysEntries[index];
-        return HydrationLogListItem(
-          entry: entry,
-          unit: currentUser?.preferredUnit ?? MeasurementUnit.ml,
-          onDismissed: () {
-            context.read<HydrationProvider>().deleteHydrationEntry(entry);
-          },
-        );
-      },
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final entry = todaysEntries[index];
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: HydrationLogListItem(
+              entry: entry,
+              unit: currentUser?.preferredUnit ?? MeasurementUnit.ml,
+              onDismissed: () {
+                context.read<HydrationProvider>().deleteHydrationEntry(entry);
+              },
+            ),
+          );
+        },
+        childCount: todaysEntries.length,
+      ),
     );
   }
 }
