@@ -14,7 +14,6 @@ import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/services/health_service.dart';
-import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart';

@@ -63,7 +63,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-    buildToolsVersion = "34.0.0"
+
 }
 
 flutter {

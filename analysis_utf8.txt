@@ -1,0 +1,8 @@
+﻿Analyzing minum-1...                                            
+
+  error - The class 'GoogleSignIn' doesn't have an unnamed constructor - lib\src\data\repositories\firebase\firebase_auth_repository.dart:25:41 - new_with_undefined_constructor_default
+  error - The method 'signIn' isn't defined for the type 'GoogleSignIn' - lib\src\data\repositories\firebase\firebase_auth_repository.dart:156:67 - undefined_method
+   info - Uses 'await' on an instance of 'GoogleSignInAuthentication', which is not a subtype of 'Future' - lib\src\data\repositories\firebase\firebase_auth_repository.dart:161:11 - await_only_futures
+  error - The getter 'accessToken' isn't defined for the type 'GoogleSignInAuthentication' - lib\src\data\repositories\firebase\firebase_auth_repository.dart:164:33 - undefined_getter
+warning - Unused import: 'package:minum/src/core/utils/unit_converter.dart' - lib\src\presentation\screens\settings\settings_screen.dart:17:8 - unused_import
+

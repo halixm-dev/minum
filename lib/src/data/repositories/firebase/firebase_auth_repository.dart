@@ -22,7 +22,7 @@ class FirebaseAuthRepository implements AuthRepository {
     GoogleSignIn? googleSignIn,
     required UserRepository userRepository,
   })  : _firebaseAuth = firebaseAuth ?? fb_auth.FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn(),
+        _googleSignIn = googleSignIn ?? GoogleSignIn.instance,
         _userRepository = userRepository;
 
   @override
@@ -153,15 +153,12 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<UserModel?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return null;
-      }
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      await _googleSignIn.initialize(); // Initialize first
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final fb_auth.AuthCredential credential =
           fb_auth.GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
+        accessToken: null,
         idToken: googleAuth.idToken,
       );
       final fb_auth.UserCredential userCredential =
