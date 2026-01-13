@@ -335,33 +335,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Column(
-                  children: [
-                    RadioListTile<MeasurementUnit>(
-                      title: const Text(AppStrings.ml),
-                      value: MeasurementUnit.ml,
-                      groupValue: _tempSelectedUnit,
-                      onChanged: (MeasurementUnit? value) {
-                        if (value != null) {
-                          setDialogState(() {
-                            _tempSelectedUnit = value;
-                          });
-                        }
-                      },
-                    ),
-                    RadioListTile<MeasurementUnit>(
-                      title: const Text(AppStrings.oz),
-                      value: MeasurementUnit.oz,
-                      groupValue: _tempSelectedUnit,
-                      onChanged: (MeasurementUnit? value) {
-                        if (value != null) {
-                          setDialogState(() {
-                            _tempSelectedUnit = value;
-                          });
-                        }
-                      },
-                    ),
-                  ],
+                RadioGroup<MeasurementUnit>(
+                  groupValue: _tempSelectedUnit,
+                  onChanged: (MeasurementUnit? value) {
+                    if (value != null) {
+                      setDialogState(() {
+                        _tempSelectedUnit = value;
+                      });
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      RadioListTile<MeasurementUnit>(
+                        title: const Text(AppStrings.ml),
+                        value: MeasurementUnit.ml,
+                      ),
+                      RadioListTile<MeasurementUnit>(
+                        title: const Text(AppStrings.oz),
+                        value: MeasurementUnit.oz,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -567,7 +561,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: _toggleHealthConnect,
           secondary: Icon(Symbols.ecg_heart,
               color: theme.colorScheme.onSurfaceVariant),
-          activeColor: theme.colorScheme.primary,
+          activeTrackColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
           inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
         ),
@@ -648,7 +642,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
           secondary: Icon(Symbols.notifications,
               color: theme.colorScheme.onSurfaceVariant),
-          activeColor: theme.colorScheme.primary,
+          activeTrackColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
           inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
         ),

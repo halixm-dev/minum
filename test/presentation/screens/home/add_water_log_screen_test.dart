@@ -7,7 +7,6 @@ import 'package:minum/src/presentation/screens/home/add_water_log_screen.dart';
 import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/data/models/user_model.dart';
-import 'package:minum/src/data/models/hydration_entry_model.dart';
 
 // Reuse basic mocks for this test
 class MockUserProvider extends ChangeNotifier implements UserProvider {

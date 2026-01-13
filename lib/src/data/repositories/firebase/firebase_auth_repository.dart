@@ -154,18 +154,11 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<UserModel?> signInWithGoogle() async {
     try {
       await _googleSignIn.initialize();
-      final GoogleSignInAccount? googleUser =
-          await _googleSignIn.authenticate();
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-      if (googleUser == null) {
-        // Depending on version, it might return null or throw.
-        // We handle both just in case.
-        logger.i("Google Sign-In cancelled by user (null result).");
-        return null;
-      }
+      // authenticate() throws on cancellation, so we don't need to check for null here.
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
       final fb_auth.AuthCredential credential =
           fb_auth.GoogleAuthProvider.credential(

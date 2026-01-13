@@ -39,7 +39,7 @@ void main() {
     test('returns null when Google Sign-In is cancelled by user (exception)',
         () async {
       // Arrange
-      when(mockGoogleSignIn.initialize()).thenAnswer((_) async => null);
+      when(mockGoogleSignIn.initialize()).thenAnswer((_) async {});
       when(mockGoogleSignIn.authenticate()).thenThrow(
         GoogleSignInException(code: GoogleSignInExceptionCode.canceled),
       );
