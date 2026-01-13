@@ -41,27 +41,37 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
     super.initState();
     _dateTimeController = TextEditingController();
     _isEditMode = widget.entryToEdit != null;
-    final userProfile =
-        Provider.of<UserProvider>(context, listen: false).userProfile;
+  }
 
-    if (userProfile != null) {
-      _currentUnit = userProfile.preferredUnit;
-    }
+  bool _isInitialized = false;
 
-    if (_isEditMode) {
-      final entry = widget.entryToEdit!;
-      double displayAmount = entry.amountMl;
-      if (_currentUnit == MeasurementUnit.oz) {
-        displayAmount =
-            AppUtils.convertToPreferredUnit(entry.amountMl, MeasurementUnit.oz);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final userProfile =
+          Provider.of<UserProvider>(context, listen: false).userProfile;
+
+      if (userProfile != null) {
+        _currentUnit = userProfile.preferredUnit;
       }
-      _amountController.text = AppUtils.formatAmount(displayAmount,
-          decimalDigits: _currentUnit == MeasurementUnit.oz ? 1 : 0);
-      _notesController.text = entry.notes ?? '';
-      _selectedDateTime = entry.timestamp;
+
+      if (_isEditMode) {
+        final entry = widget.entryToEdit!;
+        double displayAmount = entry.amountMl;
+        if (_currentUnit == MeasurementUnit.oz) {
+          displayAmount = AppUtils.convertToPreferredUnit(
+              entry.amountMl, MeasurementUnit.oz);
+        }
+        _amountController.text = AppUtils.formatAmount(displayAmount,
+            decimalDigits: _currentUnit == MeasurementUnit.oz ? 1 : 0);
+        _notesController.text = entry.notes ?? '';
+        _selectedDateTime = entry.timestamp;
+      }
+      _dateTimeController.text =
+          "${DateFormat('EEE, MMM d').format(_selectedDateTime)}, ${TimeOfDay.fromDateTime(_selectedDateTime).format(context)}";
+      _isInitialized = true;
     }
-    _dateTimeController.text =
-        "${DateFormat('EEE, MMM d').format(_selectedDateTime)}, ${TimeOfDay.fromDateTime(_selectedDateTime).format(context)}";
   }
 
   @override
