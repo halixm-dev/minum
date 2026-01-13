@@ -133,6 +133,10 @@ class _MainHydrationViewState extends State<MainHydrationView>
   }
 
   Widget _buildNextReminderSection() {
+    // This section depends on local state (_nextReminder) and time.
+    // It is called within build, so it updates when setState is called
+    // or parent rebuilds. Since we optimizing parent rebuilds, this relies
+    // on _fetchNextReminder calling setState to update.
     if (_isLoadingReminder) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -180,8 +184,8 @@ class _MainHydrationViewState extends State<MainHydrationView>
                   Text(
                     DateFormat.jm().format(reminderTime),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ],
               ),
@@ -195,25 +199,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final hydrationProvider = Provider.of<HydrationProvider>(context);
-
-    final UserModel? currentUser = userProvider.userProfile;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (hydrationProvider.actionStatus == HydrationActionStatus.error &&
-          hydrationProvider.errorMessage != null) {
-        AppUtils.showSnackBar(
-          context,
-          hydrationProvider.errorMessage!,
-          isError: true,
-        );
-        context.read<HydrationProvider>().resetActionStatus();
-      } else if (hydrationProvider.actionStatus ==
-          HydrationActionStatus.success) {
-        context.read<HydrationProvider>().resetActionStatus();
-      }
-    });
+    // Optimization: Removed top-level Provider.of calls to prevent
+    // full screen rebuilds on any provider change.
+    // Using granular Selectors/Consumers instead.
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -241,46 +229,140 @@ class _MainHydrationViewState extends State<MainHydrationView>
         // Optimization: Use CustomScrollView for better performance with lists
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
+          // Side Effect Handler
+          SliverToBoxAdapter(
+            child: Selector<HydrationProvider,
+                (HydrationActionStatus, String?)>(
+              selector: (_, p) => (p.actionStatus, p.errorMessage),
+              builder: (context, data, child) {
+                final status = data.$1;
+                final errorMessage = data.$2;
+
+                if (status == HydrationActionStatus.error &&
+                    errorMessage != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    AppUtils.showSnackBar(
+                      context,
+                      errorMessage,
+                      isError: true,
+                    );
+                    context.read<HydrationProvider>().resetActionStatus();
+                  });
+                } else if (status == HydrationActionStatus.success) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    context.read<HydrationProvider>().resetActionStatus();
+                  });
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDateNavigationHeader(context, hydrationProvider),
-                  SizedBox(height: 16.h),
-                  _buildDailyProgressSection(
-                    context,
-                    userProvider,
-                    hydrationProvider,
+                  Selector<HydrationProvider, DateTime>(
+                    selector: (_, p) => p.selectedDate,
+                    builder: (context, selectedDate, _) {
+                      return _buildDateNavigationHeader(context, selectedDate);
+                    },
                   ),
-                  if (DateUtils.isSameDay(
-                    hydrationProvider.selectedDate,
-                    DateTime.now(),
-                  ))
-                    _buildNextReminderSection(),
+                  SizedBox(height: 16.h),
+                  Consumer2<UserProvider, HydrationProvider>(
+                    builder: (context, userProvider, hydrationProvider, _) {
+                      return _buildDailyProgressSection(
+                        context,
+                        userProvider.userProfile,
+                        hydrationProvider.totalIntakeToday,
+                      );
+                    },
+                  ),
+                  // This section relies on local state and time.
+                  // By passing _buildNextReminderSection() as child to Selector,
+                  // it gets built whenever MainHydrationView rebuilds (which happens on setState).
+                  // The Selector then only rebuilds the visibility logic if selectedDate changes,
+                  // but effectively uses the *freshly built child*.
+                  // However, Selector optimization works by *not calling builder* if value matches.
+                  // If builder is not called, the *old child* (from previous build) is reused?
+                  // No, the `child` argument to builder is the one passed to Constructor.
+                  // BUT if builder is NOT called, the Element tree doesn't update?
+                  // Wait, if Selector doesn't rebuild, it returns the *previous Widget*?
+                  // No, Selector is a Widget. It calls build.
+                  // Inside Selector.build:
+                  // if (value == oldVal) return oldWidget;
+                  // If it returns oldWidget, then the *new child* passed to constructor is IGNORED.
+                  // So `_buildNextReminderSection()` (the new one with updated state) is discarded.
+                  //
+                  // CORRECTION:
+                  // To fix this, we must NOT use Selector to wrap the child if the child depends on
+                  // updates that are NOT in the Selector's value.
+                  //
+                  // We should use Consumer here, OR allow Selector to rebuild when parent rebuilds?
+                  // Selector is designed specifically to AVOID rebuilds.
+                  //
+                  // So we use Consumer<HydrationProvider>. It rebuilds when provider changes.
+                  // And since it's a new widget instance on parent rebuild, it will call builder.
+                  // Inside builder we check date.
+                  Consumer<HydrationProvider>(
+                    builder: (context, provider, _) {
+                       if (DateUtils.isSameDay(provider.selectedDate, DateTime.now())) {
+                          return _buildNextReminderSection();
+                       }
+                       return const SizedBox.shrink();
+                    },
+                  ),
                   SizedBox(
                     height: _nextReminder != null && !_isLoadingReminder
                         ? 8.h
                         : 16.h,
                   ),
-                  _buildQuickAddSection(
-                    context,
-                    userProvider,
-                    hydrationProvider,
-                  ),
-                  if (currentUser != null &&
-                      DateUtils.isSameDay(
+                  Consumer2<UserProvider, HydrationProvider>(
+                    builder: (context, userProvider, hydrationProvider, _) {
+                      return _buildQuickAddSection(
+                        context,
+                        userProvider.userProfile,
                         hydrationProvider.selectedDate,
-                        DateTime.now(),
-                      ))
-                    SizedBox(height: 24.h),
-                  _buildLogTitle(context, hydrationProvider),
+                      );
+                    },
+                  ),
+                  Consumer2<UserProvider, HydrationProvider>(
+                      builder: (context, userProvider, hydrationProvider, _) {
+                    if (userProvider.userProfile != null &&
+                        DateUtils.isSameDay(
+                          hydrationProvider.selectedDate,
+                          DateTime.now(),
+                        )) {
+                      return SizedBox(height: 24.h);
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                  Selector<HydrationProvider,
+                      (List<HydrationEntry>, HydrationLogStatus, DateTime)>(
+                    selector: (_, p) =>
+                        (p.dailyEntries, p.logStatus, p.selectedDate),
+                    builder: (context, data, _) {
+                      return _buildLogTitle(
+                        context,
+                        data.$1,
+                        data.$2,
+                        data.$3,
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
           ),
-          _buildSliverLogList(hydrationProvider, currentUser),
+          Consumer2<HydrationProvider, UserProvider>(
+            builder: (context, hydrationProvider, userProvider, _) {
+              return _buildSliverLogList(
+                hydrationProvider,
+                userProvider.userProfile,
+              );
+            },
+          ),
           SliverToBoxAdapter(child: SizedBox(height: 80.h)),
         ],
       ),
@@ -289,7 +371,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
 
   Widget _buildDateNavigationHeader(
     BuildContext context,
-    HydrationProvider hydrationProvider,
+    DateTime selectedDate,
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -302,33 +384,31 @@ class _MainHydrationViewState extends State<MainHydrationView>
           ), // Size can be themed via IconTheme
           onPressed: () {
             context.read<HydrationProvider>().setSelectedDate(
-              hydrationProvider.selectedDate.subtract(const Duration(days: 1)),
-            );
+                  selectedDate.subtract(const Duration(days: 1)),
+                );
           },
         ),
         Text(
-          DateFormat('EEEE, MMM d').format(hydrationProvider.selectedDate),
+          DateFormat('EEEE, MMM d').format(selectedDate),
           style: Theme.of(context).textTheme.titleLarge,
         ),
         IconButton(
           icon: Icon(Symbols.chevron_right, size: 28.sp),
-          color:
-              DateUtils.isSameDay(
-                hydrationProvider.selectedDate,
-                DateTime.now(),
-              )
+          color: DateUtils.isSameDay(
+            selectedDate,
+            DateTime.now(),
+          )
               ? Theme.of(context).colorScheme.onSurface.withAlpha(97)
               : Theme.of(context).iconTheme.color,
-          onPressed:
-              DateUtils.isSameDay(
-                hydrationProvider.selectedDate,
-                DateTime.now(),
-              )
+          onPressed: DateUtils.isSameDay(
+            selectedDate,
+            DateTime.now(),
+          )
               ? null
               : () {
                   context.read<HydrationProvider>().setSelectedDate(
-                    hydrationProvider.selectedDate.add(const Duration(days: 1)),
-                  );
+                        selectedDate.add(const Duration(days: 1)),
+                      );
                 },
         ),
       ],
@@ -337,11 +417,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
 
   Widget _buildDailyProgressSection(
     BuildContext context,
-    UserProvider userProvider,
-    HydrationProvider hydrationProvider,
+    UserModel? currentUser,
+    double totalIntakeToday,
   ) {
-    final UserModel? currentUser = userProvider.userProfile;
-    final double totalIntakeToday = hydrationProvider.totalIntakeToday;
     final double dailyGoal = currentUser?.dailyGoalMl ?? 2000.0;
 
     if (currentUser != null) {
@@ -374,20 +452,19 @@ class _MainHydrationViewState extends State<MainHydrationView>
 
   Widget _buildQuickAddSection(
     BuildContext context,
-    UserProvider userProvider,
-    HydrationProvider hydrationProvider,
+    UserModel? currentUser,
+    DateTime selectedDate,
   ) {
-    final UserModel? currentUser = userProvider.userProfile;
     if (currentUser != null &&
-        DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())) {
+        DateUtils.isSameDay(selectedDate, DateTime.now())) {
       return QuickAddButtons(
         favoriteVolumes: currentUser.favoriteIntakeVolumes,
         unit: currentUser.preferredUnit,
         onQuickAdd: (volumeMl) {
           context.read<HydrationProvider>().addHydrationEntry(
-            volumeMl,
-            source: 'quick_add_${volumeMl}ml',
-          );
+                volumeMl,
+                source: 'quick_add_${volumeMl}ml',
+              );
           AppUtils.showSnackBar(
             context,
             "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} added!",
@@ -400,17 +477,18 @@ class _MainHydrationViewState extends State<MainHydrationView>
 
   Widget _buildLogTitle(
     BuildContext context,
-    HydrationProvider hydrationProvider,
+    List<HydrationEntry> todaysEntries,
+    HydrationLogStatus logStatus,
+    DateTime selectedDate,
   ) {
-    final List<HydrationEntry> todaysEntries = hydrationProvider.dailyEntries;
     if (todaysEntries.isNotEmpty ||
-        hydrationProvider.logStatus == HydrationLogStatus.loading) {
+        logStatus == HydrationLogStatus.loading) {
       return Padding(
         padding: EdgeInsets.only(bottom: 8.h, left: 4.w, top: 8.h),
         child: Text(
-          DateUtils.isSameDay(hydrationProvider.selectedDate, DateTime.now())
+          DateUtils.isSameDay(selectedDate, DateTime.now())
               ? "Today's Log"
-              : "Log for ${DateFormat.MMMd().format(hydrationProvider.selectedDate)}",
+              : "Log for ${DateFormat.MMMd().format(selectedDate)}",
           style: Theme.of(context).textTheme.titleLarge,
         ),
       );
@@ -456,15 +534,15 @@ class _MainHydrationViewState extends State<MainHydrationView>
                 Text(
                   'No water logged yet for today.',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
                   'Tap the (+) button to add your first drink!',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                   textAlign: TextAlign.center,
                 ),
               ],
