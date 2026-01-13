@@ -48,10 +48,22 @@ class AppTheme {
   /// The [seedColor] is used to generate a `ColorScheme`.
   /// The [brightness] determines whether to use a light or dark theme.
   /// @return A `ThemeData` object.
+  /// Creates a `ThemeData` object from a seed color and brightness.
+  ///
+  /// The [seedColor] is used to generate a `ColorScheme`.
+  /// The [brightness] determines whether to use a light or dark theme.
+  /// The [contrastLevel] adjusts the contrast of the generated scheme.
+  ///   0.0 is standard, -1.0 is low, 1.0 is high.
+  /// @return A `ThemeData` object.
   static ThemeData themeFromSeed(
-      {required Color seedColor, required Brightness brightness}) {
-    final colorScheme =
-        ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
+      {required Color seedColor,
+      required Brightness brightness,
+      double contrastLevel = 0.0}) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+      contrastLevel: contrastLevel,
+    );
     // Create a base TextTheme based on brightness for themeFromSeed
     final baseTextTheme = brightness == Brightness.light
         ? ThemeData.light().textTheme

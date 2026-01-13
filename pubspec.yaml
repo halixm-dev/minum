@@ -69,6 +69,7 @@ dependencies:
 
   path: any
   health: ^13.2.1
+  flex_color_picker: ^3.8.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

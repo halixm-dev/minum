@@ -18,6 +18,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:minum/src/presentation/widgets/settings/theme_selector.dart';
 
 /// SharedPreferences key for enabling/disabling reminders.
 const String prefsRemindersEnabled = 'prefs_reminders_enabled';
@@ -280,73 +281,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return false;
   }
 
-  /// Shows a dialog for selecting the app's theme mode and color scheme.
+  /// Shows a bottom sheet for selecting the app's theme mode and color scheme.
   void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
-    logger.d("SettingsScreen: _showThemeDialog called");
-    showDialog(
+    logger.d("SettingsScreen: _showThemeDialog called (BottomSheet)");
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text(AppStrings.theme),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const Text("Mode",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Column(
-                  children: ThemeMode.values.map((mode) {
-                    return RadioListTile<ThemeMode>(
-                      title: Text(StringExtension(mode.name).capitalize()),
-                      value: mode,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (ThemeMode? value) {
-                        if (value != null) themeProvider.setThemeMode(value);
-                        if (dialogContext.mounted) {
-                          Navigator.of(dialogContext).pop();
-                        }
-                      },
-                    );
-                  }).toList(),
-                ),
-                Divider(height: 20.h),
-                const Text("Color Scheme",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Column(
-                  children: ThemeSource.values.map((source) {
-                    return RadioListTile<ThemeSource>(
-                      title: Text(_getThemeSourceName(source)),
-                      value: source,
-                      groupValue: themeProvider.themeSource,
-                      onChanged: (ThemeSource? value) {
-                        if (value != null) {
-                          themeProvider.setThemeSource(value);
-                          if (value == ThemeSource.customSeed &&
-                              themeProvider.customSeedColor == null) {
-                            logger.i(
-                                "Custom seed selected, but no color is set yet.");
-                          }
-                        }
-                        if (dialogContext.mounted) {
-                          Navigator.of(dialogContext).pop();
-                        }
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-              },
-              child: const Text("Close"),
-            ),
-          ],
-        );
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return const ThemeSelector();
       },
     );
   }
@@ -583,22 +526,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     logger.i(
         "Test notification sent from settings screen with volumes: $favoriteVolumes.");
-  }
-
-  /// Gets a display-friendly name for a [ThemeSource].
-  String _getThemeSourceName(ThemeSource source) {
-    switch (source) {
-      case ThemeSource.baseline:
-        return "Default";
-      case ThemeSource.mediumContrast:
-        return "Medium Contrast";
-      case ThemeSource.highContrast:
-        return "High Contrast";
-      case ThemeSource.dynamicSystem:
-        return "System Dynamic";
-      case ThemeSource.customSeed:
-        return "Custom Color";
-    }
   }
 
   @override
