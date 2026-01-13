@@ -295,49 +295,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: <Widget>[
                 const Text("Mode",
                     style: TextStyle(fontWeight: FontWeight.bold)),
-                RadioGroup<ThemeMode>(
-                  groupValue: themeProvider.themeMode,
-                  onChanged: (ThemeMode? value) {
-                    if (value != null) themeProvider.setThemeMode(value);
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                  },
-                  child: Column(
-                    children: ThemeMode.values.map((mode) {
-                      return RadioListTile<ThemeMode>(
-                        title: Text(StringExtension(mode.name).capitalize()),
-                        value: mode,
-                      );
-                    }).toList(),
-                  ),
+                Column(
+                  children: ThemeMode.values.map((mode) {
+                    return RadioListTile<ThemeMode>(
+                      title: Text(StringExtension(mode.name).capitalize()),
+                      value: mode,
+                      groupValue: themeProvider.themeMode,
+                      onChanged: (ThemeMode? value) {
+                        if (value != null) themeProvider.setThemeMode(value);
+                        if (dialogContext.mounted) {
+                          Navigator.of(dialogContext).pop();
+                        }
+                      },
+                    );
+                  }).toList(),
                 ),
                 Divider(height: 20.h),
                 const Text("Color Scheme",
                     style: TextStyle(fontWeight: FontWeight.bold)),
-                RadioGroup<ThemeSource>(
-                  groupValue: themeProvider.themeSource,
-                  onChanged: (ThemeSource? value) {
-                    if (value != null) {
-                      themeProvider.setThemeSource(value);
-                      if (value == ThemeSource.customSeed &&
-                          themeProvider.customSeedColor == null) {
-                        logger.i(
-                            "Custom seed selected, but no color is set yet.");
-                      }
-                    }
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                  },
-                  child: Column(
-                    children: ThemeSource.values.map((source) {
-                      return RadioListTile<ThemeSource>(
-                        title: Text(_getThemeSourceName(source)),
-                        value: source,
-                      );
-                    }).toList(),
-                  ),
+                Column(
+                  children: ThemeSource.values.map((source) {
+                    return RadioListTile<ThemeSource>(
+                      title: Text(_getThemeSourceName(source)),
+                      value: source,
+                      groupValue: themeProvider.themeSource,
+                      onChanged: (ThemeSource? value) {
+                        if (value != null) {
+                          themeProvider.setThemeSource(value);
+                          if (value == ThemeSource.customSeed &&
+                              themeProvider.customSeedColor == null) {
+                            logger.i(
+                                "Custom seed selected, but no color is set yet.");
+                          }
+                        }
+                        if (dialogContext.mounted) {
+                          Navigator.of(dialogContext).pop();
+                        }
+                      },
+                    );
+                  }).toList(),
                 ),
               ],
             ),
@@ -522,27 +518,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                RadioGroup<MeasurementUnit>(
-                  groupValue: _tempSelectedUnit,
-                  onChanged: (MeasurementUnit? value) {
-                    if (value != null) {
-                      setDialogState(() {
-                        _tempSelectedUnit = value;
-                      });
-                    }
-                  },
-                  child: Column(
-                    children: [
-                      RadioListTile<MeasurementUnit>(
-                        title: const Text(AppStrings.ml),
-                        value: MeasurementUnit.ml,
-                      ),
-                      RadioListTile<MeasurementUnit>(
-                        title: const Text(AppStrings.oz),
-                        value: MeasurementUnit.oz,
-                      ),
-                    ],
-                  ),
+                Column(
+                  children: [
+                    RadioListTile<MeasurementUnit>(
+                      title: const Text(AppStrings.ml),
+                      value: MeasurementUnit.ml,
+                      groupValue: _tempSelectedUnit,
+                      onChanged: (MeasurementUnit? value) {
+                        if (value != null) {
+                          setDialogState(() {
+                            _tempSelectedUnit = value;
+                          });
+                        }
+                      },
+                    ),
+                    RadioListTile<MeasurementUnit>(
+                      title: const Text(AppStrings.oz),
+                      value: MeasurementUnit.oz,
+                      groupValue: _tempSelectedUnit,
+                      onChanged: (MeasurementUnit? value) {
+                        if (value != null) {
+                          setDialogState(() {
+                            _tempSelectedUnit = value;
+                          });
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -764,7 +766,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: _toggleHealthConnect,
           secondary: Icon(Symbols.ecg_heart,
               color: theme.colorScheme.onSurfaceVariant),
-          activeThumbColor: theme.colorScheme.primary,
+          activeColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
           inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
         ),
@@ -845,7 +847,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
           secondary: Icon(Symbols.notifications,
               color: theme.colorScheme.onSurfaceVariant),
-          activeThumbColor: theme.colorScheme.primary,
+          activeColor: theme.colorScheme.primary,
           inactiveThumbColor: theme.colorScheme.outline,
           inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
         ),
@@ -999,6 +1001,17 @@ class _EditDailyGoalDialogContentState
       children: [
         TextField(
           controller: _controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) async {
+            final double? newGoal = double.tryParse(_controller.text);
+            if (newGoal != null && newGoal > 0) {
+              await widget.userProvider.updateDailyGoal(newGoal);
+              if (context.mounted) {
+                Navigator.of(context).pop(true);
+              }
+            }
+          },
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: const InputDecoration(
@@ -1121,6 +1134,7 @@ class _EditFavoriteVolumesDialogContentState
                       ),
                       IconButton(
                         icon: const Icon(Symbols.delete),
+                        tooltip: AppStrings.delete,
                         onPressed: () => _removeVolume(index),
                       ),
                     ],
