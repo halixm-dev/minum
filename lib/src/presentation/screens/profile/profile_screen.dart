@@ -11,9 +11,6 @@ import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
-import 'package:minum/src/core/utils/unit_converter.dart' as unit_converter;
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart'
-    show guestUserId;
 
 /// A screen where users can view and edit their profile information.
 class ProfileScreen extends StatefulWidget {
@@ -28,7 +25,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _displayNameController;
   late TextEditingController _emailController;
-  late TextEditingController _dailyGoalController;
   late TextEditingController _weightController;
   late TextEditingController _heightController;
   late TextEditingController _dateOfBirthController;
@@ -37,7 +33,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late FocusNode _emailFocusNode;
   late FocusNode _heightFocusNode;
   late FocusNode _weightFocusNode;
-  late FocusNode _dailyGoalFocusNode;
 
   DateTime? _selectedDateOfBirth;
   Gender? _selectedGender;
@@ -108,7 +103,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _displayNameController = TextEditingController();
     _emailController = TextEditingController();
-    _dailyGoalController = TextEditingController();
     _weightController = TextEditingController();
     _heightController = TextEditingController();
     _dateOfBirthController = TextEditingController();
@@ -117,7 +111,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emailFocusNode = FocusNode();
     _heightFocusNode = FocusNode();
     _weightFocusNode = FocusNode();
-    _dailyGoalFocusNode = FocusNode();
 
     _setupControllerListeners();
   }
@@ -132,13 +125,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _displayNameController.text = userProfile.displayName ?? '';
       _emailController.text = userProfile.email ?? 'Not available';
 
-      if (userProfile.preferredUnit == MeasurementUnit.oz) {
-        _dailyGoalController.text = unit_converter
-            .convertMlToOz(userProfile.dailyGoalMl)
-            .toStringAsFixed(1);
-      } else {
-        _dailyGoalController.text = userProfile.dailyGoalMl.toInt().toString();
-      }
       _weightController.text = userProfile.weightKg?.toString() ?? '';
       _heightController.text = userProfile.heightCm?.toString() ?? '';
 
@@ -168,7 +154,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else {
       _displayNameController.text = '';
       _emailController.text = 'Not available';
-      _dailyGoalController.text = '2000';
       _weightController.text = '';
       _heightController.text = '';
       _selectedActivityLevel = null;
@@ -185,7 +170,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _setupControllerListeners() {
     _displayNameController.addListener(_setIsDirty);
-    _dailyGoalController.addListener(_setIsDirty);
     _weightController.addListener(_setIsDirty);
     _heightController.addListener(_setIsDirty);
   }
@@ -203,7 +187,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _displayNameController.dispose();
     _emailController.dispose();
-    _dailyGoalController.dispose();
     _weightController.dispose();
     _heightController.dispose();
     _dateOfBirthController.dispose();
@@ -212,7 +195,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emailFocusNode.dispose();
     _heightFocusNode.dispose();
     _weightFocusNode.dispose();
-    _dailyGoalFocusNode.dispose();
 
     super.dispose();
   }
@@ -237,102 +219,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Calculates and suggests a daily hydration goal based on the current profile data.
-  Future<void> _calculateAndSuggestGoal() async {
-    if (!mounted) return;
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final hydrationService =
-        Provider.of<HydrationService>(context, listen: false);
-
-    List<HealthCondition> conditionsForCalc = _selectedHealthConditions;
-    if (_selectedHealthConditions.contains(HealthCondition.none) &&
-        _selectedHealthConditions.length > 1) {
-      conditionsForCalc = _selectedHealthConditions
-          .where((c) => c != HealthCondition.none)
-          .toList();
-    }
-    if (conditionsForCalc.isEmpty) conditionsForCalc = [HealthCondition.none];
-
-    final tempUserForCalc = UserModel(
-      id: userProvider.userProfile?.id ?? guestUserId,
-      createdAt: userProvider.userProfile?.createdAt ?? DateTime.now(),
-      displayName: _displayNameController.text.trim(),
-      weightKg: double.tryParse(_weightController.text.trim()),
-      heightCm: double.tryParse(_heightController.text.trim()),
-      dateOfBirth: _selectedDateOfBirth,
-      gender: _selectedGender,
-      activityLevel: _selectedActivityLevel,
-      healthConditions: conditionsForCalc,
-      selectedWeatherCondition: _selectedWeatherCondition,
-      preferredUnit:
-          userProvider.userProfile?.preferredUnit ?? MeasurementUnit.ml,
-      dailyGoalMl: double.tryParse(_dailyGoalController.text.trim()) ?? 2000.0,
-      favoriteIntakeVolumes: userProvider.userProfile?.favoriteIntakeVolumes ??
-          const ['250', '500', '750'],
-    );
-
-    if (tempUserForCalc.weightKg == null ||
-        tempUserForCalc.weightKg! <= 0 ||
-        tempUserForCalc.age == null ||
-        tempUserForCalc.gender == null ||
-        tempUserForCalc.activityLevel == null) {
-      if (mounted) {
-        AppUtils.showSnackBar(context,
-            "Please fill in Weight, Date of Birth, Gender, and Activity Level to calculate a suggestion.",
-            isError: true);
-      }
-      return;
-    }
-
-    final mainScreenContext = context;
-    AppUtils.showLoadingDialog(mainScreenContext, message: "Calculating...");
-
-    double suggestedGoal = 0;
-    bool calculationSuccess = false;
-    try {
-      suggestedGoal = await hydrationService.calculateRecommendedDailyIntake(
-          user: tempUserForCalc);
-      calculationSuccess = true;
-    } catch (e) {
-      logger.e("Error calculating suggested goal: $e");
-    }
-
-    if (!mainScreenContext.mounted) return;
-    AppUtils.hideLoadingDialog(mainScreenContext);
-
-    if (!calculationSuccess) {
-      if (mainScreenContext.mounted) {
-        AppUtils.showSnackBar(mainScreenContext,
-            "Could not calculate suggested goal. Please try again.",
-            isError: true);
-      }
-      return;
-    }
-
-    final confirmationDialogContext = mainScreenContext;
-    final bool? apply = await AppUtils.showConfirmationDialog(
-        confirmationDialogContext,
-        title: "Suggested Goal",
-        content:
-            "Based on your profile, we suggest a daily goal of ${suggestedGoal.toInt()} mL. Would you like to apply this to your daily goal field?",
-        confirmText: "Apply to Field",
-        cancelText: "Not Now");
-
-    if (apply == true) {
-      if (!confirmationDialogContext.mounted) {
-        return;
-      }
-      if (mounted) {
-        setState(() {
-          _dailyGoalController.text = suggestedGoal.toInt().toString();
-          _isDirty = true;
-        });
-        AppUtils.showSnackBar(confirmationDialogContext,
-            "Suggested goal applied to form. Remember to save your profile.");
-      }
-    }
-  }
-
   /// Saves the updated profile information.
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
@@ -341,6 +227,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final hydrationService =
+        Provider.of<HydrationService>(context, listen: false);
     final currentUser = userProvider.userProfile;
 
     if (currentUser == null) {
@@ -353,19 +241,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final String newDisplayName = _displayNameController.text.trim();
-    double newDailyGoal;
-    final String goalText = _dailyGoalController.text.trim();
-    double? enteredGoal = double.tryParse(goalText);
-
-    if (enteredGoal != null) {
-      if (currentUser.preferredUnit == MeasurementUnit.oz) {
-        newDailyGoal = unit_converter.convertOzToMl(enteredGoal);
-      } else {
-        newDailyGoal = enteredGoal;
-      }
-    } else {
-      newDailyGoal = currentUser.dailyGoalMl;
-    }
     final double? newWeight = _weightController.text.trim().isEmpty
         ? null
         : double.tryParse(_weightController.text.trim());
@@ -391,10 +266,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
 
+    // Create a temporary user object with the new profile data for calculation
     UserModel updatedUser = currentUser.copyWith(
         displayName: newDisplayName,
-        dailyGoalMl: newDailyGoal,
-        preferredUnit: currentUser.preferredUnit,
         weightKg: newWeight,
         clearWeightKg: _weightController.text.trim().isEmpty,
         heightCm: newHeight,
@@ -411,10 +285,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         selectedWeatherCondition: _selectedWeatherCondition,
         favoriteIntakeVolumes: currentUser.favoriteIntakeVolumes);
 
+    // Calculate new goal
+    double newDailyGoal = 2000.0;
+    try {
+      newDailyGoal = await hydrationService.calculateRecommendedDailyIntake(
+          user: updatedUser);
+      logger.i("Auto-calculated new goal: $newDailyGoal");
+    } catch (e) {
+      logger.e("Error auto-calculating goal: $e");
+      // Fallback to existing goal if calculation fails completely, though
+      // calculateRecommendedDailyIntake usually returns a fallback.
+      newDailyGoal = currentUser.dailyGoalMl;
+    }
+
+    // Update the user object with the new goal
+    updatedUser = updatedUser.copyWith(dailyGoalMl: newDailyGoal);
+
     try {
       await userProvider.updateUserProfile(updatedUser);
       if (mounted) {
-        String messageToShow = "Profile updated successfully!";
+        String messageToShow =
+            "Profile updated! Daily goal adjusted to ${newDailyGoal.toInt()} mL.";
         bool isPresentationError = false;
 
         if (userProvider.status == UserProfileStatus.loaded) {
@@ -511,8 +402,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 20.r,
                             child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color:
-                                    Theme.of(context).colorScheme.primary))
+                                color: Theme.of(context).colorScheme.primary))
                         : Text("SAVE",
                             style: TextStyle(
                                 color: Theme.of(context).colorScheme.primary,
@@ -525,20 +415,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           body: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _buildPersonalInformationSection(
-                      context, user, userProvider, Theme.of(context)),
-                  SizedBox(height: 24.h),
-                  _buildLifestyleEnvironmentSection(
-                      context, user, userProvider, Theme.of(context)),
-                  SizedBox(height: 24.h),
-                  _buildHydrationGoalSection(
-                      context, user, userProvider, Theme.of(context)),
+                  _buildPersonalInformationCard(context),
+                  SizedBox(height: 16.h),
+                  _buildLifestyleEnvironmentCard(context),
                   SizedBox(height: 40.h),
                 ],
               ),
@@ -549,111 +434,130 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildPersonalInformationSection(BuildContext context, UserModel user,
-      UserProvider userProvider, ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Personal Information'),
-        TextFormField(
-          controller: _displayNameController,
-          focusNode: _displayNameFocusNode,
-          decoration: InputDecoration(
-            labelText: 'Display Name',
-            prefixIcon: Icon(Symbols.person),
-          ),
-          validator: (value) =>
-              AppUtils.validateNotEmpty(value, fieldName: "Display name"),
-          textInputAction: TextInputAction.next,
-          onChanged: (_) => _setIsDirty(),
+  Widget _buildPersonalInformationCard(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outlineVariant,
         ),
-        SizedBox(height: 16.h),
-        TextFormField(
-          controller: _emailController,
-          focusNode: _emailFocusNode,
-          decoration: InputDecoration(
-            labelText: AppStrings.email,
-            prefixIcon: Icon(Symbols.email),
-          ),
-          readOnly: true,
-          enabled: false,
-        ),
-        SizedBox(height: 16.h),
-        _buildDatePickerField(context, "Date of Birth", _selectedDateOfBirth,
-            (date) {
-          if (mounted) {
-            setState(() {
-              _selectedDateOfBirth = date;
-              _isDirty = true;
-            });
-          }
-        }),
-        SizedBox(height: 16.h),
-        _buildDropdown<Gender?>(
-          label: "Gender",
-          value: _selectedGender,
-          items: [null, Gender.male, Gender.female],
-          onChanged: (Gender? newValue) {
-            if (mounted) {
-              setState(() {
-                _selectedGender = newValue;
-                _isDirty = true;
-                if (newValue != Gender.female) {
-                  _selectedHealthConditions.removeWhere((c) =>
-                      c == HealthCondition.pregnancy ||
-                      c == HealthCondition.breastfeeding);
-                  if (_selectedHealthConditions.isEmpty) {
-                    _selectedHealthConditions = [HealthCondition.none];
-                  }
+      ),
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(context, 'Personal Information', Symbols.person),
+            SizedBox(height: 16.h),
+            TextFormField(
+              controller: _displayNameController,
+              focusNode: _displayNameFocusNode,
+              decoration: const InputDecoration(
+                labelText: 'Display Name',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Symbols.person),
+              ),
+              validator: (value) =>
+                  AppUtils.validateNotEmpty(value, fieldName: "Display name"),
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => _setIsDirty(),
+            ),
+            SizedBox(height: 16.h),
+            TextFormField(
+              controller: _emailController,
+              focusNode: _emailFocusNode,
+              decoration: const InputDecoration(
+                labelText: AppStrings.email,
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Symbols.email),
+              ),
+              readOnly: true,
+              enabled: false,
+            ),
+            SizedBox(height: 16.h),
+            _buildDatePickerField(
+                context, "Date of Birth", _selectedDateOfBirth),
+            SizedBox(height: 16.h),
+            _buildDropdown<Gender?>(
+              label: "Gender",
+              value: _selectedGender,
+              items: [null, Gender.male, Gender.female],
+              onChanged: (Gender? newValue) {
+                if (mounted) {
+                  setState(() {
+                    _selectedGender = newValue;
+                    _isDirty = true;
+                    if (newValue != Gender.female) {
+                      _selectedHealthConditions.removeWhere((c) =>
+                          c == HealthCondition.pregnancy ||
+                          c == HealthCondition.breastfeeding);
+                      if (_selectedHealthConditions.isEmpty) {
+                        _selectedHealthConditions = [HealthCondition.none];
+                      }
+                    }
+                  });
                 }
-              });
-            }
-          },
-          itemAsString: _getGenderDisplayString,
-          prefixIcon: Symbols.wc,
-        ),
-        SizedBox(height: 16.h),
-        TextFormField(
-          controller: _heightController,
-          focusNode: _heightFocusNode,
-          decoration: InputDecoration(
-            labelText: 'Height (cm)',
-            prefixIcon: Icon(Symbols.height),
-          ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+              },
+              itemAsString: _getGenderDisplayString,
+              prefixIcon: Symbols.wc,
+            ),
+            SizedBox(height: 16.h),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _heightController,
+                    focusNode: _heightFocusNode,
+                    decoration: const InputDecoration(
+                      labelText: 'Height (cm)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Symbols.height),
+                    ),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                    ],
+                    validator: (val) => (val == null || val.isEmpty)
+                        ? null
+                        : AppUtils.validateNumber(val, allowDecimal: true),
+                    onChanged: (_) => _setIsDirty(),
+                    textInputAction: TextInputAction.next,
+                  ),
+                ),
+                SizedBox(width: 16.w),
+                Expanded(
+                  child: TextFormField(
+                    controller: _weightController,
+                    focusNode: _weightFocusNode,
+                    decoration: const InputDecoration(
+                      labelText: 'Weight (kg)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Symbols.monitor_weight),
+                    ),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? null
+                        : AppUtils.validateNumber(value, allowDecimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                    ],
+                    onChanged: (_) => _setIsDirty(),
+                    textInputAction: TextInputAction.next,
+                  ),
+                ),
+              ],
+            ),
           ],
-          validator: (val) => (val == null || val.isEmpty)
-              ? null
-              : AppUtils.validateNumber(val, allowDecimal: true),
-          onChanged: (_) => _setIsDirty(),
-          textInputAction: TextInputAction.next,
         ),
-        SizedBox(height: 16.h),
-        TextFormField(
-          controller: _weightController,
-          focusNode: _weightFocusNode,
-          decoration: InputDecoration(
-            labelText: '${AppStrings.weight} (${AppStrings.kg})',
-            prefixIcon: Icon(Symbols.monitor_weight),
-          ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          validator: (value) => (value == null || value.isEmpty)
-              ? null
-              : AppUtils.validateNumber(value, allowDecimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
-          ],
-          onChanged: (_) => _setIsDirty(),
-          textInputAction: TextInputAction.next,
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildLifestyleEnvironmentSection(BuildContext context, UserModel user,
-      UserProvider userProvider, ThemeData theme) {
+  Widget _buildLifestyleEnvironmentCard(BuildContext context) {
     List<HealthCondition> availableHealthConditions =
         List.from(HealthCondition.values);
     if (_selectedGender != Gender.female) {
@@ -661,119 +565,101 @@ class _ProfileScreenState extends State<ProfileScreen> {
           c == HealthCondition.pregnancy || c == HealthCondition.breastfeeding);
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Lifestyle & Environment'),
-        _buildDropdown<ActivityLevel?>(
-          label: AppStrings.activityLevel,
-          value: _selectedActivityLevel,
-          items: [null, ...ActivityLevel.values],
-          onChanged: (ActivityLevel? newValue) {
-            if (mounted) {
-              setState(() {
-                _selectedActivityLevel = newValue;
-                _isDirty = true;
-              });
-            }
-          },
-          itemAsString: _getActivityLevelDisplayString,
-          prefixIcon: Symbols.directions_run,
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outlineVariant,
         ),
-        SizedBox(height: 16.h),
-        _buildMultiSelectChipGroup<HealthCondition>(
-          label: "Health Conditions (Optional)",
-          allOptions: availableHealthConditions,
-          selectedOptions: _selectedHealthConditions,
-          optionAsString: _getHealthConditionDisplayString,
-          onSelectionChanged: (selected) {
-            if (mounted) {
-              setState(() {
-                _selectedHealthConditions = selected;
-                _isDirty = true;
-              });
-            }
-          },
+      ),
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(
+                context, 'Lifestyle & Environment', Symbols.nature_people),
+            SizedBox(height: 16.h),
+            _buildDropdown<ActivityLevel?>(
+              label: AppStrings.activityLevel,
+              value: _selectedActivityLevel,
+              items: [null, ...ActivityLevel.values],
+              onChanged: (ActivityLevel? newValue) {
+                if (mounted) {
+                  setState(() {
+                    _selectedActivityLevel = newValue;
+                    _isDirty = true;
+                  });
+                }
+              },
+              itemAsString: _getActivityLevelDisplayString,
+              prefixIcon: Symbols.directions_run,
+            ),
+            SizedBox(height: 16.h),
+            _buildMultiSelectChipGroup<HealthCondition>(
+              label: "Health Conditions (Optional)",
+              allOptions: availableHealthConditions,
+              selectedOptions: _selectedHealthConditions,
+              optionAsString: _getHealthConditionDisplayString,
+              onSelectionChanged: (selected) {
+                if (mounted) {
+                  setState(() {
+                    _selectedHealthConditions = selected;
+                    _isDirty = true;
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 16.h),
+            _buildDropdown<WeatherCondition>(
+              label: "Typical Weather",
+              value: _selectedWeatherCondition,
+              items: WeatherCondition.values,
+              onChanged: (WeatherCondition? newValue) {
+                if (newValue != null && mounted) {
+                  setState(() {
+                    _selectedWeatherCondition = newValue;
+                    _isDirty = true;
+                  });
+                }
+              },
+              itemAsString: _getWeatherConditionDisplayString,
+              prefixIcon: Symbols.thermostat,
+            ),
+          ],
         ),
-        SizedBox(height: 16.h),
-        _buildDropdown<WeatherCondition>(
-          label: "Typical Weather",
-          value: _selectedWeatherCondition,
-          items: WeatherCondition.values,
-          onChanged: (WeatherCondition? newValue) {
-            if (newValue != null && mounted) {
-              setState(() {
-                _selectedWeatherCondition = newValue;
-                _isDirty = true;
-              });
-            }
-          },
-          itemAsString: _getWeatherConditionDisplayString,
-          prefixIcon: Symbols.thermostat,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHydrationGoalSection(BuildContext context, UserModel user,
-      UserProvider userProvider, ThemeData theme) {
-    bool isOz = user.preferredUnit == MeasurementUnit.oz;
-    TextInputType goalKeyboardType = isOz
-        ? const TextInputType.numberWithOptions(decimal: true)
-        : TextInputType.number;
-    List<TextInputFormatter> goalInputFormatters = isOz
-        ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
-        : [FilteringTextInputFormatter.digitsOnly];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Hydration Goal'),
-        TextFormField(
-          controller: _dailyGoalController,
-          focusNode: _dailyGoalFocusNode,
-          decoration: InputDecoration(
-            labelText: 'Daily Goal (${user.preferredUnit.displayName})',
-            prefixIcon: const Icon(Symbols.flag),
-          ),
-          keyboardType: goalKeyboardType,
-          inputFormatters: goalInputFormatters,
-          validator: (val) => AppUtils.validateNumber(val, allowDecimal: isOz),
-          onChanged: (_) => _setIsDirty(),
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _saveProfile(),
-        ),
-        SizedBox(height: 12.h),
-        FilledButton.tonal(
-          onPressed: _calculateAndSuggestGoal,
-          child: const Text("Calculate Suggested Goal"),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(top: 16.h, bottom: 8.h),
-      child: Text(
-        title,
-        style: theme.textTheme.titleLarge
-            ?.copyWith(color: theme.colorScheme.secondary),
       ),
     );
   }
 
-  Widget _buildDatePickerField(BuildContext context, String label,
-      DateTime? selectedDate, Function(DateTime) onDateSelected) {
+  Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, color: theme.colorScheme.primary, size: 24.sp),
+        SizedBox(width: 8.w),
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDatePickerField(
+      BuildContext context, String label, DateTime? selectedDate) {
     return TextFormField(
       controller: _dateOfBirthController,
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
+        border: const OutlineInputBorder(),
         prefixIcon: const Icon(Symbols.calendar_today),
-        // The rest of the styling (border, fillColor, filled, contentPadding)
-        // should come from the app's InputDecorationTheme.
       ),
       onTap: () => _selectDateOfBirth(context),
     );
@@ -787,71 +673,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String Function(T item) itemAsString,
     IconData? prefixIcon,
   }) {
-    final theme = Theme.of(context);
-    return DropdownMenu<T>(
-      initialSelection: value,
-      label: Text(label),
-      leadingIcon: prefixIcon != null
-          ? Icon(prefixIcon,
-              size: 20.sp, color: theme.colorScheme.onSurfaceVariant)
-          : null,
-      dropdownMenuEntries: items.map((T item) {
-        return DropdownMenuEntry<T>(
-          value: item,
-          label: itemAsString(item),
-        );
-      }).toList(),
-      onSelected: onChanged,
-      width:
-          MediaQuery.of(context).size.width - (40.w),
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      return DropdownMenu<T>(
+        initialSelection: value,
+        width: constraints.maxWidth,
+        label: Text(label),
+        leadingIcon: prefixIcon != null ? Icon(prefixIcon, size: 24.sp) : null,
+        dropdownMenuEntries: items.map((T item) {
+          return DropdownMenuEntry<T>(
+            value: item,
+            label: itemAsString(item),
+          );
+        }).toList(),
+        onSelected: onChanged,
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        ),
+      );
+    });
   }
 
-  Widget _buildMultiSelectChipGroup<T extends Enum>({
+  Widget _buildMultiSelectChipGroup<T>({
     required String label,
     required List<T> allOptions,
     required List<T> selectedOptions,
-    required String Function(T item) optionAsString,
-    required Function(List<T> selected) onSelectionChanged,
+    required String Function(T) optionAsString,
+    required ValueChanged<List<T>> onSelectionChanged,
   }) {
     final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: theme.textTheme.labelLarge
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        Text(label, style: theme.textTheme.bodyMedium),
         SizedBox(height: 8.h),
         Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
+          spacing: 8.0,
+          runSpacing: 4.0,
           children: allOptions.map((option) {
-            final bool isSelected = selectedOptions.contains(option);
+            final isSelected = selectedOptions.contains(option);
             return FilterChip(
               label: Text(optionAsString(option)),
               selected: isSelected,
               onSelected: (bool selected) {
-                List<T> newSelection = List.from(selectedOptions);
+                List<T> newSelectedList = List.from(selectedOptions);
                 if (selected) {
-                  if (option == HealthCondition.none) {
-                    newSelection = [option];
+                  // If "None" is selected, clear others. If other is selected, clear "None".
+                  if (option.toString().toLowerCase().contains('none')) {
+                    newSelectedList = [option];
                   } else {
-                    newSelection
-                        .removeWhere((item) => item == HealthCondition.none);
-                    if (!newSelection.contains(option)) {
-                      newSelection.add(option);
-                    }
+                    newSelectedList.removeWhere((item) =>
+                        item.toString().toLowerCase().contains('none'));
+                    newSelectedList.add(option);
                   }
                 } else {
-                  if (option != HealthCondition.none) {
-                    newSelection.remove(option);
-                    if (newSelection.isEmpty) {
-                      newSelection.add(HealthCondition.none as T);
-                    }
+                  newSelectedList.remove(option);
+                  if (newSelectedList.isEmpty) {
+                    // Start looking for the 'none' option cleanly
+                    try {
+                      final noneOption = allOptions.firstWhere((item) =>
+                          item.toString().toLowerCase().contains('none'));
+                      newSelectedList.add(noneOption);
+                    } catch (_) {}
                   }
                 }
-                onSelectionChanged(newSelection);
+                onSelectionChanged(newSelectedList);
               },
             );
           }).toList(),

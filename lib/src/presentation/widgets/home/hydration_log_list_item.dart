@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:intl/intl.dart';
+
 import 'package:minum/src/data/models/hydration_entry_model.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
@@ -14,8 +14,10 @@ import 'package:minum/src/navigation/app_routes.dart';
 class HydrationLogListItem extends StatelessWidget {
   /// The hydration entry to display.
   final HydrationEntry entry;
+
   /// The measurement unit to display the volume in.
   final MeasurementUnit unit;
+
   /// A callback that is called when the item is dismissed.
   final VoidCallback? onDismissed;
 
@@ -72,8 +74,7 @@ class HydrationLogListItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         alignment: Alignment.centerRight,
         child: Icon(Symbols.delete,
-            color: theme.colorScheme.onErrorContainer,
-            size: 28.sp),
+            color: theme.colorScheme.onErrorContainer, size: 28.sp),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
@@ -103,7 +104,7 @@ class HydrationLogListItem extends StatelessWidget {
               )
             : null,
         trailing: Text(
-          DateFormat.jm().format(entry.timestamp),
+          TimeOfDay.fromDateTime(entry.timestamp).format(context),
           style: theme.textTheme.bodyMedium
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),

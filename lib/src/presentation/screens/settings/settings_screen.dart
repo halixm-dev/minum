@@ -355,151 +355,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Shows a dialog for manually setting the daily hydration goal.
-  void _showEditDailyGoalManualDialog(
-      BuildContext context, UserProvider userProvider) {
-    final BuildContext screenContext = context;
-
-    showDialog<bool>(
-      context: screenContext,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text("Set Daily Goal Manually"),
-          content: _EditDailyGoalDialogContent(
-            initialGoal:
-                userProvider.userProfile?.dailyGoalMl.toInt().toString() ??
-                    '2000',
-            userProvider: userProvider,
-          ),
-        );
-      },
-    ).then((saved) {
-      if (saved == true) {
-        if (screenContext.mounted) {
-          AppUtils.showSnackBar(screenContext, "Daily goal updated!");
-        }
-      }
-    });
-  }
-
-  /// Handles the process of calculating a suggested daily goal based on user profile data.
-  Future<void> _handleCalculateSuggestion(BuildContext context,
+  /// Shows a dialog with a slider for setting the daily goal, including a snap-to-suggestion feature.
+  Future<void> _showDailyGoalSliderDialog(BuildContext context,
       UserProvider userProvider, HydrationService hydrationService) async {
     final UserModel? currentUser = userProvider.userProfile;
-    final BuildContext initialContext = context;
+    if (currentUser == null) return;
 
-    if (!initialContext.mounted) return;
-
-    if (currentUser == null) {
-      AppUtils.showSnackBar(
-          initialContext, "User profile not available. Please try again later.",
-          isError: true);
-      return;
-    }
-
-    bool profileCompleteForCalc = currentUser.weightKg != null &&
-        currentUser.weightKg! > 0 &&
-        currentUser.age != null &&
-        currentUser.gender != null &&
-        currentUser.activityLevel != null;
-
-    if (!profileCompleteForCalc) {
-      if (!initialContext.mounted) return;
-      final bool? goToProfile = await AppUtils.showConfirmationDialog(
-          initialContext,
-          title: "Complete Profile",
-          content:
-              "To calculate a suggested goal, please complete your profile with Weight, Date of Birth, Gender, and Activity Level.\n\nWould you like to go to your profile now?",
-          confirmText: "Go to Profile",
-          cancelText: "Later");
-      if (!initialContext.mounted) return;
-      if (goToProfile == true) {
-        Navigator.of(initialContext).pushNamed(AppRoutes.profile);
-      }
-      return;
-    }
-
-    if (!initialContext.mounted) return;
-    AppUtils.showLoadingDialog(initialContext, message: "Calculating...");
-
-    double suggestedGoal = 0;
-    bool calculationSuccess = false;
-    try {
-      suggestedGoal = await hydrationService.calculateRecommendedDailyIntake(
-          user: currentUser);
-      calculationSuccess = true;
-    } catch (e) {
-      logger.e("Error calculating suggested goal: $e");
-    }
-
-    if (!initialContext.mounted) return;
-    AppUtils.hideLoadingDialog(initialContext);
-
-    if (!calculationSuccess) {
-      AppUtils.showSnackBar(initialContext,
-          "Could not calculate suggested goal. Please try again.",
-          isError: true);
-      return;
-    }
-
-    if (!initialContext.mounted) return;
-    final bool? apply = await AppUtils.showConfirmationDialog(initialContext,
-        title: "Suggested Goal",
-        content:
-            "Based on your profile, we suggest a daily goal of ${suggestedGoal.toInt()} ${AppStrings.ml}. Would you like to apply this goal?",
-        confirmText: "Apply Goal",
-        cancelText: "Not Now");
-
-    if (!initialContext.mounted) return;
-    if (apply == true) {
-      await userProvider.updateDailyGoal(suggestedGoal);
-      if (!initialContext.mounted) return;
-      AppUtils.showSnackBar(
-          initialContext, "Suggested goal applied and saved!");
-    }
-  }
-
-  /// Shows a dialog with options for setting the daily goal (manually or via calculation).
-  void _showDailyGoalOptionsDialog(BuildContext context,
-      UserProvider userProvider, HydrationService hydrationService) {
-    logger.d("SettingsScreen: _showDailyGoalOptionsDialog called");
     final BuildContext screenContext = context;
 
-    showDialog(
+    // We can show a loading state in the dialog or pre-calculate.
+    // Let's pre-calculate quickly or show a spinner inside.
+    // Better UX: Show dialog immediately with current goal, update suggestion when ready.
+
+    await showDialog(
       context: screenContext,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text(AppStrings.dailyWaterGoal),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Symbols.edit),
-                title: const Text("Enter Manually"),
-                onTap: () {
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  _showEditDailyGoalManualDialog(screenContext, userProvider);
-                },
-              ),
-              ListTile(
-                leading: Icon(Symbols.calculate),
-                title: const Text("Calculate Suggestion"),
-                onTap: () {
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  _handleCalculateSuggestion(
-                      screenContext, userProvider, hydrationService);
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-              },
-              child: const Text(AppStrings.cancel),
-            )
-          ],
+        return _DailyGoalSliderDialog(
+          initialGoal: currentUser.dailyGoalMl,
+          userProvider: userProvider,
+          hydrationService: hydrationService,
         );
       },
     );
@@ -807,7 +681,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title: AppStrings.dailyWaterGoal,
           subtitle:
               "${userProfile?.dailyGoalMl.toInt() ?? 2000} ${userProfile?.preferredUnit.displayName ?? AppStrings.ml}",
-          onTap: () => _showDailyGoalOptionsDialog(
+          onTap: () => _showDailyGoalSliderDialog(
               context, userProvider, hydrationService),
         ),
         _buildSettingsTile(
@@ -1171,6 +1045,261 @@ class _EditFavoriteVolumesDialogContentState
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DailyGoalSliderDialog extends StatefulWidget {
+  final double initialGoal;
+  final UserProvider userProvider;
+  final HydrationService hydrationService;
+
+  const _DailyGoalSliderDialog({
+    required this.initialGoal,
+    required this.userProvider,
+    required this.hydrationService,
+  });
+
+  @override
+  State<_DailyGoalSliderDialog> createState() => _DailyGoalSliderDialogState();
+}
+
+class _DailyGoalSliderDialogState extends State<_DailyGoalSliderDialog> {
+  late double _currentGoal;
+  double? _suggestedGoal;
+  bool _isLoadingSuggestion = true;
+
+  // Slider constants
+  final double _minGoal = 1000;
+  final double _maxGoal = 6000;
+  final double _snapThreshold = 200; // Snap if within 200ml
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure initial goal is valid number
+    double safeGoal = widget.initialGoal;
+    if (safeGoal.isNaN || safeGoal.isInfinite) {
+      safeGoal = 2000.0;
+    }
+    _currentGoal = safeGoal.clamp(_minGoal, _maxGoal);
+    _calculateSuggestion();
+  }
+
+  Future<void> _calculateSuggestion() async {
+    final user = widget.userProvider.userProfile;
+    if (user != null) {
+      try {
+        final suggestion = await widget.hydrationService
+            .calculateRecommendedDailyIntake(user: user);
+        if (mounted) {
+          setState(() {
+            _suggestedGoal = suggestion;
+            _isLoadingSuggestion = false;
+          });
+        }
+      } catch (e) {
+        logger.e("Error calculating suggestion for slider: $e");
+        if (mounted) {
+          setState(() {
+            _isLoadingSuggestion = false;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _isLoadingSuggestion = false;
+        });
+      }
+    }
+  }
+
+  void _onSliderChanged(double value) {
+    setState(() {
+      _currentGoal = value;
+    });
+  }
+
+  void _onSliderChangeEnd(double value) {
+    if (_suggestedGoal != null) {
+      if ((value - _suggestedGoal!).abs() < _snapThreshold) {
+        setState(() {
+          _currentGoal = _suggestedGoal!;
+        });
+        HapticFeedback.lightImpact();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isOz =
+        widget.userProvider.userProfile?.preferredUnit == MeasurementUnit.oz;
+
+    // Display values
+    final displayGoal =
+        isOz ? (_currentGoal / 29.5735).round() : _currentGoal.round();
+    final unitString = isOz ? AppStrings.oz : AppStrings.ml;
+
+    return AlertDialog(
+      title: const Text(AppStrings.dailyWaterGoal),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "$displayGoal $unitString",
+            style: theme.textTheme.displayMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 24.h),
+          if (_isLoadingSuggestion)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: LinearProgressIndicator(),
+            )
+          else
+            SizedBox(
+              width: double.maxFinite,
+              height: 50.0,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final sliderWidth = constraints.maxWidth;
+                  // Slider standard padding is roughly 24.0 on each side (total 48)
+                  // We need to account for this to align the dot with the track.
+                  const double padding = 24.0;
+                  // Ensure trackWidth is positive
+                  final double trackWidth =
+                      (sliderWidth - (padding * 2)).clamp(0.0, double.infinity);
+
+                  double? markerPosition;
+                  if (_suggestedGoal != null) {
+                    final double t =
+                        (_suggestedGoal! - _minGoal) / (_maxGoal - _minGoal);
+                    // Clamp t between 0 and 1 just in case
+                    final double clampedT = t.clamp(0.0, 1.0);
+                    markerPosition = padding + (clampedT * trackWidth);
+                  }
+
+                  return Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      // Layer 1: The Track (Visual only)
+                      // We use an IgnorePointer + SliderTheme to hide the thumb/overlay
+                      IgnorePointer(
+                        child: SliderTheme(
+                          data: theme.sliderTheme.copyWith(
+                            thumbShape: SliderComponentShape.noThumb,
+                            overlayShape: SliderComponentShape.noThumb,
+                            // Maintain track visual properties
+                            trackHeight: 4.0,
+                          ),
+                          child: SizedBox(
+                            height: 48.0,
+                            width: double.maxFinite,
+                            child: Slider(
+                              value: _currentGoal,
+                              min: _minGoal,
+                              max: _maxGoal,
+                              divisions: ((_maxGoal - _minGoal) / 50).round(),
+                              onChanged: (_) {}, // Dummy
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Layer 2: Visual Marker (Dot)
+                      if (markerPosition != null)
+                        Positioned(
+                          left: markerPosition - 6.0, // Center the 12.0 dot
+                          // Align vertically to center of stack.
+                          top:
+                              19.0, // 50.0 height container -> center 25. Dot is 12. Top = 25 - 6 = 19.
+                          child: Container(
+                            width: 12.0,
+                            height: 12.0,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.tertiary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: theme.colorScheme.surface,
+                                  width:
+                                      2.0 // Add a small border to separate from track visually if needed?
+                                  // User just said "front of slider line".
+                                  // Solid color is fine.
+                                  ),
+                            ),
+                          ),
+                        ),
+
+                      // Layer 3: The Thumb & Interaction
+                      // Use SliderTheme to hide the track
+                      SliderTheme(
+                        data: theme.sliderTheme.copyWith(
+                          activeTrackColor: Colors.transparent,
+                          inactiveTrackColor: Colors.transparent,
+                          trackHeight:
+                              4.0, // Match the track height to align thumb correctly
+                          // Keep thumb and overlay visible
+                        ),
+                        child: SizedBox(
+                          height: 48.0,
+                          width: double.maxFinite,
+                          child: Slider(
+                            value: _currentGoal,
+                            min: _minGoal,
+                            max: _maxGoal,
+                            divisions: ((_maxGoal - _minGoal) / 50).round(),
+                            label: "$displayGoal",
+                            onChanged: _onSliderChanged,
+                            onChangeEnd: _onSliderChangeEnd,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          if (!_isLoadingSuggestion && _suggestedGoal != null)
+            Padding(
+              padding: EdgeInsets.only(top: 8.h),
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _currentGoal = _suggestedGoal!;
+                  });
+                  HapticFeedback.mediumImpact();
+                },
+                icon: Icon(Symbols.auto_awesome, size: 18.sp),
+                label: Text(
+                    "Set to Suggested (${_suggestedGoal!.toInt()} $unitString)"),
+                style: TextButton.styleFrom(
+                  foregroundColor: theme.colorScheme.tertiary,
+                ),
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text(AppStrings.cancel),
+        ),
+        TextButton(
+          onPressed: () async {
+            await widget.userProvider.updateDailyGoal(_currentGoal);
+            if (context.mounted) {
+              Navigator.of(context).pop();
+              AppUtils.showSnackBar(context, "Daily goal updated!");
+            }
+          },
+          child: const Text(AppStrings.save),
+        ),
+      ],
     );
   }
 }

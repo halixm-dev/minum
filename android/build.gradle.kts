@@ -16,8 +16,8 @@ subprojects {
         if (project.extensions.findByName("android") != null) {
             project.extensions.configure<com.android.build.gradle.BaseExtension> {
                 compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_17
-                    targetCompatibility = JavaVersion.VERSION_17
+                    sourceCompatibility = JavaVersion.toVersion("17")
+                    targetCompatibility = JavaVersion.toVersion("21")
                 }
             }
         }
@@ -25,12 +25,12 @@ subprojects {
 
     project.tasks.withType<JavaCompile> {
         sourceCompatibility = "17"
-        targetCompatibility = "17"
+        targetCompatibility = "21"
     }
 
     project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "21"
         }
     }
 }

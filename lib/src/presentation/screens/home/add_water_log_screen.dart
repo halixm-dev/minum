@@ -61,7 +61,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
       _selectedDateTime = entry.timestamp;
     }
     _dateTimeController.text =
-        DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
+        "${DateFormat('EEE, MMM d').format(_selectedDateTime)}, ${TimeOfDay.fromDateTime(_selectedDateTime).format(context)}";
   }
 
   @override
@@ -107,7 +107,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
         pickedTime.minute,
       );
       _dateTimeController.text =
-          DateFormat('EEE, MMM d, hh:mm a').format(_selectedDateTime);
+          "${DateFormat('EEE, MMM d').format(_selectedDateTime)}, ${TimeOfDay.fromDateTime(_selectedDateTime).format(context)}";
     });
   }
 
@@ -242,9 +242,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
         actions: [
           if (_isEditMode)
             IconButton(
-              icon: Icon(Symbols.delete,
-                  color:
-                      theme.colorScheme.error),
+              icon: Icon(Symbols.delete, color: theme.colorScheme.error),
               tooltip: "Delete Log",
               onPressed: _deleteLog,
             ),

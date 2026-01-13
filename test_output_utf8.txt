@@ -1,0 +1,10 @@
+﻿00:00 +0: loading C:/Users/M1n3r4I5/AntigravityProjects/minum/test/data/repositories/firebase_auth_repository_test.dart
+00:00 +0 -1: loading C:/Users/M1n3r4I5/AntigravityProjects/minum/test/data/repositories/firebase_auth_repository_test.dart [E]
+  Failed to load "C:/Users/M1n3r4I5/AntigravityProjects/minum/test/data/repositories/firebase_auth_repository_test.dart":
+  Compilation failed for testPath=C:/Users/M1n3r4I5/AntigravityProjects/minum/test/data/repositories/firebase_auth_repository_test.dart: test/data/repositories/firebase_auth_repository_test.dart:60:69: Error: A value of type 'Null' can't be returned from an async function with return type 'Future<GoogleSignInAccount>'.
+   - 'Future' is from 'dart:async'.
+   - 'GoogleSignInAccount' is from 'package:google_sign_in/google_sign_in.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/google_sign_in-7.2.0/lib/google_sign_in.dart').
+        when(mockGoogleSignIn.authenticate()).thenAnswer((_) async => null);
+                                                                      ^
+  .
+00:00 +0 -1: Some tests failed.

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "873255446363-c29gl3bsjl1k2d6eionnm9d8n0sqeibh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.halixm.minum",
+            "certificate_hash": "803f2783089de42c8fb63c71db4eaee632d9a864"
+          }
+        },
+        {
           "client_id": "873255446363-vqsg016ubi7jhc5hmji9h3q02isf5k18.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

@@ -86,8 +86,8 @@ class _MainHydrationViewState extends State<MainHydrationView>
         context,
         listen: false,
       );
-      List<NotificationModel> scheduledNotifications = await notificationService
-          .listScheduledNotifications();
+      List<NotificationModel> scheduledNotifications =
+          await notificationService.listScheduledNotifications();
 
       NotificationModel? soonestReminder;
       DateTime? soonestTime;
@@ -178,10 +178,10 @@ class _MainHydrationViewState extends State<MainHydrationView>
                   ),
                   const Spacer(),
                   Text(
-                    DateFormat.jm().format(reminderTime),
+                    TimeOfDay.fromDateTime(reminderTime).format(context),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ],
               ),
@@ -302,8 +302,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
           ), // Size can be themed via IconTheme
           onPressed: () {
             context.read<HydrationProvider>().setSelectedDate(
-              hydrationProvider.selectedDate.subtract(const Duration(days: 1)),
-            );
+                  hydrationProvider.selectedDate
+                      .subtract(const Duration(days: 1)),
+                );
           },
         ),
         Text(
@@ -312,23 +313,22 @@ class _MainHydrationViewState extends State<MainHydrationView>
         ),
         IconButton(
           icon: Icon(Symbols.chevron_right, size: 28.sp),
-          color:
-              DateUtils.isSameDay(
-                hydrationProvider.selectedDate,
-                DateTime.now(),
-              )
+          color: DateUtils.isSameDay(
+            hydrationProvider.selectedDate,
+            DateTime.now(),
+          )
               ? Theme.of(context).colorScheme.onSurface.withAlpha(97)
               : Theme.of(context).iconTheme.color,
-          onPressed:
-              DateUtils.isSameDay(
-                hydrationProvider.selectedDate,
-                DateTime.now(),
-              )
+          onPressed: DateUtils.isSameDay(
+            hydrationProvider.selectedDate,
+            DateTime.now(),
+          )
               ? null
               : () {
                   context.read<HydrationProvider>().setSelectedDate(
-                    hydrationProvider.selectedDate.add(const Duration(days: 1)),
-                  );
+                        hydrationProvider.selectedDate
+                            .add(const Duration(days: 1)),
+                      );
                 },
         ),
       ],
@@ -385,9 +385,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
         unit: currentUser.preferredUnit,
         onQuickAdd: (volumeMl) {
           context.read<HydrationProvider>().addHydrationEntry(
-            volumeMl,
-            source: 'quick_add_${volumeMl}ml',
-          );
+                volumeMl,
+                source: 'quick_add_${volumeMl}ml',
+              );
           AppUtils.showSnackBar(
             context,
             "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} added!",
@@ -456,15 +456,15 @@ class _MainHydrationViewState extends State<MainHydrationView>
                 Text(
                   'No water logged yet for today.',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
                   'Tap the (+) button to add your first drink!',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                   textAlign: TextAlign.center,
                 ),
               ],

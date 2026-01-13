@@ -153,9 +153,20 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<UserModel?> signInWithGoogle() async {
     try {
-      await _googleSignIn.initialize(); // Initialize first
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      await _googleSignIn.initialize();
+      final GoogleSignInAccount? googleUser =
+          await _googleSignIn.authenticate();
+
+      if (googleUser == null) {
+        // Depending on version, it might return null or throw.
+        // We handle both just in case.
+        logger.i("Google Sign-In cancelled by user (null result).");
+        return null;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
       final fb_auth.AuthCredential credential =
           fb_auth.GoogleAuthProvider.credential(
         accessToken: null,
@@ -193,6 +204,15 @@ class FirebaseAuthRepository implements AuthRepository {
             photoUrl: fbUser.photoURL,
             displayName: fbUser.displayName);
       }
+    } on GoogleSignInException catch (e) {
+      // Check if it's a cancellation.
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        logger.i("Google Sign-In flow was canceled by the user.");
+        return null;
+      }
+
+      logger.e("GoogleSignInException on signInWithGoogle: $e");
+      rethrow;
     } on fb_auth.FirebaseAuthException catch (e) {
       logger.e(
           "FirebaseAuthException on signInWithGoogle: ${e.code} - ${e.message}");
