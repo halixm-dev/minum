@@ -1,170 +1,118 @@
-# Minum - Smart Water Reminder App
+# Minum - Smart Water Reminder App 💧
 
-Stay hydrated and on track with Minum, your smart water reminder app! Sync with your Google Account, Google Fit, and Health Connect to automatically calculate your ideal intake using weather, calories burned, and weight data. Manually or automatically set targets, log and manage your water intake, track daily progress, and view long-term hydration trends and calendar. Customize reminders and even input health data manually—your hydration, your way.
+![CI](https://github.com/halixm/minum/actions/workflows/main.yml/badge.svg)
+![Flutter Version](https://img.shields.io/badge/Flutter-%E2%89%A53.5.0-blue)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-## Features
+Stay hydrated and on track with Minum, your smart water reminder app! Sync with your Google Account, Google Fit, and Health Connect to automatically calculate your ideal intake using weather, calories burned, and weight data. Manually or automatically set targets, log and manage your water intake, track daily progress, and view long-term hydration trends.
 
--   **Smart Intake Calculation:** Integrates with health data (weight, age, activity level), and weather conditions to suggest an ideal daily water intake.
--   **Firebase Authentication:** Secure login and registration using Google Sign-In.
--   **Manual & Automatic Targets:** Set your daily hydration goals manually or use the app's smart suggestion.
--   **Intake Logging:** Easily log water consumption with quick-add buttons for your favorite volumes.
--   **Progress Tracking:** Monitor your daily and historical hydration levels with an interactive chart.
--   **Customizable Reminders:** Get timely notifications to drink water throughout the day.
--   **Health Data Input:** Manually add relevant health information to improve the accuracy of your suggested goal.
--   **Responsive UI:** Material Design interface that adapts to various screen sizes.
--   **State Management:** Using Provider for simple and effective state management.
--   **Offline Support:** All your data is saved locally and synced with the cloud when you're online.
+> **🤖 Note for Developers & AI Agents**: Start with [AGENTS.md](AGENTS.md) for project architecture, coding standards, and domain guides.
 
-## Project Structure
+## ✨ Features
 
-```
-minum/
-├── android/            # Android specific files
-├── ios/                # iOS specific files
-├── lib/                # Main application Dart code
-│   ├── main.dart       # App entry point
-│   ├── firebase_options.dart # Firebase configuration
-│   ├── src/            # Core application logic
-│       ├── app.dart    # MaterialApp and routing setup
-│       ├── core/       # Constants, themes, utils
-│       ├── data/       # Models, repositories, API providers
-│       ├── presentation/ # UI (screens, widgets) and state management (providers)
-│       ├── services/   # Business logic services
-│       └── navigation/ # Navigation logic
-├── linux/              # Linux specific files
-├── macos/              # macOS specific files
-├── web/                # Web specific files
-├── windows/            # Windows specific files
-├── .gitignore          # Specifies intentionally untracked files that Git should ignore
-├── analysis_options.yaml # Dart analyzer configuration
-├── pubspec.yaml        # Project dependencies and metadata
-├── pubspec.lock        # Automatically generated file specifying exact dependency versions
-└── README.md           # This file
-```
+- **Smart Intake Calculation:** Integrates with health data (weight, age, activity level) and weather conditions to suggest an ideal daily water intake.
+- **Offline-First Sync:** All data is saved locally (`sqflite`) and synced with the cloud (Firestore) when online.
+- **Firebase Authentication:** Secure login and registration using Google Sign-In.
+- **Manual & Automatic Targets:** Set your daily hydration goals manually or use the app's smart suggestion.
+- **Progress Tracking:** Monitor your daily and historical hydration levels with interactive charts.
+- **Customizable Reminders:** Get timely local notifications to drink water throughout the day.
+- **Material You Design:** Beautiful, responsive UI using Material 3 dynamic colors that adapt to the user's system preferences.
 
-## Prerequisites
+## 🛠 Tech Stack
 
--   Flutter SDK (version 3.0.0 or higher)
--   Dart SDK (version 3.0.0 or higher)
--   An IDE like Android Studio or VS Code with Flutter plugins.
--   Firebase account for Firebase Authentication and Firestore.
--   (Optional) Access to Google Fit and Health Connect APIs if you plan to implement full integration.
+- **Framework:** Flutter (>=3.5.0)
+- **State Management:** `flutter_bloc` (BLoC/Cubit) & `provider` (DI / App State)
+- **Backend:** Firebase (Auth, Cloud Firestore)
+- **Local Storage:** `sqflite`, `shared_preferences`
+- **Architecture:** Feature-first modules with BLoC and Repository pattern
 
-## Setup Instructions
+*For a full architectural overview, see [AGENTS.md](AGENTS.md).*
 
-### 1. Clone the Repository
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Flutter SDK (version `>=3.5.0 <4.0.0`)
+- Dart SDK
+- IDE: VS Code, Android Studio, or IntelliJ
+- Firebase account
+
+### 1. Clone & Install
 
 ```bash
 git clone <repository_url>
 cd minum
-```
-
-### 2. Install Dependencies
-
-```bash
 flutter pub get
 ```
 
-### 3. Firebase Setup
+### 2. Firebase Setup
 
-This project uses Firebase for authentication and potentially for data storage.
+This project requires Firebase Authentication (Google Sign-In) and Cloud Firestore.
 
-**IMPORTANT:** You need to configure Firebase for your project.
+1. **Create Project**: Go to the [Firebase Console](https://console.firebase.google.com/) and create `halixm-minum` (or your own project).
+2. **Enable Services**:
+   - **Authentication** -> Enable **Google** sign-in method.
+   - **Firestore Database** -> Create database.
+3. **Configure FlutterFire**:
+   ```bash
+   dart pub global activate flutterfire_cli
+   flutterfire configure --project=halixm-minum
+   ```
+   *This will generate `lib/firebase_options.dart`.*
+4. **Android Google Sign-In**: Add your debug SHA-1 fingerprint to the Firebase Android app settings.
+   ```bash
+   cd android && ./gradlew signingReport
+   ```
 
-1.  **Create a Firebase Project:** Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
-2.  **Register your app:**
-    *   Add an Android app to your Firebase project:
-        *   Package name: `com.halixm.minum`
-        *   Follow the instructions to download `google-services.json` and place it in `android/app/`.
-    *   Add an iOS app to your Firebase project:
-        *   Bundle ID: `com.halixm.minum`
-        *   Follow the instructions to download `GoogleService-Info.plist` and place it in `ios/Runner/`.
-3.  **Enable Authentication Methods:** In the Firebase console, go to "Authentication" -> "Sign-in method" and enable "Google".
-    *   **For Google Sign-In on Android:** You'll need to add your SHA-1 fingerprint to the Firebase project settings. You can get it by running `cd android && ./gradlew signingReport`.
-4.  **Initialize Firebase in Flutter:**
-    *   Install the Firebase CLI: `npm install -g firebase-tools` (or other methods from Firebase docs).
-    *   Login to Firebase: `firebase login`.
-    *   Install FlutterFire CLI: `dart pub global activate flutterfire_cli`.
-    *   Configure your project: `flutterfire configure`. This will autogenerate the `lib/firebase_options.dart` file. Make sure to select the Firebase project you created.
+### 3. Google Fit & Health Connect (Optional)
 
-    *If `flutterfire configure` gives issues, you might need to manually create `lib/firebase_options.dart` based on the Firebase project settings (less recommended).*
+Actual integration requires:
+1. Setting up projects in Google Cloud Console.
+2. Requesting necessary OAuth scopes and health permissions.
+3. Adding necessary permissions to `AndroidManifest.xml` (Android) and `Info.plist` (iOS).
 
-### 4. (Conceptual) Google Fit & Health Connect Setup
-
-Actual integration with Google Fit and Health Connect requires:
-1.  Setting up projects in Google Cloud Console.
-2.  Requesting necessary OAuth scopes.
-3.  Handling API calls, likely through platform channels or dedicated plugins that manage native SDKs.
-4.  Complying with Google's data privacy and API usage policies.
-
-For this boilerplate, these services are mocked. To implement them fully, you would need to:
--   Find or create Flutter plugins that interface with the native Google Fit and Health Connect SDKs.
--   Add necessary permissions to `AndroidManifest.xml` (Android) and `Info.plist` (iOS).
--   Implement OAuth 2.0 flows for authorization.
-
-### 5. (Todo) API Keys for Weather
-
-If you integrate a weather API:
-1.  Sign up for a weather API service (e.g., OpenWeatherMap).
-2.  Obtain an API key.
-3.  Store this key securely, preferably using environment variables or a configuration file not committed to version control. For this project, you might place it in a constants file initially, but for production, use a more secure method.
-    *   Example: `lib/src/core/constants/api_keys.dart` (ensure this file is in `.gitignore` if it contains sensitive keys).
-
-### 6. Run the App
+### 4. Run the App
 
 ```bash
 flutter run
 ```
 
-To run on a specific device:
+## 🧪 Testing
+
+The project uses a mix of unit, widget, and integration tests.
 
 ```bash
-flutter run -d <device_id>
+# Run all tests
+flutter test
+
+# Run with coverage
+flutter test --coverage
 ```
 
-## Building for Release
+*For detailed testing guidelines, refer to `.agent/rules/test-guide.md`.*
 
-### Android
+## 📦 Building for Release
 
+**Android**
 ```bash
 flutter build apk --release
 flutter build appbundle --release
 ```
-Ensure you have set up signing configurations for Android in `android/app/build.gradle`.
 
-### iOS
-
+**iOS**
 ```bash
 flutter build ios --release
 ```
-Ensure you have set up your Apple Developer account and signing certificates in Xcode.
 
-## Testing Strategy
+## 🤝 Contributing
 
-This project includes a sample widget test in `test/widget_test.dart`.
+We follow a structured development workflow. Please refer to our agent rules in `.agent/rules/` for coding standards, branch strategies, and PR guidelines.
 
--   **Widget Tests:** These test individual Flutter widgets. You can run widget tests using:
-    ```bash
-    flutter test test/widget_test.dart
-    ```
-    To run all tests in the `test` directory:
-    ```bash
-    flutter test
-    ```
--   **Further Testing:** As the project grows, you can add:
-    -   **Unit Tests:** For testing individual functions or classes. Typically placed in a `test/unit/` directory.
-    -   **Integration Tests:** For testing complete app flows. Typically placed in an `integration_test/` directory using the `integration_test` package.
+1. Create a feature branch (`git checkout -b feature/my-feature`)
+2. Commit changes (`git commit -m "feat: my feature"`)
+3. Push to branch (`git push origin feature/my-feature`)
+4. Open a Pull Request
 
-## CI/CD with GitHub Actions
-
-CI/CD (Continuous Integration/Continuous Delivery) can be set up for this project using services like GitHub Actions. This would typically involve creating a workflow file in a `.github/workflows/` directory to automate testing, building, and deployment.
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
