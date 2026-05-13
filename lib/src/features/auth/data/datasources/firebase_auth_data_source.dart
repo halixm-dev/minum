@@ -35,29 +35,25 @@ class FirebaseAuthDataSource implements AuthRepository {
       UserModel? appUser = await _userRepository.getUser(fbUser.uid);
       if (appUser == null) {
         // This can happen if a user was authenticated but their Firestore doc was deleted,
-        // or if it's a new sign-up (e.g., Google) and the doc hasn't been created yet.
+        // or if it's a new sign-up where the doc hasn't been created yet.
         logger.w(
-            "authStateChanges: No UserModel found for uid ${fbUser.uid}, creating a basic one if it's a new social sign-in.");
-        if (fbUser.providerData
-            .any((userInfo) => userInfo.providerId == 'google.com')) {
-          final newUser = UserModel(
-            id: fbUser.uid,
-            email: fbUser.email,
-            displayName: fbUser.displayName,
-            photoUrl: fbUser.photoURL,
-            createdAt: DateTime.now(),
-            lastLoginAt: DateTime.now(),
-          );
-          try {
-            await _userRepository.createUser(newUser);
-            return newUser;
-          } catch (e) {
-            logger.e(
-                "Error creating user document during authStateChanges for Google user: $e");
-            return null;
-          }
+            "authStateChanges: No UserModel found for uid ${fbUser.uid}, creating a basic one.");
+        final newUser = UserModel(
+          id: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName,
+          photoUrl: fbUser.photoURL,
+          createdAt: fbUser.metadata.creationTime ?? DateTime.now(),
+          lastLoginAt: DateTime.now(),
+        );
+        try {
+          await _userRepository.updateUser(newUser); // uses set with merge: true now
+          return newUser;
+        } catch (e) {
+          logger.e(
+              "Error creating user document during authStateChanges for user: $e");
+          return null;
         }
-        return null;
       }
       return appUser.copyWith(lastLoginAt: DateTime.now());
     });

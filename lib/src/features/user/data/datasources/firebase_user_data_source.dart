@@ -50,7 +50,7 @@ class FirebaseUserDataSource implements UserRepository {
   @override
   Future<void> updateUser(UserModel user) async {
     try {
-      await _usersRef.doc(user.id).update(user.toFirestore());
+      await _usersRef.doc(user.id).set(user, SetOptions(merge: true));
       logger.i("User document updated for ${user.id}");
     } catch (e) {
       logger.e("Error updating user document for ${user.id}: $e");
