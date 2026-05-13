@@ -1,10 +1,11 @@
-// lib/src/data/repositories/syncable_hydration_repository.dart
+// lib/src/features/hydration/data/repositories/syncable_hydration_repository.dart
 import 'dart:async';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart';
-import 'package:minum/src/data/repositories/firebase/firebase_hydration_repository.dart';
+import 'package:minum/src/features/hydration/data/datasources/local_hydration_data_source.dart';
+import 'package:minum/src/features/hydration/data/datasources/firebase_hydration_data_source.dart';
 import 'package:minum/src/services/auth_service.dart';
+import 'package:minum/src/core/constants/app_constants.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:minum/main.dart'; // For logger
 
@@ -12,8 +13,8 @@ import 'package:minum/main.dart'; // For logger
 /// data source for hydration entries. It implements the [HydrationRepository]
 /// interface and provides a unified API for data operations.
 class SyncableHydrationRepository implements HydrationRepository {
-  final LocalHydrationRepository _localRepository;
-  final FirebaseHydrationRepository _firebaseRepository;
+  final LocalHydrationDataSource _localRepository;
+  final FirebaseHydrationDataSource _firebaseRepository;
   final AuthService _authService;
   final Connectivity _connectivity = Connectivity();
 
@@ -26,8 +27,8 @@ class SyncableHydrationRepository implements HydrationRepository {
   /// [firebaseRepository] for remote data storage, and an [authService]
   /// to handle user authentication state.
   SyncableHydrationRepository({
-    required LocalHydrationRepository localRepository,
-    required FirebaseHydrationRepository firebaseRepository,
+    required LocalHydrationDataSource localRepository,
+    required FirebaseHydrationDataSource firebaseRepository,
     required AuthService authService,
   })  : _localRepository = localRepository,
         _firebaseRepository = firebaseRepository,

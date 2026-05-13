@@ -1,12 +1,10 @@
-// lib/src/data/repositories/local/local_hydration_repository.dart
+// lib/src/features/hydration/data/datasources/local_hydration_data_source.dart
 import 'dart:async'; // For Stream.fromFuture
 import 'package:minum/src/data/local/database_helper.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
+import 'package:minum/src/core/constants/app_constants.dart';
 import 'package:minum/main.dart'; // For logger
-
-/// A constant user ID for entries made when not logged in (guest mode).
-const String guestUserId = "local_guest_user";
 
 /// A concrete implementation of [HydrationRepository] using a local SQLite database.
 ///

@@ -1,10 +1,9 @@
-// lib/src/presentation/screens/home/home_screen.dart
+// lib/src/features/hydration/presentation/pages/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
@@ -12,7 +11,7 @@ import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart';
 import 'package:minum/src/features/hydration/presentation/pages/home/main_hydration_view.dart';
 import 'package:minum/src/features/settings/presentation/pages/settings_screen.dart';
-import 'package:minum/src/presentation/screens/stats/hydration_history_screen.dart';
+import 'package:minum/src/features/hydration/presentation/pages/stats/hydration_history_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/main.dart'; // For logger

@@ -33,6 +33,8 @@ import 'package:minum/src/features/hydration/presentation/bloc/hydration_bloc.da
 import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart';
 import 'package:minum/src/features/settings/presentation/bloc/reminder_settings_cubit.dart';
+import 'package:minum/src/features/settings/presentation/bloc/next_reminder_cubit.dart';
+import 'package:minum/src/features/hydration/presentation/bloc/hydration_history_cubit.dart';
 
 /// A global logger instance for logging messages throughout the application.
 final logger = Logger(
@@ -77,9 +79,9 @@ void main() async {
   final AuthRepository authRepository =
       FirebaseAuthDataSource(userRepository: userRepository);
 
-  final LocalHydrationRepository localHydrationRepository =
+  final LocalHydrationDataSource localHydrationRepository =
       LocalHydrationDataSource();
-  final FirebaseHydrationRepository firebaseHydrationRepository =
+  final FirebaseHydrationDataSource firebaseHydrationRepository =
       FirebaseHydrationDataSource();
 
   final AuthService authService = AuthService(
@@ -128,6 +130,16 @@ void main() async {
           create: (context) => HydrationBloc(
             authService: context.read<AuthService>(),
             hydrationService: context.read<HydrationService>(),
+          ),
+        ),
+        BlocProvider<HydrationHistoryCubit>(
+          create: (context) => HydrationHistoryCubit(
+            hydrationService: context.read<HydrationService>(),
+          ),
+        ),
+        BlocProvider<NextReminderCubit>(
+          create: (context) => NextReminderCubit(
+            notificationService: context.read<NotificationService>(),
           ),
         ),
       ],

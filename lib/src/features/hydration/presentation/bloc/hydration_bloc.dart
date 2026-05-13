@@ -7,8 +7,9 @@ import 'package:minum/src/features/hydration/data/models/hydration_entry_model.d
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/src/services/notification_service.dart' show prefsPendingWaterAdditionMl;
-import 'package:minum/src/features/hydration/data/datasources/local_hydration_data_source.dart' show guestUserId;
+import 'package:minum/src/services/notification_service.dart'
+    show prefsPendingWaterAdditionMl;
+import 'package:minum/src/core/constants/app_constants.dart' show guestUserId;
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_event.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_state.dart';
 
@@ -21,12 +22,11 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
   String? _currentUserId;
 
   HydrationBloc({
-    required HydrationService hydrationService,
-    required AuthService authService,
-  })  : hydrationService = hydrationService,
-        authService = authService,
-        super(HydrationState(
-          selectedDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+    required this.hydrationService,
+    required this.authService,
+  }) : super(HydrationState(
+          selectedDate: DateTime(
+              DateTime.now().year, DateTime.now().month, DateTime.now().day),
         )) {
     on<SelectDate>(_onSelectDate);
     on<HydrationDataUpdated>(_onHydrationDataUpdated);
@@ -37,6 +37,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
     on<ResetActionStatus>(_onResetActionStatus);
     on<ProcessPendingWaterAddition>(_onProcessPendingWaterAddition);
     on<FetchHydrationDataRequested>(_onFetchHydrationDataRequested);
+    on<SyncHealthDataEvent>(_onSyncHealthDataEvent);
 
     _subscribeToAuthChanges();
   }
@@ -49,13 +50,18 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
   }
 
   void _subscribeToAuthChanges() {
-    _authSubscription = authService.authStateChanges.listen((UserModel? authUser) {
+    _authSubscription =
+        authService.authStateChanges.listen((UserModel? authUser) {
       final newUserId = authUser?.id;
       if (newUserId != _currentUserId) {
         _currentUserId = newUserId;
-        logger.i("HydrationBloc: User changed to ${_currentUserId ?? 'guest'}.");
+        logger
+            .i("HydrationBloc: User changed to ${_currentUserId ?? 'guest'}.");
         add(FetchHydrationDataRequested());
-      } else if (_currentUserId == null && guestUserId.isNotEmpty && state.dailyEntries.isEmpty && state.logStatus == HydrationLogStatus.idle) {
+      } else if (_currentUserId == null &&
+          guestUserId.isNotEmpty &&
+          state.dailyEntries.isEmpty &&
+          state.logStatus == HydrationLogStatus.idle) {
         _currentUserId = guestUserId;
         logger.i("HydrationBloc: Initializing for guest user.");
         add(FetchHydrationDataRequested());
@@ -68,19 +74,25 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
     _entriesSubscription = null;
   }
 
-  Future<void> _onFetchHydrationDataRequested(FetchHydrationDataRequested event, Emitter<HydrationState> emit) async {
+  Future<void> _onFetchHydrationDataRequested(
+      FetchHydrationDataRequested event, Emitter<HydrationState> emit) async {
     final userIdForFetch = _currentUserId ?? guestUserId;
     if (userIdForFetch.isEmpty && userIdForFetch != guestUserId) {
-      logger.w("HydrationBloc: Cannot fetch daily entries, no valid user/guest ID.");
+      logger.w(
+          "HydrationBloc: Cannot fetch daily entries, no valid user/guest ID.");
       emit(state.reset());
       return;
     }
 
-    emit(state.copyWith(logStatus: HydrationLogStatus.loading, errorMessage: null));
+    emit(state.copyWith(
+        logStatus: HydrationLogStatus.loading, errorMessage: null));
     _cancelEntriesSubscription();
 
-    logger.d("HydrationBloc: Fetching entries for date ${state.selectedDate}, user/scope: $userIdForFetch");
-    _entriesSubscription = hydrationService.getHydrationEntriesForDay(userIdForFetch, state.selectedDate).listen(
+    logger.d(
+        "HydrationBloc: Fetching entries for date ${state.selectedDate}, user/scope: $userIdForFetch");
+    _entriesSubscription = hydrationService
+        .getHydrationEntriesForDay(userIdForFetch, state.selectedDate)
+        .listen(
       (entries) {
         add(HydrationDataUpdated(entries));
       },
@@ -91,7 +103,8 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
   }
 
   void _onSelectDate(SelectDate event, Emitter<HydrationState> emit) {
-    final normalizedDate = DateTime(event.date.year, event.date.month, event.date.day);
+    final normalizedDate =
+        DateTime(event.date.year, event.date.month, event.date.day);
     if (state.selectedDate == normalizedDate) return;
 
     logger.i("HydrationBloc: Selected date changed to $normalizedDate.");
@@ -99,8 +112,10 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
     add(FetchHydrationDataRequested());
   }
 
-  void _onHydrationDataUpdated(HydrationDataUpdated event, Emitter<HydrationState> emit) {
-    logger.i("HydrationBloc: Daily entries loaded. Count: ${event.entries.length}");
+  void _onHydrationDataUpdated(
+      HydrationDataUpdated event, Emitter<HydrationState> emit) {
+    logger.i(
+        "HydrationBloc: Daily entries loaded. Count: ${event.entries.length}");
     final totalIntake = hydrationService.calculateTotalIntake(event.entries);
     emit(state.copyWith(
       dailyEntries: event.entries,
@@ -110,7 +125,8 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
     ));
   }
 
-  void _onHydrationDataError(HydrationDataError event, Emitter<HydrationState> emit) {
+  void _onHydrationDataError(
+      HydrationDataError event, Emitter<HydrationState> emit) {
     logger.e("HydrationBloc: Error loading daily entries: ${event.message}");
     emit(state.copyWith(
       logStatus: HydrationLogStatus.error,
@@ -120,15 +136,19 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
     ));
   }
 
-  Future<void> _onAddHydrationEntry(AddHydrationEntryEvent event, Emitter<HydrationState> emit) async {
+  Future<void> _onAddHydrationEntry(
+      AddHydrationEntryEvent event, Emitter<HydrationState> emit) async {
     final userIdForAction = _currentUserId ?? guestUserId;
     if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
       logger.w("HydrationBloc: Cannot add entry, no valid user/guest ID.");
-      emit(state.copyWith(actionStatus: HydrationActionStatus.error, errorMessage: "User not authenticated."));
+      emit(state.copyWith(
+          actionStatus: HydrationActionStatus.error,
+          errorMessage: "User not authenticated."));
       return;
     }
 
-    emit(state.copyWith(actionStatus: HydrationActionStatus.processing, errorMessage: null));
+    emit(state.copyWith(
+        actionStatus: HydrationActionStatus.processing, errorMessage: null));
     final effectiveEntryTime = event.entryTime ?? DateTime.now();
 
     try {
@@ -139,7 +159,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
         notes: event.notes,
         source: event.source,
       );
-      
+
       logger.i("HydrationBloc: Entry added successfully.");
       emit(state.copyWith(actionStatus: HydrationActionStatus.success));
 
@@ -148,37 +168,50 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
       }
     } catch (e) {
       logger.e("HydrationBloc: Error adding entry: $e");
-      emit(state.copyWith(actionStatus: HydrationActionStatus.error, errorMessage: "Failed to add water intake: $e"));
+      emit(state.copyWith(
+          actionStatus: HydrationActionStatus.error,
+          errorMessage: "Failed to add water intake: $e"));
     }
   }
 
-  Future<void> _onUpdateHydrationEntry(UpdateHydrationEntryEvent event, Emitter<HydrationState> emit) async {
+  Future<void> _onUpdateHydrationEntry(
+      UpdateHydrationEntryEvent event, Emitter<HydrationState> emit) async {
     final userIdForAction = _currentUserId ?? guestUserId;
     if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
-      emit(state.copyWith(actionStatus: HydrationActionStatus.error, errorMessage: "User not authenticated."));
+      emit(state.copyWith(
+          actionStatus: HydrationActionStatus.error,
+          errorMessage: "User not authenticated."));
       return;
     }
 
-    emit(state.copyWith(actionStatus: HydrationActionStatus.processing, errorMessage: null));
+    emit(state.copyWith(
+        actionStatus: HydrationActionStatus.processing, errorMessage: null));
     try {
-      final entryWithCorrectUser = event.entry.copyWith(userId: userIdForAction);
-      await hydrationService.updateHydrationEntry(userIdForAction, entryWithCorrectUser);
+      final entryWithCorrectUser =
+          event.entry.copyWith(userId: userIdForAction);
+      await hydrationService.updateHydrationEntry(
+          userIdForAction, entryWithCorrectUser);
 
       emit(state.copyWith(actionStatus: HydrationActionStatus.success));
-      
+
       if (DateUtils.isSameDay(state.selectedDate, event.entry.timestamp)) {
         add(FetchHydrationDataRequested());
       }
     } catch (e) {
       logger.e("HydrationBloc: Error updating entry: $e");
-      emit(state.copyWith(actionStatus: HydrationActionStatus.error, errorMessage: "Failed to update entry: $e"));
+      emit(state.copyWith(
+          actionStatus: HydrationActionStatus.error,
+          errorMessage: "Failed to update entry: $e"));
     }
   }
 
-  Future<void> _onDeleteHydrationEntry(DeleteHydrationEntryEvent event, Emitter<HydrationState> emit) async {
+  Future<void> _onDeleteHydrationEntry(
+      DeleteHydrationEntryEvent event, Emitter<HydrationState> emit) async {
     final userIdForAction = _currentUserId ?? guestUserId;
     if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
-      emit(state.copyWith(actionStatus: HydrationActionStatus.error, errorMessage: "User not authenticated."));
+      emit(state.copyWith(
+          actionStatus: HydrationActionStatus.error,
+          errorMessage: "User not authenticated."));
       return;
     }
 
@@ -189,21 +222,23 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
         (e.localDbId != null && e.localDbId == entryToDelete.localDbId));
 
     if (entryIndex != -1) {
-      final newEntries = List<HydrationEntry>.from(state.dailyEntries)..removeAt(entryIndex);
+      final newEntries = List<HydrationEntry>.from(state.dailyEntries)
+        ..removeAt(entryIndex);
       emit(state.copyWith(
-        dailyEntries: newEntries,
-        actionStatus: HydrationActionStatus.processing,
-        totalIntakeToday: hydrationService.calculateTotalIntake(newEntries)
-      ));
+          dailyEntries: newEntries,
+          actionStatus: HydrationActionStatus.processing,
+          totalIntakeToday: hydrationService.calculateTotalIntake(newEntries)));
     } else {
       emit(state.copyWith(actionStatus: HydrationActionStatus.processing));
     }
 
     try {
-      await hydrationService.deleteHydrationEntry(userIdForAction, entryToDelete);
+      await hydrationService.deleteHydrationEntry(
+          userIdForAction, entryToDelete);
       emit(state.copyWith(actionStatus: HydrationActionStatus.success));
 
-      if (entryIndex == -1 || !DateUtils.isSameDay(state.selectedDate, entryToDelete.timestamp)) {
+      if (entryIndex == -1 ||
+          !DateUtils.isSameDay(state.selectedDate, entryToDelete.timestamp)) {
         add(FetchHydrationDataRequested());
       }
     } catch (e) {
@@ -212,21 +247,26 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
         actionStatus: HydrationActionStatus.error,
         errorMessage: "Failed to delete entry: $e",
         dailyEntries: originalEntries, // Revert optimistic UI
-        totalIntakeToday: hydrationService.calculateTotalIntake(originalEntries),
+        totalIntakeToday:
+            hydrationService.calculateTotalIntake(originalEntries),
       ));
     }
   }
 
-  void _onResetActionStatus(ResetActionStatus event, Emitter<HydrationState> emit) {
+  void _onResetActionStatus(
+      ResetActionStatus event, Emitter<HydrationState> emit) {
     if (state.actionStatus != HydrationActionStatus.idle) {
-      emit(state.copyWith(actionStatus: HydrationActionStatus.idle, errorMessage: null));
+      emit(state.copyWith(
+          actionStatus: HydrationActionStatus.idle, errorMessage: null));
     }
   }
 
-  Future<void> _onProcessPendingWaterAddition(ProcessPendingWaterAddition event, Emitter<HydrationState> emit) async {
+  Future<void> _onProcessPendingWaterAddition(
+      ProcessPendingWaterAddition event, Emitter<HydrationState> emit) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final double? pendingAmountMl = prefs.getDouble(prefsPendingWaterAdditionMl);
+      final double? pendingAmountMl =
+          prefs.getDouble(prefsPendingWaterAdditionMl);
 
       if (pendingAmountMl != null && pendingAmountMl > 0) {
         if (_currentUserId == null) {
@@ -234,11 +274,26 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
           if (_currentUserId == null) return;
         }
 
-        add(AddHydrationEntryEvent(amountMl: pendingAmountMl, source: 'notification_action'));
+        add(AddHydrationEntryEvent(
+            amountMl: pendingAmountMl, source: 'notification_action'));
         await prefs.remove(prefsPendingWaterAdditionMl);
       }
     } catch (e) {
       logger.e("HydrationBloc: Error processing pending water addition: $e");
+    }
+  }
+
+  Future<void> _onSyncHealthDataEvent(
+      SyncHealthDataEvent event, Emitter<HydrationState> emit) async {
+    final userIdForAction = _currentUserId ?? guestUserId;
+    if (userIdForAction.isEmpty || userIdForAction == guestUserId) return;
+
+    try {
+      await hydrationService.syncHealthConnectData(userIdForAction,
+          date: state.selectedDate);
+      add(FetchHydrationDataRequested());
+    } catch (e) {
+      logger.e("HydrationBloc: Error syncing health data: $e");
     }
   }
 }

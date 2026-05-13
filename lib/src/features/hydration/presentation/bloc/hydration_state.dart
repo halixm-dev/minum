@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 
-
 enum HydrationLogStatus { idle, loading, loaded, error }
+
 enum HydrationActionStatus { idle, processing, success, error }
 
 class HydrationState extends Equatable {

@@ -6,7 +6,7 @@ import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/features/user/data/repositories/user_repository.dart';
 import 'package:minum/src/services/auth_service.dart';
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart' show guestUserId;
+import 'package:minum/src/core/constants/app_constants.dart' show guestUserId;
 import 'package:minum/src/features/user/presentation/bloc/user_event.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 
@@ -28,11 +28,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   StreamSubscription<UserModel?>? _authSubscription;
 
   UserBloc({
-    required AuthService authService,
-    required UserRepository userRepository,
-  })  : authService = authService,
-        userRepository = userRepository,
-        super(UserInitial()) {
+    required this.authService,
+    required this.userRepository,
+  }) : super(UserInitial()) {
     on<UserAuthChanged>(_onUserAuthChanged);
     on<LoadGuestProfile>(_onLoadGuestProfile);
     on<UpdateUserProfile>(_onUpdateUserProfile);
@@ -58,20 +56,26 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  Future<void> _onUserAuthChanged(UserAuthChanged event, Emitter<UserState> emit) async {
+  Future<void> _onUserAuthChanged(
+      UserAuthChanged event, Emitter<UserState> emit) async {
     final authUser = event.authUser;
-    if (authUser != null && authUser.id.isNotEmpty && authUser.id != guestUserId) {
-      logger.i("UserBloc: Auth user detected (ID: ${authUser.id}). Setting profile.");
+    if (authUser != null &&
+        authUser.id.isNotEmpty &&
+        authUser.id != guestUserId) {
+      logger.i(
+          "UserBloc: Auth user detected (ID: ${authUser.id}). Setting profile.");
       emit(UserLoading());
 
       UserModel? firebaseProfile = await userRepository.getUser(authUser.id);
       final prefs = await SharedPreferences.getInstance();
 
       if (firebaseProfile != null) {
-        firebaseProfile = await _migrateGuestSettingsToFirebaseUser(firebaseProfile, prefs);
+        firebaseProfile =
+            await _migrateGuestSettingsToFirebaseUser(firebaseProfile, prefs);
         emit(UserLoaded(user: firebaseProfile, isGuest: false));
       } else {
-        logger.w("UserBloc: Firestore document not found for user ${authUser.id}. Constructing temporary profile.");
+        logger.w(
+            "UserBloc: Firestore document not found for user ${authUser.id}. Constructing temporary profile.");
         UserModel tempProfile = UserModel(
           id: authUser.id,
           email: authUser.email,
@@ -79,44 +83,57 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           photoUrl: authUser.photoUrl,
           createdAt: authUser.createdAt,
         );
-        final migratedProfile = await _migrateGuestSettingsToFirebaseUser(tempProfile, prefs);
+        final migratedProfile =
+            await _migrateGuestSettingsToFirebaseUser(tempProfile, prefs);
         emit(UserLoaded(user: migratedProfile, isGuest: false));
       }
     } else {
-      logger.i("UserBloc: No authenticated Firebase user. Loading guest profile.");
+      logger.i(
+          "UserBloc: No authenticated Firebase user. Loading guest profile.");
       add(LoadGuestProfile());
     }
   }
 
-  Future<void> _onLoadGuestProfile(LoadGuestProfile event, Emitter<UserState> emit) async {
+  Future<void> _onLoadGuestProfile(
+      LoadGuestProfile event, Emitter<UserState> emit) async {
     emit(UserLoading());
     try {
       final prefs = await SharedPreferences.getInstance();
 
       final guestGoal = prefs.getDouble(prefsGuestDailyGoalMl) ?? 2000.0;
-      final guestUnit = _parseEnum(prefs.getString(prefsGuestPreferredUnit), MeasurementUnit.values) ?? MeasurementUnit.ml;
-      final guestFavorites = prefs.getStringList(prefsGuestFavoriteVolumes) ?? const ['250', '500', '750'];
-      
+      final guestUnit = _parseEnum(prefs.getString(prefsGuestPreferredUnit),
+              MeasurementUnit.values) ??
+          MeasurementUnit.ml;
+      final guestFavorites = prefs.getStringList(prefsGuestFavoriteVolumes) ??
+          const ['250', '500', '750'];
+
       DateTime? guestDob;
       final dobString = prefs.getString(prefsGuestDateOfBirth);
       if (dobString != null) guestDob = DateTime.tryParse(dobString);
-      
-      final guestGender = _parseEnum(prefs.getString(prefsGuestGender), Gender.values);
+
+      final guestGender =
+          _parseEnum(prefs.getString(prefsGuestGender), Gender.values);
       final guestWeight = prefs.getDouble(prefsGuestWeightKg);
       final guestHeight = prefs.getDouble(prefsGuestHeightCm);
-      final guestActivity = _parseEnum(prefs.getString(prefsGuestActivityLevel), ActivityLevel.values);
-      
+      final guestActivity = _parseEnum(
+          prefs.getString(prefsGuestActivityLevel), ActivityLevel.values);
+
       List<HealthCondition> guestHealth = [HealthCondition.none];
       final healthStrings = prefs.getStringList(prefsGuestHealthConditions);
       if (healthStrings != null) {
         guestHealth = healthStrings
-            .map((s) => _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
-            .where((item) => item != HealthCondition.none || healthStrings.length == 1)
+            .map((s) =>
+                _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
+            .where((item) =>
+                item != HealthCondition.none || healthStrings.length == 1)
             .toList();
         if (guestHealth.isEmpty) guestHealth = [HealthCondition.none];
       }
-      
-      final guestWeather = _parseEnum(prefs.getString(prefsGuestSelectedWeather), WeatherCondition.values) ?? WeatherCondition.temperate;
+
+      final guestWeather = _parseEnum(
+              prefs.getString(prefsGuestSelectedWeather),
+              WeatherCondition.values) ??
+          WeatherCondition.temperate;
 
       final guestProfile = UserModel(
         id: guestUserId,
@@ -141,29 +158,35 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  Future<void> _onUpdateUserProfile(UpdateUserProfile event, Emitter<UserState> emit) async {
+  Future<void> _onUpdateUserProfile(
+      UpdateUserProfile event, Emitter<UserState> emit) async {
     final updatedProfile = event.updatedUser;
     final isGuest = updatedProfile.id == guestUserId;
 
-    // We do not change state to Loading if we just want sequential optimistic updates, 
+    // We do not change state to Loading if we just want sequential optimistic updates,
     // but the provider did change status. It's safer to keep the old UI but we can't emit loaded yet.
     // Provider did notifyListeners() basically setting it to loading. We might skip if we want smooth UI.
 
     try {
       if (isGuest) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setDouble(prefsGuestDailyGoalMl, updatedProfile.dailyGoalMl);
-        await prefs.setString(prefsGuestPreferredUnit, updatedProfile.preferredUnit.toString());
-        await prefs.setStringList(prefsGuestFavoriteVolumes, updatedProfile.favoriteIntakeVolumes);
-        
+        await prefs.setDouble(
+            prefsGuestDailyGoalMl, updatedProfile.dailyGoalMl);
+        await prefs.setString(
+            prefsGuestPreferredUnit, updatedProfile.preferredUnit.toString());
+        await prefs.setStringList(
+            prefsGuestFavoriteVolumes, updatedProfile.favoriteIntakeVolumes);
+
         if (updatedProfile.dateOfBirth != null) {
-          await prefs.setString(prefsGuestDateOfBirth, updatedProfile.dateOfBirth!.toIso8601String());
+          await prefs.setString(prefsGuestDateOfBirth,
+              updatedProfile.dateOfBirth!.toIso8601String());
         } else {
           await prefs.remove(prefsGuestDateOfBirth);
         }
-        
+
         if (updatedProfile.gender != null) {
-          await prefs.setString(prefsGuestGender, updatedProfile.gender.toString());
+          await prefs.setString(
+              prefsGuestGender, updatedProfile.gender.toString());
         } else {
           await prefs.remove(prefsGuestGender);
         }
@@ -181,30 +204,43 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         }
 
         if (updatedProfile.activityLevel != null) {
-          await prefs.setString(prefsGuestActivityLevel, updatedProfile.activityLevel.toString());
+          await prefs.setString(
+              prefsGuestActivityLevel, updatedProfile.activityLevel.toString());
         } else {
           await prefs.remove(prefsGuestActivityLevel);
         }
 
-        if (updatedProfile.healthConditions != null && updatedProfile.healthConditions!.isNotEmpty && !(updatedProfile.healthConditions!.length == 1 && updatedProfile.healthConditions!.contains(HealthCondition.none))) {
-          await prefs.setStringList(prefsGuestHealthConditions, updatedProfile.healthConditions!.map((e) => e.toString()).toList());
+        if (updatedProfile.healthConditions != null &&
+            updatedProfile.healthConditions!.isNotEmpty &&
+            !(updatedProfile.healthConditions!.length == 1 &&
+                updatedProfile.healthConditions!
+                    .contains(HealthCondition.none))) {
+          await prefs.setStringList(
+              prefsGuestHealthConditions,
+              updatedProfile.healthConditions!
+                  .map((e) => e.toString())
+                  .toList());
         } else {
           await prefs.remove(prefsGuestHealthConditions);
         }
 
         if (updatedProfile.selectedWeatherCondition != null) {
-          await prefs.setString(prefsGuestSelectedWeather, updatedProfile.selectedWeatherCondition.toString());
+          await prefs.setString(prefsGuestSelectedWeather,
+              updatedProfile.selectedWeatherCondition.toString());
         } else {
           await prefs.remove(prefsGuestSelectedWeather);
         }
-        
+
         emit(UserLoaded(user: updatedProfile, isGuest: true));
       } else {
-        await userRepository.updateUser(updatedProfile).timeout(const Duration(seconds: 5));
+        await userRepository
+            .updateUser(updatedProfile)
+            .timeout(const Duration(seconds: 5));
         emit(UserLoaded(user: updatedProfile, isGuest: false));
       }
     } on TimeoutException {
-      logger.w("UserBloc: Timeout waiting for profile update for ${updatedProfile.id}. Proceeding locally.");
+      logger.w(
+          "UserBloc: Timeout waiting for profile update for ${updatedProfile.id}. Proceeding locally.");
       emit(UserLoaded(user: updatedProfile, isGuest: false));
     } catch (e) {
       logger.e("UserBloc: Error updating profile: $e");
@@ -212,49 +248,76 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  Future<UserModel> _migrateGuestSettingsToFirebaseUser(UserModel firebaseUser, SharedPreferences prefs) async {
+  Future<UserModel> _migrateGuestSettingsToFirebaseUser(
+      UserModel firebaseUser, SharedPreferences prefs) async {
     bool needsUpdate = false;
     UserModel userToUpdate = firebaseUser;
 
     double? migrateDouble(String key, double? firebaseVal, double? defaultVal) {
       double? guestVal = prefs.getDouble(key);
-      if (guestVal != null && (firebaseVal == defaultVal || firebaseVal == null || firebaseVal != guestVal)) return guestVal;
+      if (guestVal != null &&
+          (firebaseVal == defaultVal ||
+              firebaseVal == null ||
+              firebaseVal != guestVal)) {
+        return guestVal;
+      }
       return firebaseVal;
     }
 
-    T? migrateEnum<T extends Enum>(String prefKey, T? firebaseVal, List<T> enumValues, T? defaultVal) {
+    T? migrateEnum<T extends Enum>(
+        String prefKey, T? firebaseVal, List<T> enumValues, T? defaultVal) {
       String? guestValString = prefs.getString(prefKey);
       if (guestValString != null) {
         T? guestVal = _parseEnum(guestValString, enumValues);
-        if (guestVal != null && (firebaseVal == null || firebaseVal == defaultVal || firebaseVal != guestVal)) return guestVal;
+        if (guestVal != null &&
+            (firebaseVal == null ||
+                firebaseVal == defaultVal ||
+                firebaseVal != guestVal)) {
+          return guestVal;
+        }
       }
       return firebaseVal;
     }
 
     userToUpdate = userToUpdate.copyWith(
-      dailyGoalMl: migrateDouble(prefsGuestDailyGoalMl, firebaseUser.dailyGoalMl, 2000.0),
-      preferredUnit: migrateEnum(prefsGuestPreferredUnit, firebaseUser.preferredUnit, MeasurementUnit.values, MeasurementUnit.ml) ?? MeasurementUnit.ml,
-      dateOfBirth: DateTime.tryParse(prefs.getString(prefsGuestDateOfBirth) ?? "") ?? firebaseUser.dateOfBirth,
-      gender: migrateEnum(prefsGuestGender, firebaseUser.gender, Gender.values, null),
+      dailyGoalMl: migrateDouble(
+          prefsGuestDailyGoalMl, firebaseUser.dailyGoalMl, 2000.0),
+      preferredUnit: migrateEnum(
+              prefsGuestPreferredUnit,
+              firebaseUser.preferredUnit,
+              MeasurementUnit.values,
+              MeasurementUnit.ml) ??
+          MeasurementUnit.ml,
+      dateOfBirth:
+          DateTime.tryParse(prefs.getString(prefsGuestDateOfBirth) ?? "") ??
+              firebaseUser.dateOfBirth,
+      gender: migrateEnum(
+          prefsGuestGender, firebaseUser.gender, Gender.values, null),
       weightKg: migrateDouble(prefsGuestWeightKg, firebaseUser.weightKg, null),
       heightCm: migrateDouble(prefsGuestHeightCm, firebaseUser.heightCm, null),
-      activityLevel: migrateEnum(prefsGuestActivityLevel, firebaseUser.activityLevel, ActivityLevel.values, null),
+      activityLevel: migrateEnum(prefsGuestActivityLevel,
+          firebaseUser.activityLevel, ActivityLevel.values, null),
     );
 
     final guestFavorites = prefs.getStringList(prefsGuestFavoriteVolumes);
     if (guestFavorites != null && guestFavorites.isNotEmpty) {
       final defaultFavs = const ['250', '500', '750'];
-      bool firebaseIsDefaultFavs = listEquals(firebaseUser.favoriteIntakeVolumes, defaultFavs);
-      if (firebaseIsDefaultFavs || !listEquals(firebaseUser.favoriteIntakeVolumes, guestFavorites)) {
-        userToUpdate = userToUpdate.copyWith(favoriteIntakeVolumes: guestFavorites);
+      bool firebaseIsDefaultFavs =
+          listEquals(firebaseUser.favoriteIntakeVolumes, defaultFavs);
+      if (firebaseIsDefaultFavs ||
+          !listEquals(firebaseUser.favoriteIntakeVolumes, guestFavorites)) {
+        userToUpdate =
+            userToUpdate.copyWith(favoriteIntakeVolumes: guestFavorites);
       }
     }
 
     final healthStrings = prefs.getStringList(prefsGuestHealthConditions);
     if (healthStrings != null) {
       List<HealthCondition> guestHealth = healthStrings
-          .map((s) => _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
-          .where((item) => item != HealthCondition.none || healthStrings.length == 1)
+          .map((s) =>
+              _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
+          .where((item) =>
+              item != HealthCondition.none || healthStrings.length == 1)
           .toList();
       if (guestHealth.isEmpty) guestHealth = [HealthCondition.none];
       if (!listEquals(firebaseUser.healthConditions, guestHealth)) {
@@ -263,7 +326,12 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
 
     userToUpdate = userToUpdate.copyWith(
-      selectedWeatherCondition: migrateEnum(prefsGuestSelectedWeather, firebaseUser.selectedWeatherCondition, WeatherCondition.values, WeatherCondition.temperate) ?? WeatherCondition.temperate,
+      selectedWeatherCondition: migrateEnum(
+              prefsGuestSelectedWeather,
+              firebaseUser.selectedWeatherCondition,
+              WeatherCondition.values,
+              WeatherCondition.temperate) ??
+          WeatherCondition.temperate,
     );
 
     if (userToUpdate != firebaseUser) needsUpdate = true;

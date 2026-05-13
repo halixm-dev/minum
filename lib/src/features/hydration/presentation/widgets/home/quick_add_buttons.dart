@@ -10,8 +10,10 @@ import 'package:minum/src/core/utils/app_utils.dart';
 class QuickAddButtons extends StatelessWidget {
   /// A list of favorite volumes in milliliters, as strings (e.g., ["250", "500"]).
   final List<String> favoriteVolumes;
+
   /// The measurement unit to display the volumes in.
   final MeasurementUnit unit;
+
   /// A callback that is called when a quick-add button is tapped. The volume
   /// passed to the callback is always in milliliters.
   final Function(double volumeMl) onQuickAdd;
@@ -74,8 +76,7 @@ class QuickAddButtons extends StatelessWidget {
                   Symbols.add_circle,
                   size: chipTheme.iconTheme?.size ??
                       18.sp, // Use theme's icon size
-                  color: theme.colorScheme
-                      .onSecondaryContainer,
+                  color: theme.colorScheme.onSecondaryContainer,
                 ),
                 label: Text('$displayAmount $_unitString'),
                 labelStyle: filledChipStyle.labelStyle,

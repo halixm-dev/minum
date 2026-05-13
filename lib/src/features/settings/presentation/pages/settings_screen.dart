@@ -1,13 +1,12 @@
-// lib/src/presentation/screens/settings/settings_screen.dart
+// lib/src/features/settings/presentation/pages/settings_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/navigation/app_routes.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_event.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';
@@ -24,6 +23,8 @@ import 'package:provider/provider.dart';
 import 'package:minum/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/src/features/settings/presentation/widgets/theme_selector.dart';
+import 'package:minum/src/features/settings/presentation/widgets/daily_goal_slider_dialog.dart';
+import 'package:minum/src/features/settings/presentation/widgets/edit_favorite_volumes_dialog.dart';
 
 /// SharedPreferences key for enabling/disabling reminders.
 const String prefsRemindersEnabled = 'prefs_reminders_enabled';
@@ -223,15 +224,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         logger.i(
             "SettingsScreen: scheduleDailyRemindersIfNeeded(forceReschedule: true) call completed after saving settings.");
         if (mounted) {
-          context.read<ReminderSettingsCubit>()
-              .notifySettingsChanged();
+          context.read<ReminderSettingsCubit>().notifySettingsChanged();
         }
       }).catchError((e) {
         logger.e(
             "SettingsScreen: Error calling scheduleDailyRemindersIfNeeded(forceReschedule: true): $e");
         if (mounted) {
-          context.read<ReminderSettingsCubit>()
-              .notifySettingsChanged();
+          context.read<ReminderSettingsCubit>().notifySettingsChanged();
         }
       });
     }
@@ -313,7 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await showDialog(
       context: screenContext,
       builder: (BuildContext dialogContext) {
-        return _DailyGoalSliderDialog(
+        return DailyGoalSliderDialog(
           initialGoal: currentUser.dailyGoalMl,
           userBloc: context.read<UserBloc>(),
           currentUser: currentUser,
@@ -327,8 +326,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showEditMeasurementUnitDialog(
       BuildContext context, UserModel? currentUser) {
     logger.d("SettingsScreen: _showEditMeasurementUnitDialog called");
-    _tempSelectedUnit =
-        currentUser?.preferredUnit ?? MeasurementUnit.ml;
+    _tempSelectedUnit = currentUser?.preferredUnit ?? MeasurementUnit.ml;
     final BuildContext screenContext = context;
 
     showDialog(
@@ -376,8 +374,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: const Text(AppStrings.save),
                 onPressed: () async {
                   if (currentUser != null) {
-                    final updatedUser = currentUser.copyWith(preferredUnit: _tempSelectedUnit);
-                    screenContext.read<UserBloc>().add(UpdateUserProfile(updatedUser));
+                    final updatedUser =
+                        currentUser.copyWith(preferredUnit: _tempSelectedUnit);
+                    screenContext
+                        .read<UserBloc>()
+                        .add(UpdateUserProfile(updatedUser));
                   }
 
                   if (!dialogContext.mounted) return;
@@ -408,8 +409,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return AlertDialog(
           title: Text(
               "Edit Favorite Volumes (${currentUser?.preferredUnit.displayName ?? AppStrings.ml})"),
-          content:
-              _EditFavoriteVolumesDialogContent(currentUser: currentUser, userBloc: screenContext.read<UserBloc>()),
+          content: EditFavoriteVolumesDialogContent(
+              currentUser: currentUser,
+              userBloc: screenContext.read<UserBloc>()),
         );
       },
     ).then((saved) {
@@ -764,496 +766,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return "$h hr $m min";
       }
     }
-  }
-}
-
-class _EditDailyGoalDialogContent extends StatefulWidget {
-  final String initialGoal;
-  final UserBloc userBloc;
-  final UserModel? currentUser;
-
-  const _EditDailyGoalDialogContent({
-    required this.initialGoal,
-    required this.userBloc,
-    required this.currentUser,
-  });
-
-  @override
-  State<_EditDailyGoalDialogContent> createState() =>
-      _EditDailyGoalDialogContentState();
-}
-
-class _EditDailyGoalDialogContentState
-    extends State<_EditDailyGoalDialogContent> {
-  late TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialGoal);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          controller: _controller,
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) async {
-            final double? newGoal = double.tryParse(_controller.text);
-            if (newGoal != null && newGoal > 0 && widget.currentUser != null) {
-              final updatedUser = widget.currentUser!.copyWith(dailyGoalMl: newGoal);
-              widget.userBloc.add(UpdateUserProfile(updatedUser));
-              if (context.mounted) {
-                Navigator.of(context).pop(true);
-              }
-            }
-          },
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: const InputDecoration(
-            labelText: "Daily Goal (mL)",
-            border: OutlineInputBorder(),
-          ),
-        ),
-        SizedBox(height: 16.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(AppStrings.cancel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final double? newGoal = double.tryParse(_controller.text);
-                if (newGoal != null && newGoal > 0 && widget.currentUser != null) {
-                  final updatedUser = widget.currentUser!.copyWith(dailyGoalMl: newGoal);
-                  widget.userBloc.add(UpdateUserProfile(updatedUser));
-                  if (context.mounted) {
-                    Navigator.of(context).pop(true);
-                  }
-                } else {
-                  // Show error if needed
-                }
-              },
-              child: const Text(AppStrings.save),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _EditFavoriteVolumesDialogContent extends StatefulWidget {
-  final UserModel? currentUser;
-  final UserBloc userBloc;
-
-  const _EditFavoriteVolumesDialogContent({required this.currentUser, required this.userBloc});
-
-  @override
-  State<_EditFavoriteVolumesDialogContent> createState() =>
-      _EditFavoriteVolumesDialogContentState();
-}
-
-class _EditFavoriteVolumesDialogContentState
-    extends State<_EditFavoriteVolumesDialogContent> {
-  late List<TextEditingController> _controllers;
-
-  @override
-  void initState() {
-    super.initState();
-    final favorites = widget.currentUser?.favoriteIntakeVolumes ?? [];
-    if (favorites.isNotEmpty) {
-      _controllers =
-          favorites.map((vol) => TextEditingController(text: vol)).toList();
-    } else {
-      // Default values if empty
-      _controllers = [
-        TextEditingController(text: '100'),
-        TextEditingController(text: '250'),
-        TextEditingController(text: '500'),
-      ];
-    }
-  }
-
-  @override
-  void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  void _addVolume() {
-    setState(() {
-      _controllers.add(TextEditingController());
-    });
-  }
-
-  void _removeVolume(int index) {
-    setState(() {
-      _controllers[index].dispose();
-      _controllers.removeAt(index);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: _controllers.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 8.h),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controllers[index],
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
-                          decoration: InputDecoration(
-                            labelText: "Volume ${index + 1}",
-                            border: const OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Symbols.delete),
-                        tooltip: AppStrings.delete,
-                        onPressed: () => _removeVolume(index),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          SizedBox(height: 8.h),
-          TextButton.icon(
-            onPressed: _addVolume,
-            icon: const Icon(Symbols.add),
-            label: const Text(AppStrings.add),
-          ),
-          SizedBox(height: 16.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text(AppStrings.cancel),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final List<String> newVolumes = _controllers
-                      .map((c) => c.text)
-                      .where((text) =>
-                          text.isNotEmpty && double.tryParse(text) != null)
-                      .toList();
-
-                  if (newVolumes.isNotEmpty) {
-                    if (widget.currentUser != null) {
-                        final updatedUser = widget.currentUser!.copyWith(favoriteIntakeVolumes: newVolumes);
-                        widget.userBloc.add(UpdateUserProfile(updatedUser));
-                    }
-                    if (context.mounted) {
-                      Navigator.of(context).pop(true);
-                    }
-                  } else {
-                    AppUtils.showSnackBar(
-                        context, "Please add at least one volume.",
-                        isError: true);
-                  }
-                },
-                child: const Text(AppStrings.save),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DailyGoalSliderDialog extends StatefulWidget {
-  final double initialGoal;
-  final UserBloc userBloc;
-  final UserModel? currentUser;
-  final HydrationService hydrationService;
-
-  const _DailyGoalSliderDialog({
-    required this.initialGoal,
-    required this.userBloc,
-    required this.currentUser,
-    required this.hydrationService,
-  });
-
-  @override
-  State<_DailyGoalSliderDialog> createState() => _DailyGoalSliderDialogState();
-}
-
-class _DailyGoalSliderDialogState extends State<_DailyGoalSliderDialog> {
-  late double _currentGoal;
-  double? _suggestedGoal;
-  bool _isLoadingSuggestion = true;
-
-  // Slider constants
-  final double _minGoal = 1000;
-  final double _maxGoal = 6000;
-  final double _snapThreshold = 200; // Snap if within 200ml
-
-  @override
-  void initState() {
-    super.initState();
-    // Ensure initial goal is valid number
-    double safeGoal = widget.initialGoal;
-    if (safeGoal.isNaN || safeGoal.isInfinite) {
-      safeGoal = 2000.0;
-    }
-    _currentGoal = safeGoal.clamp(_minGoal, _maxGoal);
-    _calculateSuggestion();
-  }
-
-  Future<void> _calculateSuggestion() async {
-    final user = widget.currentUser;
-    if (user != null) {
-      try {
-        final suggestion = await widget.hydrationService
-            .calculateRecommendedDailyIntake(user: user);
-        if (mounted) {
-          setState(() {
-            _suggestedGoal = suggestion;
-            _isLoadingSuggestion = false;
-          });
-        }
-      } catch (e) {
-        logger.e("Error calculating suggestion for slider: $e");
-        if (mounted) {
-          setState(() {
-            _isLoadingSuggestion = false;
-          });
-        }
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _isLoadingSuggestion = false;
-        });
-      }
-    }
-  }
-
-  void _onSliderChanged(double value) {
-    setState(() {
-      _currentGoal = value;
-    });
-  }
-
-  void _onSliderChangeEnd(double value) {
-    if (_suggestedGoal != null) {
-      if ((value - _suggestedGoal!).abs() < _snapThreshold) {
-        setState(() {
-          _currentGoal = _suggestedGoal!;
-        });
-        HapticFeedback.lightImpact();
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isOz =
-        widget.currentUser?.preferredUnit == MeasurementUnit.oz;
-
-    // Display values
-    final displayGoal =
-        isOz ? (_currentGoal / 29.5735).round() : _currentGoal.round();
-    final unitString = isOz ? AppStrings.oz : AppStrings.ml;
-
-    return AlertDialog(
-      title: const Text(AppStrings.dailyWaterGoal),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "$displayGoal $unitString",
-            style: theme.textTheme.displayMedium?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 24.h),
-          if (_isLoadingSuggestion)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24.0),
-              child: LinearProgressIndicator(),
-            )
-          else
-            SizedBox(
-              width: double.maxFinite,
-              height: 50.0,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final sliderWidth = constraints.maxWidth;
-                  // Slider standard padding is roughly 24.0 on each side (total 48)
-                  // We need to account for this to align the dot with the track.
-                  const double padding = 24.0;
-                  // Ensure trackWidth is positive
-                  final double trackWidth =
-                      (sliderWidth - (padding * 2)).clamp(0.0, double.infinity);
-
-                  double? markerPosition;
-                  if (_suggestedGoal != null) {
-                    final double t =
-                        (_suggestedGoal! - _minGoal) / (_maxGoal - _minGoal);
-                    // Clamp t between 0 and 1 just in case
-                    final double clampedT = t.clamp(0.0, 1.0);
-                    markerPosition = padding + (clampedT * trackWidth);
-                  }
-
-                  return Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      // Layer 1: The Track (Visual only)
-                      // We use an IgnorePointer + SliderTheme to hide the thumb/overlay
-                      IgnorePointer(
-                        child: SliderTheme(
-                          data: theme.sliderTheme.copyWith(
-                            thumbShape: SliderComponentShape.noThumb,
-                            overlayShape: SliderComponentShape.noThumb,
-                            // Maintain track visual properties
-                            trackHeight: 4.0,
-                          ),
-                          child: SizedBox(
-                            height: 48.0,
-                            width: double.maxFinite,
-                            child: Slider(
-                              value: _currentGoal,
-                              min: _minGoal,
-                              max: _maxGoal,
-                              divisions: ((_maxGoal - _minGoal) / 50).round(),
-                              onChanged: (_) {}, // Dummy
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Layer 2: Visual Marker (Dot)
-                      if (markerPosition != null)
-                        Positioned(
-                          left: markerPosition - 6.0, // Center the 12.0 dot
-                          // Align vertically to center of stack.
-                          top:
-                              19.0, // 50.0 height container -> center 25. Dot is 12. Top = 25 - 6 = 19.
-                          child: Container(
-                            width: 12.0,
-                            height: 12.0,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.tertiary,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: theme.colorScheme.surface,
-                                  width:
-                                      2.0 // Add a small border to separate from track visually if needed?
-                                  // User just said "front of slider line".
-                                  // Solid color is fine.
-                                  ),
-                            ),
-                          ),
-                        ),
-
-                      // Layer 3: The Thumb & Interaction
-                      // Use SliderTheme to hide the track
-                      SliderTheme(
-                        data: theme.sliderTheme.copyWith(
-                          activeTrackColor: Colors.transparent,
-                          inactiveTrackColor: Colors.transparent,
-                          trackHeight:
-                              4.0, // Match the track height to align thumb correctly
-                          // Keep thumb and overlay visible
-                        ),
-                        child: SizedBox(
-                          height: 48.0,
-                          width: double.maxFinite,
-                          child: Slider(
-                            value: _currentGoal,
-                            min: _minGoal,
-                            max: _maxGoal,
-                            divisions: ((_maxGoal - _minGoal) / 50).round(),
-                            label: "$displayGoal",
-                            onChanged: _onSliderChanged,
-                            onChangeEnd: _onSliderChangeEnd,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          if (!_isLoadingSuggestion && _suggestedGoal != null)
-            Padding(
-              padding: EdgeInsets.only(top: 8.h),
-              child: TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _currentGoal = _suggestedGoal!;
-                  });
-                  HapticFeedback.mediumImpact();
-                },
-                icon: Icon(Symbols.auto_awesome, size: 18.sp),
-                label: Text(
-                    "Set to Suggested (${_suggestedGoal!.toInt()} $unitString)"),
-                style: TextButton.styleFrom(
-                  foregroundColor: theme.colorScheme.tertiary,
-                ),
-              ),
-            ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text(AppStrings.cancel),
-        ),
-        TextButton(
-          onPressed: () async {
-            if (widget.currentUser != null) {
-              final updatedUser = widget.currentUser!.copyWith(dailyGoalMl: _currentGoal);
-              widget.userBloc.add(UpdateUserProfile(updatedUser));
-            }
-            if (context.mounted) {
-              Navigator.of(context).pop();
-              AppUtils.showSnackBar(context, "Daily goal updated!");
-            }
-          },
-          child: const Text(AppStrings.save),
-        ),
-      ],
-    );
   }
 }

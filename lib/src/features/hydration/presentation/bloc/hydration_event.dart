@@ -71,3 +71,5 @@ class ResetActionStatus extends HydrationEvent {}
 class ProcessPendingWaterAddition extends HydrationEvent {}
 
 class FetchHydrationDataRequested extends HydrationEvent {}
+
+class SyncHealthDataEvent extends HydrationEvent {}

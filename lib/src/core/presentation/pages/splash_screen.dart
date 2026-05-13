@@ -1,4 +1,4 @@
-// lib/src/presentation/screens/splash_screen.dart
+// lib/src/core/presentation/pages/splash_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -64,8 +64,7 @@ class _SplashScreenState extends State<SplashScreen> {
         logger.i(
             "SplashScreen: Onboarding complete. Navigating to LoginScreen (AppRoutes.login).");
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed(
-              AppRoutes.login);
+          Navigator.of(context).pushReplacementNamed(AppRoutes.login);
         } else {
           logger.w(
               "SplashScreen: Context not available for login screen navigation.");
@@ -77,8 +76,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (mounted) {
         logger.w(
             "SplashScreen: Fallback navigation to LoginScreen due to error.");
-        Navigator.of(context)
-            .pushReplacementNamed(AppRoutes.login);
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       } else {
         logger
             .e("SplashScreen: Context not available for fallback navigation.");

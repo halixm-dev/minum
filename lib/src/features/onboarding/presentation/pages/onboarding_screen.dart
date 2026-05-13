@@ -1,4 +1,4 @@
-// lib/src/presentation/screens/onboarding/onboarding_screen.dart
+// lib/src/features/onboarding/presentation/pages/onboarding_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -81,8 +81,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: EdgeInsets.only(top: 16.h, right: 16.w),
                 child: TextButton(
                   onPressed: _completeOnboarding,
-                  child: Text(AppStrings.skip,
-                      style: TextStyle(fontSize: 16.sp)),
+                  child:
+                      Text(AppStrings.skip, style: TextStyle(fontSize: 16.sp)),
                 ),
               ),
             ),
@@ -106,8 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding:
-                  EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -175,8 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: colorScheme.surfaceContainerHighest.withAlpha(77),
                 child: Center(
                     child: Icon(Symbols.image_not_supported,
-                        size: 100.sp,
-                        color: colorScheme.onSurfaceVariant)),
+                        size: 100.sp, color: colorScheme.onSurfaceVariant)),
               );
             },
           ),

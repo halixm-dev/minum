@@ -13,14 +13,13 @@ import 'package:minum/src/features/hydration/presentation/bloc/hydration_bloc.da
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_event.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_state.dart';
 import 'package:minum/src/features/settings/presentation/bloc/reminder_settings_cubit.dart';
+import 'package:minum/src/features/settings/presentation/bloc/next_reminder_cubit.dart';
 import 'package:minum/src/features/hydration/presentation/widgets/home/daily_progress_card.dart';
 import 'package:minum/src/features/hydration/presentation/widgets/home/hydration_log_list_item.dart';
 import 'package:minum/src/features/hydration/presentation/widgets/home/quick_add_buttons.dart';
-import 'package:provider/provider.dart';
+
 import 'package:intl/intl.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:minum/src/services/notification_service.dart';
-import 'package:minum/src/services/hydration_service.dart';
 
 /// The main view displayed on the home screen, showing daily hydration progress,
 /// quick-add buttons, and a log of the day's entries.
@@ -34,20 +33,18 @@ class MainHydrationView extends StatefulWidget {
 
 class _MainHydrationViewState extends State<MainHydrationView>
     with WidgetsBindingObserver {
-  NotificationModel? _nextReminder;
-  bool _isLoadingReminder = true;
   ReminderSettingsCubit? _reminderSettingsCubit;
   StreamSubscription? _reminderSubscription;
 
   void _onReminderSettingsChanged() {
-    _fetchNextReminder();
+    context.read<NextReminderCubit>().fetchNextReminder();
   }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _fetchNextReminder();
+    context.read<NextReminderCubit>().fetchNextReminder();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -70,128 +67,75 @@ class _MainHydrationViewState extends State<MainHydrationView>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      _fetchNextReminder();
+      context.read<NextReminderCubit>().fetchNextReminder();
       context.read<HydrationBloc>().add(ProcessPendingWaterAddition());
     }
   }
 
-  /// Fetches the next scheduled reminder and updates the UI.
-  Future<void> _fetchNextReminder() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoadingReminder = true;
-    });
+  Widget _buildNextReminderSection(BuildContext context) {
+    return BlocBuilder<NextReminderCubit, NextReminderState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.h),
+            child: const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
 
-    try {
-      final notificationService = Provider.of<NotificationService>(
-        context,
-        listen: false,
-      );
-      List<NotificationModel> scheduledNotifications =
-          await notificationService.listScheduledNotifications();
-
-      NotificationModel? soonestReminder;
-      DateTime? soonestTime;
-
-      DateTime now = DateTime.now();
-
-      for (var notification in scheduledNotifications) {
-        if (notification.schedule is NotificationCalendar) {
-          final schedule = notification.schedule as NotificationCalendar;
+        if (state.nextReminder != null &&
+            state.nextReminder!.schedule is NotificationCalendar) {
+          final schedule = state.nextReminder!.schedule as NotificationCalendar;
           if (schedule.hour != null && schedule.minute != null) {
-            DateTime scheduledDateTime = DateTime(
+            final DateTime now = DateTime.now();
+            final DateTime reminderTime = DateTime(
               now.year,
               now.month,
               now.day,
               schedule.hour!,
               schedule.minute!,
-              schedule.second ?? 0,
             );
-            if (scheduledDateTime.isAfter(now)) {
-              if (soonestTime == null ||
-                  scheduledDateTime.isBefore(soonestTime)) {
-                soonestTime = scheduledDateTime;
-                soonestReminder = notification;
-              }
+
+            if (reminderTime.isAfter(now)) {
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.h),
+                child: Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Symbols.alarm,
+                        size: 24.sp,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      SizedBox(width: 12.w),
+                      Text(
+                        "Next Reminder:",
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const Spacer(),
+                      Text(
+                        TimeOfDay.fromDateTime(reminderTime).format(context),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
           }
         }
-      }
-      if (mounted) {
-        setState(() {
-          _nextReminder = soonestReminder;
-          _isLoadingReminder = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingReminder = false;
-          _nextReminder = null;
-        });
-      }
-    }
-  }
-
-  Widget _buildNextReminderSection() {
-    if (_isLoadingReminder) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.h),
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator.adaptive(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-
-    if (_nextReminder != null &&
-        _nextReminder!.schedule is NotificationCalendar) {
-      final schedule = _nextReminder!.schedule as NotificationCalendar;
-      if (schedule.hour != null && schedule.minute != null) {
-        final DateTime now = DateTime.now();
-        final DateTime reminderTime = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          schedule.hour!,
-          schedule.minute!,
-        );
-
-        if (reminderTime.isAfter(now)) {
-          return Card(
-            margin: EdgeInsets.symmetric(vertical: 8.h),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-              child: Row(
-                children: [
-                  Icon(
-                    Symbols.alarm,
-                    size: 24.sp,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  SizedBox(width: 12.w),
-                  Text(
-                    "Next Reminder:",
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const Spacer(),
-                  Text(
-                    TimeOfDay.fromDateTime(reminderTime).format(context),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-      }
-    }
-    return const SizedBox.shrink();
+        return const SizedBox.shrink();
+      },
+    );
   }
 
   @override
@@ -199,12 +143,15 @@ class _MainHydrationViewState extends State<MainHydrationView>
     final userState = context.watch<UserBloc>().state;
     final hydrationState = context.watch<HydrationBloc>().state;
 
-    final UserModel? currentUser = userState is UserLoaded ? userState.user : null;
+    final UserModel? currentUser =
+        userState is UserLoaded ? userState.user : null;
 
     return BlocListener<HydrationBloc, HydrationState>(
-      listenWhen: (previous, current) => previous.actionStatus != current.actionStatus,
+      listenWhen: (previous, current) =>
+          previous.actionStatus != current.actionStatus,
       listener: (context, state) {
-        if (state.actionStatus == HydrationActionStatus.error && state.errorMessage != null) {
+        if (state.actionStatus == HydrationActionStatus.error &&
+            state.errorMessage != null) {
           AppUtils.showSnackBar(
             context,
             state.errorMessage!,
@@ -217,70 +164,61 @@ class _MainHydrationViewState extends State<MainHydrationView>
       },
       child: RefreshIndicator(
         onRefresh: () async {
-          final userState = context.read<UserBloc>().state;
-          final hydrationState = context.read<HydrationBloc>().state;
-          final userId = userState is UserLoaded ? userState.user.id : null;
-          final selectedDate = hydrationState.selectedDate;
-
-          if (userId != null) {
-            await Provider.of<HydrationService>(
-              context,
-              listen: false,
-            ).syncHealthConnectData(userId, date: selectedDate);
-
-            // Force refresh of the hydration provider to show any new synced entries
-            if (context.mounted) {
-              context.read<HydrationBloc>().add(FetchHydrationDataRequested());
-            }
-          }
+          context.read<HydrationBloc>().add(SyncHealthDataEvent());
+          // Add a small delay so the RefreshIndicator doesn't vanish instantly
+          await Future.delayed(const Duration(milliseconds: 500));
         },
         child: CustomScrollView(
-        // Optimization: Use CustomScrollView for better performance with lists
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDateNavigationHeader(context, hydrationState),
-                  SizedBox(height: 16.h),
-                  _buildDailyProgressSection(
-                    context,
-                    userState,
-                    hydrationState,
-                  ),
-                  if (DateUtils.isSameDay(
-                    hydrationState.selectedDate,
-                    DateTime.now(),
-                  ))
-                    _buildNextReminderSection(),
-                  SizedBox(
-                    height: _nextReminder != null && !_isLoadingReminder
-                        ? 8.h
-                        : 16.h,
-                  ),
-                  _buildQuickAddSection(
-                    context,
-                    userState,
-                    hydrationState,
-                  ),
-                  if (currentUser != null &&
-                      DateUtils.isSameDay(
-                        hydrationState.selectedDate,
-                        DateTime.now(),
-                      ))
-                    SizedBox(height: 24.h),
-                  _buildLogTitle(context, hydrationState),
-                ],
+          // Optimization: Use CustomScrollView for better performance with lists
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDateNavigationHeader(context, hydrationState),
+                    SizedBox(height: 16.h),
+                    _buildDailyProgressSection(
+                      context,
+                      userState,
+                      hydrationState,
+                    ),
+                    if (DateUtils.isSameDay(
+                      hydrationState.selectedDate,
+                      DateTime.now(),
+                    ))
+                      _buildNextReminderSection(context),
+                    BlocBuilder<NextReminderCubit, NextReminderState>(
+                      builder: (context, state) {
+                        return SizedBox(
+                          height: state.nextReminder != null && !state.isLoading
+                              ? 8.h
+                              : 16.h,
+                        );
+                      },
+                    ),
+                    _buildQuickAddSection(
+                      context,
+                      userState,
+                      hydrationState,
+                    ),
+                    if (currentUser != null &&
+                        DateUtils.isSameDay(
+                          hydrationState.selectedDate,
+                          DateTime.now(),
+                        ))
+                      SizedBox(height: 24.h),
+                    _buildLogTitle(context, hydrationState),
+                  ],
+                ),
               ),
             ),
-          ),
-          _buildSliverLogList(context, hydrationState, currentUser),
-          SliverToBoxAdapter(child: SizedBox(height: 80.h)),
-        ],
-      ),
+            _buildSliverLogList(context, hydrationState, currentUser),
+            SliverToBoxAdapter(child: SizedBox(height: 80.h)),
+          ],
+        ),
       ),
     );
   }
@@ -342,7 +280,8 @@ class _MainHydrationViewState extends State<MainHydrationView>
     UserState userState,
     HydrationState hydrationState,
   ) {
-    final UserModel? currentUser = userState is UserLoaded ? userState.user : null;
+    final UserModel? currentUser =
+        userState is UserLoaded ? userState.user : null;
     final double totalIntakeToday = hydrationState.totalIntakeToday;
     final double dailyGoal = currentUser?.dailyGoalMl ?? 2000.0;
 
@@ -379,7 +318,8 @@ class _MainHydrationViewState extends State<MainHydrationView>
     UserState userState,
     HydrationState hydrationState,
   ) {
-    final UserModel? currentUser = userState is UserLoaded ? userState.user : null;
+    final UserModel? currentUser =
+        userState is UserLoaded ? userState.user : null;
     if (currentUser != null &&
         DateUtils.isSameDay(hydrationState.selectedDate, DateTime.now())) {
       return QuickAddButtons(
@@ -489,7 +429,9 @@ class _MainHydrationViewState extends State<MainHydrationView>
             entry: entry,
             unit: currentUser?.preferredUnit ?? MeasurementUnit.ml,
             onDismissed: () {
-              context.read<HydrationBloc>().add(DeleteHydrationEntryEvent(entry));
+              context
+                  .read<HydrationBloc>()
+                  .add(DeleteHydrationEntryEvent(entry));
             },
           ),
         );

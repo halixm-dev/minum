@@ -1,4 +1,4 @@
-// lib/src/presentation/screens/profile/profile_screen.dart
+// lib/src/features/user/presentation/pages/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -122,7 +122,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _loadInitialProfileData() {
     if (!mounted) return;
     final userState = context.read<UserBloc>().state;
-    final UserModel? userProfile = userState is UserLoaded ? userState.user : null;
+    final UserModel? userProfile =
+        userState is UserLoaded ? userState.user : null;
 
     if (userProfile != null) {
       _displayNameController.text = userProfile.displayName ?? '';
@@ -230,7 +231,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     final userBloc = context.read<UserBloc>();
-    final hydrationService = Provider.of<HydrationService>(context, listen: false);
+    final hydrationService =
+        Provider.of<HydrationService>(context, listen: false);
     final userState = userBloc.state;
     final currentUser = userState is UserLoaded ? userState.user : null;
 
@@ -310,8 +312,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       logger.e("Error updating profile: $e");
       if (mounted) {
-        AppUtils.showSnackBar(
-            context, "Failed to update profile.",
+        AppUtils.showSnackBar(context, "Failed to update profile.",
             isError: true);
       }
       if (mounted) setState(() => _isLoading = false);
@@ -354,7 +355,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Scaffold(
             appBar: AppBar(title: const Text(AppStrings.profile)),
             body: Center(
-                child: Text(state is UserError ? state.message : "User data unavailable.")),
+                child: Text(state is UserError
+                    ? state.message
+                    : "User data unavailable.")),
           );
         }
 

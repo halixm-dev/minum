@@ -10,9 +10,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService authService;
   StreamSubscription? _authSubscription;
 
-  AuthBloc({required AuthService authService})
-      : authService = authService,
-        super(AuthInitial()) {
+  AuthBloc({required this.authService}) : super(AuthInitial()) {
     on<AuthStatusChanged>(_onAuthStatusChanged);
     on<SignInWithEmailRequested>(_onSignInWithEmailRequested);
     on<SignUpWithEmailRequested>(_onSignUpWithEmailRequested);
@@ -45,7 +43,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onSignInWithEmailRequested(SignInWithEmailRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onSignInWithEmailRequested(
+      SignInWithEmailRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await authService.signInWithEmailAndPassword(event.email, event.password);
@@ -57,10 +56,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onSignUpWithEmailRequested(SignUpWithEmailRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onSignUpWithEmailRequested(
+      SignUpWithEmailRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await authService.signUpWithEmailAndPassword(event.email, event.password, displayName: event.displayName);
+      await authService.signUpWithEmailAndPassword(event.email, event.password,
+          displayName: event.displayName);
     } on fb_auth.FirebaseAuthException catch (e) {
       emit(AuthError(e.message ?? "Sign up failed."));
     } catch (e) {
@@ -68,7 +69,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onSignInWithGoogleRequested(SignInWithGoogleRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onSignInWithGoogleRequested(
+      SignInWithGoogleRequested event, Emitter<AuthState> emit) async {
     // We optionally emit AuthLoading, but keeping the current state (or specialized UI state) helps avoid unmounting the login form if preferred.
     // In BLoC, we usually emit Loading. We'll stick to a standard approach.
     emit(AuthLoading());
@@ -84,7 +86,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onSignOutRequested(SignOutRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onSignOutRequested(
+      SignOutRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await authService.signOut();
@@ -93,15 +96,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onPasswordResetRequested(PasswordResetRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onPasswordResetRequested(
+      PasswordResetRequested event, Emitter<AuthState> emit) async {
     // Password reset doesn't change overall auth status unless we want a dedicated state.
-    // Keeping it simple: log and let UI handle success overlay. 
+    // Keeping it simple: log and let UI handle success overlay.
     // This could also be a separate cubit/bloc for the reset form.
     try {
       await authService.sendPasswordResetEmail(event.email);
     } on fb_auth.FirebaseAuthException catch (e) {
       emit(AuthError(e.message ?? "Password reset failed."));
-      emit(Unauthenticated()); // Reset to unauthenticated so another attempt can be made
+      emit(
+          Unauthenticated()); // Reset to unauthenticated so another attempt can be made
       rethrow;
     } catch (e) {
       emit(AuthError(e.toString()));

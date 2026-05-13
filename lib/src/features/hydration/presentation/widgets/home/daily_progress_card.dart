@@ -10,8 +10,10 @@ import 'package:minum/src/core/utils/app_utils.dart';
 class DailyProgressCard extends StatelessWidget {
   /// The amount of water consumed so far today, in milliliters.
   final double consumed;
+
   /// The user's daily hydration goal, in milliliters.
   final double goal;
+
   /// The measurement unit to display the values in.
   final MeasurementUnit unit;
 

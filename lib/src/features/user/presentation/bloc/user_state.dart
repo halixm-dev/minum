@@ -3,7 +3,7 @@ import 'package:minum/src/features/user/data/models/user_model.dart';
 
 abstract class UserState extends Equatable {
   const UserState();
-  
+
   @override
   List<Object?> get props => [];
 }

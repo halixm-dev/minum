@@ -10,14 +10,19 @@ import 'package:material_symbols_icons/symbols.dart';
 class SocialLoginButton extends StatelessWidget {
   /// The text to display on the button.
   final String text;
+
   /// The path to the social icon asset.
   final String assetName;
+
   /// The callback that is called when the button is tapped.
   final VoidCallback? onPressed;
+
   /// A flag to indicate if the button is in a loading state.
   final bool isLoading;
+
   /// The width of the button.
   final double? width;
+
   /// The style of the button.
   final ButtonStyle? style;
 

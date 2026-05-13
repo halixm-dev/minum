@@ -1,4 +1,4 @@
-// lib/src/presentation/screens/auth/forgot_password_screen.dart
+// lib/src/features/auth/presentation/pages/auth/forgot_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -6,7 +6,6 @@ import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';
 
 /// A screen that allows users to request a password reset email.
 class ForgotPasswordScreen extends StatefulWidget {
@@ -35,7 +34,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       final authBloc = context.read<AuthBloc>();
 
       try {
-        await authBloc.authService.sendPasswordResetEmail(_emailController.text.trim());
+        await authBloc.authService
+            .sendPasswordResetEmail(_emailController.text.trim());
         if (mounted) {
           AppUtils.showSnackBar(context, AppStrings.passwordResetEmailSent);
           Future.delayed(const Duration(seconds: 2), () {
@@ -44,9 +44,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       } catch (e) {
         if (mounted) {
-          AppUtils.showSnackBar(
-              context, e.toString(),
-              isError: true);
+          AppUtils.showSnackBar(context, e.toString(), isError: true);
         }
       } finally {
         if (mounted) {
@@ -75,9 +73,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Icon(Symbols.lock_reset,
-                      size: 64.h,
-                      color:
-                          theme.colorScheme.primary),
+                      size: 64.h, color: theme.colorScheme.primary),
                   SizedBox(height: 20.h),
                   Text(
                     'Forgot Your Password?',

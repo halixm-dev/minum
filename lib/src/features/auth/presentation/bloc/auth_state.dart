@@ -3,7 +3,7 @@ import 'package:minum/src/features/user/data/models/user_model.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
-  
+
   @override
   List<Object?> get props => [];
 }

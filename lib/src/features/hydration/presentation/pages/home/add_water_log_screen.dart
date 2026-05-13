@@ -1,4 +1,4 @@
-// lib/src/presentation/screens/home/add_water_log_screen.dart
+// lib/src/features/hydration/presentation/pages/home/add_water_log_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -12,7 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_bloc.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_event.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_state.dart';
-import 'package:minum/src/presentation/providers/user_provider.dart';
+import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
+import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 
@@ -52,8 +53,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      final userProfile =
-          Provider.of<UserProvider>(context, listen: false).userProfile;
+      final userState = context.read<UserBloc>().state;
+      final userProfile = userState is UserLoaded ? userState.user : null;
 
       if (userProfile != null) {
         _currentUnit = userProfile.preferredUnit;
@@ -213,8 +214,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
   @override
   Widget build(BuildContext context) {
     final hydrationState = context.watch<HydrationBloc>().state;
-    final userProfile =
-        Provider.of<UserProvider>(context, listen: false).userProfile;
+    final userState = context.watch<UserBloc>().state;
+    final userProfile = userState is UserLoaded ? userState.user : null;
 
     if (userProfile != null && _currentUnit != userProfile.preferredUnit) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -236,7 +237,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
             hydrationState.errorMessage != null) {
           AppUtils.showSnackBar(context, hydrationState.errorMessage!,
               isError: true);
-        } else if (hydrationState.actionStatus == HydrationActionStatus.success) {
+        } else if (hydrationState.actionStatus ==
+            HydrationActionStatus.success) {
           Navigator.of(context).pop();
         }
         context.read<HydrationBloc>().add(ResetActionStatus());

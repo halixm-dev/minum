@@ -1,9 +1,7 @@
-// lib/src/presentation/screens/auth_gate_screen.dart
+// lib/src/features/auth/presentation/pages/auth_gate_screen.dart
 import 'package:flutter/material.dart';
-import 'package:minum/src/presentation/providers/auth_provider.dart';
 import 'package:minum/src/features/auth/presentation/pages/auth/login_screen.dart';
 import 'package:minum/src/features/hydration/presentation/pages/home/home_screen.dart';
-import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,7 +26,8 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
     final authState = context.watch<AuthBloc>().state;
 
     if (authState is AuthInitial || authState is AuthLoading) {
-      logger.i("AuthGate: Auth status is \${authState.runtimeType}. Showing loading indicator.");
+      logger.i(
+          "AuthGate: Auth status is \${authState.runtimeType}. Showing loading indicator.");
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -36,7 +35,8 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
       logger.i("AuthGate: User authenticated. Navigating to HomeScreen.");
       return const HomeScreen();
     } else if (authState is Unauthenticated || authState is AuthError) {
-      logger.i("AuthGate: User unauthenticated or error. Navigating to LoginScreen.");
+      logger.i(
+          "AuthGate: User unauthenticated or error. Navigating to LoginScreen.");
       return const LoginScreen();
     } else {
       return const LoginScreen();
