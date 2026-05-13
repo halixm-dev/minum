@@ -1,9 +1,9 @@
 // lib/src/services/auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart'
     as fb_auth; // For FirebaseAuthException
-import 'package:minum/src/data/models/user_model.dart';
-import 'package:minum/src/data/repositories/auth_repository.dart';
-import 'package:minum/src/data/repositories/user_repository.dart';
+import 'package:minum/src/features/user/data/models/user_model.dart';
+import 'package:minum/src/features/auth/data/repositories/auth_repository.dart';
+import 'package:minum/src/features/user/data/repositories/user_repository.dart';
 import 'package:minum/main.dart'; // For logger
 
 /// A service layer for authentication and user management.

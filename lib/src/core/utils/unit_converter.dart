@@ -1,4 +1,4 @@
-import 'package:minum/src/data/models/user_model.dart'; // For MeasurementUnit
+import 'package:minum/src/features/user/data/models/user_model.dart'; // For MeasurementUnit
 import 'package:minum/src/core/constants/app_strings.dart'; // For AppStrings.ml and AppStrings.oz
 
 /// The number of milliliters per fluid ounce.

@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -10,14 +11,14 @@ import 'package:minum/src/app.dart';
 import 'package:minum/firebase_options.dart';
 
 // Data Layer: Repositories
-import 'package:minum/src/data/repositories/auth_repository.dart';
-import 'package:minum/src/data/repositories/firebase/firebase_auth_repository.dart';
-import 'package:minum/src/data/repositories/user_repository.dart';
-import 'package:minum/src/data/repositories/firebase/firebase_user_repository.dart';
-import 'package:minum/src/data/repositories/hydration_repository.dart';
-import 'package:minum/src/data/repositories/firebase/firebase_hydration_repository.dart';
-import 'package:minum/src/data/repositories/local/local_hydration_repository.dart';
-import 'package:minum/src/data/repositories/syncable_hydration_repository.dart';
+import 'package:minum/src/features/auth/data/repositories/auth_repository.dart';
+import 'package:minum/src/features/auth/data/datasources/firebase_auth_data_source.dart';
+import 'package:minum/src/features/user/data/repositories/user_repository.dart';
+import 'package:minum/src/features/user/data/datasources/firebase_user_data_source.dart';
+import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
+import 'package:minum/src/features/hydration/data/datasources/firebase_hydration_data_source.dart';
+import 'package:minum/src/features/hydration/data/datasources/local_hydration_data_source.dart';
+import 'package:minum/src/features/hydration/data/repositories/syncable_hydration_repository.dart';
 
 // Service Layer
 import 'package:minum/src/services/auth_service.dart';
@@ -26,13 +27,12 @@ import 'package:minum/src/services/hydration_service.dart';
 
 import 'package:minum/src/services/health_service.dart';
 
-// Presentation Layer: Providers
-import 'package:minum/src/presentation/providers/auth_provider.dart';
+import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:minum/src/presentation/providers/theme_provider.dart';
-import 'package:minum/src/presentation/providers/hydration_provider.dart';
-import 'package:minum/src/presentation/providers/user_provider.dart';
+import 'package:minum/src/features/hydration/presentation/bloc/hydration_bloc.dart';
+import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart';
-import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
+import 'package:minum/src/features/settings/presentation/bloc/reminder_settings_cubit.dart';
 
 /// A global logger instance for logging messages throughout the application.
 final logger = Logger(
@@ -73,14 +73,14 @@ void main() async {
     logger.e("Error calling scheduleDailyRemindersIfNeeded on startup: $e");
   }
 
-  final UserRepository userRepository = FirebaseUserRepository();
+  final UserRepository userRepository = FirebaseUserDataSource();
   final AuthRepository authRepository =
-      FirebaseAuthRepository(userRepository: userRepository);
+      FirebaseAuthDataSource(userRepository: userRepository);
 
   final LocalHydrationRepository localHydrationRepository =
-      LocalHydrationRepository();
+      LocalHydrationDataSource();
   final FirebaseHydrationRepository firebaseHydrationRepository =
-      FirebaseHydrationRepository();
+      FirebaseHydrationDataSource();
 
   final AuthService authService = AuthService(
     authRepository: authRepository,
@@ -112,20 +112,20 @@ void main() async {
         Provider<HydrationRepository>.value(value: syncableHydrationRepository),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BottomNavProvider()),
-        ChangeNotifierProvider(create: (_) => ReminderSettingsNotifier()),
-        ChangeNotifierProvider<AuthProvider>(
-          create: (context) => AuthProvider(
-            context.read<AuthService>(),
+        BlocProvider(create: (_) => ReminderSettingsCubit()),
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(
+            authService: context.read<AuthService>(),
           ),
         ),
-        ChangeNotifierProvider<UserProvider>(
-          create: (context) => UserProvider(
+        BlocProvider<UserBloc>(
+          create: (context) => UserBloc(
             authService: context.read<AuthService>(),
             userRepository: context.read<UserRepository>(),
           ),
         ),
-        ChangeNotifierProvider<HydrationProvider>(
-          create: (context) => HydrationProvider(
+        BlocProvider<HydrationBloc>(
+          create: (context) => HydrationBloc(
             authService: context.read<AuthService>(),
             hydrationService: context.read<HydrationService>(),
           ),

@@ -2,11 +2,13 @@
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:minum/src/presentation/screens/auth_gate_screen.dart';
+import 'package:minum/src/features/auth/presentation/pages/auth_gate_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/src/presentation/providers/theme_provider.dart';
 import 'package:minum/src/navigation/app_router.dart';
-import 'package:minum/src/presentation/providers/hydration_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:minum/src/features/hydration/presentation/bloc/hydration_bloc.dart';
+import 'package:minum/src/features/hydration/presentation/bloc/hydration_event.dart';
 
 /// The root widget of the Minum application.
 ///
@@ -26,8 +28,7 @@ class _MinumAppState extends State<MinumApp> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Provider.of<HydrationProvider>(context, listen: false)
-            .processPendingWaterAddition();
+        context.read<HydrationBloc>().add(ProcessPendingWaterAddition());
       }
     });
   }

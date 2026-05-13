@@ -1,17 +1,17 @@
 // lib/src/navigation/app_router.dart
 
 import 'package:flutter/material.dart';
-import 'package:minum/src/data/models/hydration_entry_model.dart';
-import 'package:minum/src/presentation/screens/auth/forgot_password_screen.dart';
-import 'package:minum/src/presentation/screens/auth/login_screen.dart';
-import 'package:minum/src/presentation/screens/auth/register_screen.dart';
-import 'package:minum/src/presentation/screens/auth_gate_screen.dart';
+import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
+import 'package:minum/src/features/auth/presentation/pages/auth/forgot_password_screen.dart';
+import 'package:minum/src/features/auth/presentation/pages/auth/login_screen.dart';
+import 'package:minum/src/features/auth/presentation/pages/auth/register_screen.dart';
+import 'package:minum/src/features/auth/presentation/pages/auth_gate_screen.dart';
 import 'package:minum/src/presentation/screens/core/not_found_screen.dart';
-import 'package:minum/src/presentation/screens/home/add_water_log_screen.dart';
-import 'package:minum/src/presentation/screens/home/home_screen.dart';
+import 'package:minum/src/features/hydration/presentation/pages/home/add_water_log_screen.dart';
+import 'package:minum/src/features/hydration/presentation/pages/home/home_screen.dart';
 import 'package:minum/src/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:minum/src/presentation/screens/profile/profile_screen.dart';
-import 'package:minum/src/presentation/screens/settings/settings_screen.dart';
+import 'package:minum/src/features/settings/presentation/pages/settings_screen.dart';
 import 'package:minum/src/presentation/screens/splash_screen.dart';
 import 'package:minum/src/presentation/screens/stats/hydration_history_screen.dart';
 

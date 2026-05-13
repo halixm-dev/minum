@@ -10,7 +10,8 @@ import 'package:minum/src/presentation/widgets/home/hydration_log_list_item.dart
 import 'package:minum/src/presentation/providers/user_provider.dart';
 import 'package:minum/src/presentation/providers/hydration_provider.dart';
 import 'package:minum/src/services/notification_service.dart';
-import 'package:minum/src/presentation/providers/reminder_settings_notifier.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:minum/src/features/settings/presentation/bloc/reminder_settings_cubit.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:minum/src/data/models/user_model.dart';
 import 'package:minum/src/data/models/hydration_entry_model.dart';
@@ -160,11 +161,11 @@ class MockNotificationService extends Mock implements NotificationService {
   Future<List<NotificationModel>> listScheduledNotifications() async => [];
 }
 
-class MockReminderSettingsNotifier extends ChangeNotifier
-    implements ReminderSettingsNotifier {
+class MockReminderSettingsCubit extends Cubit<int> implements ReminderSettingsCubit {
+  MockReminderSettingsCubit() : super(0);
   @override
   void notifySettingsChanged() {
-    notifyListeners();
+    emit(state + 1);
   }
 }
 
@@ -190,8 +191,8 @@ void main() {
           Provider<NotificationService>(
             create: (_) => MockNotificationService(),
           ),
-          ChangeNotifierProvider<ReminderSettingsNotifier>(
-            create: (_) => MockReminderSettingsNotifier(),
+          BlocProvider<ReminderSettingsCubit>(
+            create: (_) => MockReminderSettingsCubit(),
           ),
           Provider<HydrationService>(create: (_) => MockHydrationService()),
         ],

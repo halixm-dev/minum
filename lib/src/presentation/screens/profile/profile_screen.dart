@@ -6,8 +6,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
-import 'package:minum/src/data/models/user_model.dart';
-import 'package:minum/src/presentation/providers/user_provider.dart';
+import 'package:minum/src/features/user/data/models/user_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
+import 'package:minum/src/features/user/presentation/bloc/user_event.dart';
+import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/main.dart'; // For logger
@@ -118,8 +121,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Populates the form fields with the user's current profile data.
   void _loadInitialProfileData() {
     if (!mounted) return;
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final UserModel? userProfile = userProvider.userProfile;
+    final userState = context.read<UserBloc>().state;
+    final UserModel? userProfile = userState is UserLoaded ? userState.user : null;
 
     if (userProfile != null) {
       _displayNameController.text = userProfile.displayName ?? '';
@@ -226,10 +229,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     if (!mounted) return;
     setState(() => _isLoading = true);
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final hydrationService =
-        Provider.of<HydrationService>(context, listen: false);
-    final currentUser = userProvider.userProfile;
+    final userBloc = context.read<UserBloc>();
+    final hydrationService = Provider.of<HydrationService>(context, listen: false);
+    final userState = userBloc.state;
+    final currentUser = userState is UserLoaded ? userState.user : null;
 
     if (currentUser == null) {
       if (mounted) {
@@ -302,58 +305,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
     updatedUser = updatedUser.copyWith(dailyGoalMl: newDailyGoal);
 
     try {
-      await userProvider.updateUserProfile(updatedUser);
-      if (mounted) {
-        String messageToShow =
-            "Profile updated! Daily goal adjusted to ${newDailyGoal.toInt()} mL.";
-        bool isPresentationError = false;
-
-        if (userProvider.status == UserProfileStatus.loaded) {
-          if (userProvider.errorMessage != null &&
-              userProvider.errorMessage ==
-                  "Profile saved locally. Will sync when online.") {
-            messageToShow = userProvider.errorMessage!;
-            isPresentationError = false;
-          } else if (userProvider.errorMessage != null) {
-            messageToShow = userProvider.errorMessage!;
-            isPresentationError = true;
-          }
-        } else if (userProvider.status == UserProfileStatus.error) {
-          messageToShow =
-              userProvider.errorMessage ?? "Failed to update profile.";
-          isPresentationError = true;
-        }
-
-        AppUtils.showSnackBar(context, messageToShow,
-            isError: isPresentationError);
-
-        if (!isPresentationError) {
-          setState(() {
-            _isDirty = false;
-          });
-        }
-      }
+      userBloc.add(UpdateUserProfile(updatedUser));
+      // Success and error state handling is now done by the BlocListener in build method
     } catch (e) {
       logger.e("Error updating profile: $e");
       if (mounted) {
         AppUtils.showSnackBar(
-            context, userProvider.errorMessage ?? "Failed to update profile.",
+            context, "Failed to update profile.",
             isError: true);
       }
-    } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
-        final UserModel? user = userProvider.userProfile;
-        final UserProfileStatus status = userProvider.status;
+    return BlocConsumer<UserBloc, UserState>(
+      listener: (context, state) {
+        if (state is UserError) {
+          AppUtils.showSnackBar(context, state.message, isError: true);
+          if (mounted) setState(() => _isLoading = false);
+        } else if (state is UserLoaded) {
+          if (_isLoading) {
+            AppUtils.showSnackBar(context, "Profile updated!");
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+                _isDirty = false;
+              });
+            }
+          }
+          if (state.user != _lastProcessedUserProfile) {
+            _loadInitialProfileData();
+          }
+        }
+      },
+      builder: (context, state) {
+        final UserModel? user = state is UserLoaded ? state.user : null;
 
-        if (status == UserProfileStatus.loading ||
-            (status == UserProfileStatus.idle && user == null)) {
+        if (state is UserLoading || (state is UserInitial && user == null)) {
           return Scaffold(
             appBar: AppBar(title: const Text(AppStrings.profile)),
             body: const Center(child: CircularProgressIndicator()),
@@ -364,19 +354,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Scaffold(
             appBar: AppBar(title: const Text(AppStrings.profile)),
             body: Center(
-                child: Text(
-                    userProvider.errorMessage ?? "User data unavailable.")),
+                child: Text(state is UserError ? state.message : "User data unavailable.")),
           );
         }
 
-        if (userProvider.status == UserProfileStatus.loaded &&
-            user != _lastProcessedUserProfile) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              _loadInitialProfileData();
-            }
-          });
-        }
+        // Re-load data logic is handled by BlocListener
 
         List<HealthCondition> availableHealthConditions =
             List.from(HealthCondition.values);

@@ -1,8 +1,8 @@
 // lib/src/services/hydration_service.dart
 import 'dart:math' as math; // For math.max and math.min
-import 'package:minum/src/data/models/hydration_entry_model.dart';
-import 'package:minum/src/data/models/user_model.dart';
-import 'package:minum/src/data/repositories/hydration_repository.dart';
+import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
+import 'package:minum/src/features/user/data/models/user_model.dart';
+import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
 import 'package:minum/src/services/health_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health/health.dart';
