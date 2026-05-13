@@ -1,6 +1,15 @@
 // lib/src/data/repositories/auth_repository.dart
 import 'package:minum/src/features/user/data/models/user_model.dart';
 
+/// Custom exception class for authentication errors.
+class AuthException implements Exception {
+  final String message;
+  const AuthException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 /// An abstract class defining the contract for authentication operations.
 ///
 /// Implementations of this class (e.g., `FirebaseAuthRepository`) will provide

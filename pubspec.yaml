@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # UI & Design
   cupertino_icons: ^1.0.8
@@ -86,6 +88,7 @@ dev_dependencies:
   test: any
 
 flutter:
+  generate: true
   uses-material-design: true
 
   assets:

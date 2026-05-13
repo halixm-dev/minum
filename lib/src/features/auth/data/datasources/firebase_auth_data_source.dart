@@ -240,8 +240,8 @@ class FirebaseAuthDataSource implements AuthRepository {
     }
   }
 
-  /// Maps a [fb_auth.FirebaseAuthException] to a more generic [Exception].
-  Exception _mapFirebaseAuthException(fb_auth.FirebaseAuthException e) {
-    return Exception(e.message ?? 'An unknown authentication error occurred.');
+  /// Maps a [fb_auth.FirebaseAuthException] to a more generic [AuthException].
+  AuthException _mapFirebaseAuthException(fb_auth.FirebaseAuthException e) {
+    return AuthException(e.message ?? 'An unknown authentication error occurred.');
   }
 }

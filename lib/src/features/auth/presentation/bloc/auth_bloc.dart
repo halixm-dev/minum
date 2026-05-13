@@ -4,7 +4,7 @@ import 'package:minum/main.dart'; // For logger
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_event.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:minum/src/features/auth/data/repositories/auth_repository.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService authService;
@@ -49,8 +49,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await authService.signInWithEmailAndPassword(event.email, event.password);
       // We don't need to emit Authenticated here because the stream will trigger AuthStatusChanged
-    } on fb_auth.FirebaseAuthException catch (e) {
-      emit(AuthError(e.message ?? "Sign in failed."));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -62,8 +62,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await authService.signUpWithEmailAndPassword(event.email, event.password,
           displayName: event.displayName);
-    } on fb_auth.FirebaseAuthException catch (e) {
-      emit(AuthError(e.message ?? "Sign up failed."));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -79,8 +79,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (userFromService == null) {
         emit(Unauthenticated()); // Reset back if cancelled
       }
-    } on fb_auth.FirebaseAuthException catch (e) {
-      emit(AuthError(e.message ?? "Google sign in failed."));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -103,8 +103,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // This could also be a separate cubit/bloc for the reset form.
     try {
       await authService.sendPasswordResetEmail(event.email);
-    } on fb_auth.FirebaseAuthException catch (e) {
-      emit(AuthError(e.message ?? "Password reset failed."));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
       emit(
           Unauthenticated()); // Reset to unauthenticated so another attempt can be made
       rethrow;

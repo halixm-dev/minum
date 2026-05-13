@@ -8,6 +8,8 @@ import 'package:minum/src/presentation/providers/theme_provider.dart';
 import 'package:minum/src/navigation/app_router.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_bloc.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_event.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:minum/l10n/app_localizations.dart';
 
 /// The root widget of the Minum application.
 ///
@@ -53,6 +55,16 @@ class _MinumAppState extends State<MinumApp> {
             return MaterialApp(
               title: 'Minum - Water Reminder',
               debugShowCheckedModeBanner: false,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'),
+                Locale('id'),
+              ],
               themeMode: themeProvider.themeMode,
               theme: themeProvider.currentLightThemeData,
               darkTheme: themeProvider.currentDarkThemeData,
