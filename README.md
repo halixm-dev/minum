@@ -102,7 +102,7 @@ For this boilerplate, these services are mocked. To implement them fully, you wo
 -   Add necessary permissions to `AndroidManifest.xml` (Android) and `Info.plist` (iOS).
 -   Implement OAuth 2.0 flows for authorization.
 
-### 5. (Optional) API Keys for Weather
+### 5. (Todo) API Keys for Weather
 
 If you integrate a weather API:
 1.  Sign up for a weather API service (e.g., OpenWeatherMap).
