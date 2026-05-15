@@ -2,7 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/features/user/data/repositories/user_repository.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A concrete implementation of [UserRepository] using Cloud Firestore.
 class FirebaseUserDataSource implements UserRepository {

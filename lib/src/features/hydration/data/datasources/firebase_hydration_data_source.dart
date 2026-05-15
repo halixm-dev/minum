@@ -2,7 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A concrete implementation of [HydrationRepository] using Cloud Firestore.
 class FirebaseHydrationDataSource implements HydrationRepository {

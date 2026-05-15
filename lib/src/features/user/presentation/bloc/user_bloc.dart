@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/features/user/data/repositories/user_repository.dart';
 import 'package:minum/src/services/auth_service.dart';

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:minum/src/features/auth/presentation/pages/auth/login_screen.dart';
 import 'package:minum/src/features/hydration/presentation/pages/home/home_screen.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';

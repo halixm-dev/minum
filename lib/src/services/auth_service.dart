@@ -3,7 +3,7 @@
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/features/auth/data/repositories/auth_repository.dart';
 import 'package:minum/src/features/user/data/repositories/user_repository.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A service layer for authentication and user management.
 ///

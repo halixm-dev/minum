@@ -17,7 +17,7 @@ import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 import 'package:minum/src/features/hydration/presentation/widgets/history_bar_chart.dart';
 import 'package:minum/src/features/hydration/presentation/widgets/history_summary_lists.dart';
-import 'package:minum/main.dart'; // for logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A screen that displays the user's hydration history.
 ///

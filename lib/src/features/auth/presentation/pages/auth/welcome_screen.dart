@@ -5,7 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
-import 'package:minum/main.dart';
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A welcome screen that is shown to the user when they first open the app.
 ///

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart' show DateUtils;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/services/auth_service.dart';

@@ -9,7 +9,7 @@ import 'package:minum/src/features/hydration/presentation/bloc/hydration_history
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_history_state.dart';
 import 'package:minum/src/presentation/providers/bottom_nav_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:minum/main.dart'; // for logger
+import 'package:minum/src/core/utils/logger.dart';
 
 class WeeklySummaryList extends StatelessWidget {
   final MeasurementUnit unit;

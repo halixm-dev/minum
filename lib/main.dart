@@ -3,12 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
-// App specific imports
 import 'package:minum/src/app.dart';
 import 'package:minum/firebase_options.dart';
+import 'package:minum/src/core/utils/logger.dart';
 
 // Data Layer: Repositories
 import 'package:minum/src/features/auth/data/repositories/auth_repository.dart';
@@ -35,18 +34,6 @@ import 'package:minum/src/presentation/providers/bottom_nav_provider.dart';
 import 'package:minum/src/features/settings/presentation/bloc/reminder_settings_cubit.dart';
 import 'package:minum/src/features/settings/presentation/bloc/next_reminder_cubit.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_history_cubit.dart';
-
-/// A global logger instance for logging messages throughout the application.
-final logger = Logger(
-  printer: PrettyPrinter(
-    methodCount: 1,
-    errorMethodCount: 5,
-    lineLength: 120,
-    colors: true,
-    printEmojis: true,
-    dateTimeFormat: DateTimeFormat.none,
-  ),
-);
 
 /// The main entry point for the application.
 ///

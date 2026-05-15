@@ -6,7 +6,7 @@ import 'package:minum/src/features/hydration/data/repositories/hydration_reposit
 import 'package:minum/src/services/health_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health/health.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A service layer for managing hydration data and business logic.
 ///

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_history_state.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/main.dart'; // for logger
+import 'package:minum/src/core/utils/logger.dart';
 
 class HydrationHistoryCubit extends Cubit<HydrationHistoryState> {
   final HydrationService hydrationService;

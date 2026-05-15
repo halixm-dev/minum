@@ -15,7 +15,7 @@ import 'package:minum/src/features/hydration/presentation/bloc/hydration_state.d
 import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 import 'package:provider/provider.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A screen for adding a new hydration entry or editing an existing one.
 class AddWaterLogScreen extends StatefulWidget {

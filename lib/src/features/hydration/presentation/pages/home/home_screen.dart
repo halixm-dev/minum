@@ -14,7 +14,7 @@ import 'package:minum/src/features/settings/presentation/pages/settings_screen.d
 import 'package:minum/src/features/hydration/presentation/pages/stats/hydration_history_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// The main screen of the application after the user is authenticated.
 ///

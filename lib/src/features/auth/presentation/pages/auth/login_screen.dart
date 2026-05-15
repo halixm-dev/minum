@@ -11,7 +11,7 @@ import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_event.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';
 import 'package:minum/src/features/auth/presentation/widgets/social_login_button.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A screen that serves as the main entry point for authentication, offering
 /// options to sign in with Google or to skip and use the app as a guest.

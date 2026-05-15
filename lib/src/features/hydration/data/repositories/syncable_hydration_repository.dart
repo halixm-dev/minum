@@ -7,7 +7,7 @@ import 'package:minum/src/features/hydration/data/datasources/firebase_hydration
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/core/constants/app_constants.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A repository that orchestrates data synchronization between a local and a remote
 /// data source for hydration entries. It implements the [HydrationRepository]

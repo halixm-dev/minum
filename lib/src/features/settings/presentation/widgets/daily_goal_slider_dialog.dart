@@ -8,7 +8,7 @@ import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_bloc.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_event.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 class DailyGoalSliderDialog extends StatefulWidget {
   final double initialGoal;

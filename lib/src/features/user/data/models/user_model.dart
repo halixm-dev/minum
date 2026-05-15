@@ -1,7 +1,7 @@
 // lib/src/data/models/user_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 
 /// Represents the gender of the user.

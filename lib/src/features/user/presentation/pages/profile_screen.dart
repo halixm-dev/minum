@@ -13,7 +13,7 @@ import 'package:minum/src/features/user/presentation/bloc/user_event.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 import 'package:minum/src/services/hydration_service.dart';
 import 'package:provider/provider.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A screen where users can view and edit their profile information.
 class ProfileScreen extends StatefulWidget {

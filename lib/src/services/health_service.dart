@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:health/health.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// Service to handle Health Connect integration.
 class HealthService {

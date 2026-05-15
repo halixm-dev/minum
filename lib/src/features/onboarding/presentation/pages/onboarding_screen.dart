@@ -6,7 +6,7 @@ import 'package:minum/src/core/constants/app_assets.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/navigation/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A screen that introduces the user to the app's features through a series of pages.
 class OnboardingScreen extends StatefulWidget {

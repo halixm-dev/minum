@@ -20,7 +20,7 @@ import 'package:minum/src/services/notification_service.dart';
 import 'package:minum/src/services/health_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:minum/main.dart';
+import 'package:minum/src/core/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/src/features/settings/presentation/widgets/theme_selector.dart';
 import 'package:minum/src/features/settings/presentation/widgets/daily_goal_slider_dialog.dart';

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 import 'package:minum/src/services/auth_service.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_event.dart';
 import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';

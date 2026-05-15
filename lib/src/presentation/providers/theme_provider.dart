@@ -1,7 +1,7 @@
 // lib/src/presentation/providers/theme_provider.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 import 'package:minum/src/core/theme/app_theme.dart';
 
 /// An enumeration of the possible sources for the application's theme.

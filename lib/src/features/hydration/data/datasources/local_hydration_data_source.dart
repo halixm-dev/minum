@@ -4,7 +4,7 @@ import 'package:minum/src/data/local/database_helper.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
 import 'package:minum/src/core/constants/app_constants.dart';
-import 'package:minum/main.dart'; // For logger
+import 'package:minum/src/core/utils/logger.dart';
 
 /// A concrete implementation of [HydrationRepository] using a local SQLite database.
 ///
