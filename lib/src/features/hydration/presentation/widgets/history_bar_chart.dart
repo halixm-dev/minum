@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 
 import 'package:minum/src/features/user/data/models/user_model.dart';
@@ -94,7 +95,7 @@ class HistoryBarChart extends StatelessWidget {
     if (barGroups.isEmpty) {
       return Padding(
           padding: EdgeInsets.all(16.w),
-          child: Text("Not enough data to plot for this period.",
+          child: Text(AppStrings.notEnoughData,
               style: theme.textTheme.bodyMedium));
     }
     maxY = (maxY == 0)
@@ -122,7 +123,7 @@ class HistoryBarChart extends StatelessWidget {
                     label = DateFormat.E().format(state.selectedDateRange!.start
                         .add(Duration(days: group.x.toInt())));
                   } else {
-                    label = 'Week ${group.x.toInt() + 1}';
+                    label = AppStrings.weekNumber(group.x.toInt() + 1);
                   }
                   final unitString = unit == MeasurementUnit.ml ? 'mL' : 'oz';
                   return BarTooltipItem(

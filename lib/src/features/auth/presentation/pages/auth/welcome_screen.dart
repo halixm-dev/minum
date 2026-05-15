@@ -63,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'Your personal hydration companion.',
+                  AppStrings.personalHydrationCompanion,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium
                       ?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -76,7 +76,14 @@ class WelcomeScreen extends StatelessWidget {
                     Navigator.of(context).pushNamedAndRemoveUntil(
                         AppRoutes.home, (route) => false);
                   },
-                  child: const Text('Start Now'),
+                  child: const Text(AppStrings.startNow),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  AppStrings.guestModeLimitations,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
                 SizedBox(height: 16.h),
                 OutlinedButton(

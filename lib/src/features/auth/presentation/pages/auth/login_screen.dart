@@ -92,7 +92,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    'Stay hydrated, effortlessly.',
+                    AppStrings.stayHydratedEffortlessly,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleMedium
                         ?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -116,13 +116,21 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 16.h),
                   TextButton(
                     onPressed: () => _skipLogin(context),
-                    child: const Text('Skip login for now'),
+                    child: const Text(AppStrings.skipLoginForNow),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    AppStrings.guestModeLimitations,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic),
                   ),
                   const Spacer(flex: 1),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     child: Text(
-                      "You can log in later from settings to sync your data.",
+                      AppStrings.loginLaterHint,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall
                           ?.copyWith(color: colorScheme.onSurfaceVariant),

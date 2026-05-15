@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 Navigator.of(context).pushNamed(AppRoutes.addWaterLog);
               },
-              tooltip: "Log Water Intake",
+              tooltip: AppStrings.logWaterIntakeTooltip,
               child: Icon(Symbols.add,
                   size: 28.sp), // Icon color will also be from theme
             )
@@ -102,19 +102,20 @@ class _HomeScreenState extends State<HomeScreen> {
         destinations: <Widget>[
           NavigationDestination(
             icon: Icon(Symbols.home),
-            selectedIcon: Icon(
-                Symbols.home), // M3 often uses filled icons for selected state
-            label: 'Home',
+            selectedIcon:
+                Icon(Symbols.home, fill: 1), // M3 filled icon for selected
+            label: AppStrings.homeTitle.split("'s ").first, // 'Home'
           ),
           NavigationDestination(
             icon: Icon(Symbols.bar_chart),
-            selectedIcon: Icon(Symbols.bar_chart),
-            label: 'History',
+            selectedIcon: Icon(Symbols.bar_chart, fill: 1),
+            label: AppStrings.historyTitle
+                .replaceAll('Hydration ', ''), // 'History'
           ),
           NavigationDestination(
             icon: Icon(Symbols.settings),
-            selectedIcon: Icon(Symbols.settings),
-            label: 'Settings',
+            selectedIcon: Icon(Symbols.settings, fill: 1),
+            label: AppStrings.settingsTitle,
           ),
         ],
       ),

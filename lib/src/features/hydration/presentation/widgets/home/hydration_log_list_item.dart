@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
@@ -11,6 +12,8 @@ import 'package:minum/src/navigation/app_routes.dart';
 /// A list tile widget that displays a single hydration entry.
 ///
 /// This widget is dismissible to allow for swipe-to-delete functionality.
+/// A confirmation via [confirmDismiss] is shown with an undo option to
+/// prevent accidental data loss.
 class HydrationLogListItem extends StatelessWidget {
   /// The hydration entry to display.
   final HydrationEntry entry;
@@ -44,15 +47,15 @@ class HydrationLogListItem extends StatelessWidget {
   }
 
   String _getSourceLabel() {
-    if (entry.source == null) return "Manual Entry";
-    if (entry.source!.startsWith('quick_add')) return "Quick Add";
+    if (entry.source == null) return AppStrings.manualEntry;
+    if (entry.source!.startsWith('quick_add')) return AppStrings.quickAdd;
     if (entry.source!.contains('google_fit')) {
-      return "Google Fit";
+      return AppStrings.googleFit;
     }
     if (entry.source!.contains('health_connect')) {
-      return "Health Connect";
+      return AppStrings.healthConnect;
     }
-    return "Manual Entry"; // Default
+    return AppStrings.manualEntry; // Default
   }
 
   @override
@@ -66,8 +69,35 @@ class HydrationLogListItem extends StatelessWidget {
       key: Key(entry.id ??
           DateTime.now().toIso8601String() + entry.amountMl.toString()),
       direction: DismissDirection.endToStart,
-      onDismissed: (direction) {
-        onDismissed?.call();
+      confirmDismiss: (direction) async {
+        // Show a snackbar with undo option and wait for result
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
+        scaffoldMessenger.hideCurrentSnackBar();
+
+        bool dismissed = true;
+        scaffoldMessenger
+            .showSnackBar(
+              SnackBar(
+                content: const Text(AppStrings.entryDeleted),
+                action: SnackBarAction(
+                  label: AppStrings.undo,
+                  onPressed: () {
+                    dismissed = false;
+                  },
+                ),
+                duration: const Duration(seconds: 3),
+              ),
+            )
+            .closed
+            .then((reason) {
+          if (dismissed && reason != SnackBarClosedReason.action) {
+            onDismissed?.call();
+          }
+        });
+
+        // Return false to keep the item in the list; actual deletion happens
+        // after the snackbar closes (unless undone).
+        return false;
       },
       background: Container(
         color: theme.colorScheme.errorContainer,

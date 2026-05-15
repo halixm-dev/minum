@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/core/utils/app_utils.dart';
 
@@ -46,7 +47,7 @@ class DailyProgressCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Your Daily Goal',
+              AppStrings.yourDailyGoal,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -88,7 +89,7 @@ class DailyProgressCard extends StatelessWidget {
                       size: 28.sp) // Adjusted size
                 else
                   Text(
-                    '${AppUtils.formatAmount(remainingInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString left',
+                    '${AppUtils.formatAmount(remainingInPreferredUnit, decimalDigits: unit == MeasurementUnit.oz ? 1 : 0)} $_unitString ${AppStrings.left}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -96,19 +97,22 @@ class DailyProgressCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: 16.h),
-            LinearProgressIndicator(
-              value: progress,
-              minHeight: 8.h,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-              borderRadius: BorderRadius.circular(4.r),
+            Semantics(
+              label: '${AppStrings.dailyGoal}: ${(progress * 100).toStringAsFixed(0)}% ${AppStrings.completed}',
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8.h,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                borderRadius: BorderRadius.circular(4.r),
+              ),
             ),
             SizedBox(height: 8.h),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                '${(progress * 100).toStringAsFixed(0)}% completed',
+                '${(progress * 100).toStringAsFixed(0)}% ${AppStrings.completed}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

@@ -178,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bool granted = await healthService.requestPermissions();
       if (!granted) {
         if (mounted) {
-          AppUtils.showSnackBar(context, "Google Fit permissions denied.",
+          AppUtils.showSnackBar(context, AppStrings.googleFitPermissionsDenied,
               isError: true);
         }
         return;
@@ -193,9 +193,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     if (value) {
-      AppUtils.showSnackBar(context, "Google Fit Sync enabled!");
+      AppUtils.showSnackBar(context, AppStrings.googleFitEnabled);
     } else {
-      AppUtils.showSnackBar(context, "Google Fit Sync disabled.");
+      AppUtils.showSnackBar(context, AppStrings.googleFitDisabled);
     }
   }
 
@@ -214,7 +214,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         "Reminder settings saved: Enabled: $_enableReminders, Interval: $_selectedIntervalHours hrs, Start: $_selectedStartTime, End: $_selectedEndTime");
 
     if (showSuccessSnackBar && currentContext.mounted) {
-      AppUtils.showSnackBar(currentContext, "Reminder settings saved!");
+      AppUtils.showSnackBar(currentContext, AppStrings.reminderSettingsSaved);
     }
 
     if (mounted) {
@@ -244,8 +244,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       initialTime: initialTime,
       helpText: isStartTime
-          ? "Select Reminder Start Time"
-          : "Select Reminder End Time",
+          ? AppStrings.selectReminderStartTime
+          : AppStrings.selectReminderEndTime,
     );
 
     if (!context.mounted || picked == null) return;
@@ -257,7 +257,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         isValidSelection = true;
       } else {
         AppUtils.showSnackBar(context,
-            "Start time must be before end time for a same-day schedule.",
+            AppStrings.startTimeBeforeEndTime,
             isError: true);
       }
     } else {
@@ -266,7 +266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         isValidSelection = true;
       } else {
         AppUtils.showSnackBar(context,
-            "End time must be after start time for a same-day schedule.",
+            AppStrings.endTimeAfterStartTime,
             isError: true);
       }
     }
@@ -386,7 +386,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   if (!screenContext.mounted) return;
                   AppUtils.showSnackBar(
-                      screenContext, "Measurement unit updated!");
+                      screenContext, AppStrings.measurementUnitUpdated);
                 },
               ),
             ],
@@ -408,7 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(
-              "Edit Favorite Volumes (${currentUser?.preferredUnit.displayName ?? AppStrings.ml})"),
+              AppStrings.editFavoriteVolumesTitle(currentUser?.preferredUnit.displayName ?? AppStrings.ml)),
           content: EditFavoriteVolumesDialogContent(
               currentUser: currentUser,
               userBloc: screenContext.read<UserBloc>()),
@@ -417,7 +417,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ).then((saved) {
       if (saved == true) {
         if (screenContext.mounted) {
-          AppUtils.showSnackBar(screenContext, "Favorite volumes updated!");
+          AppUtils.showSnackBar(screenContext, AppStrings.favoriteVolumesUpdated);
         }
       }
     });
@@ -432,7 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final bool? confirmed = await AppUtils.showConfirmationDialog(
       screenContext,
       title: AppStrings.logout,
-      content: 'Are you sure you want to log out?',
+      content: AppStrings.logoutConfirmation,
       confirmText: AppStrings.logout,
     );
 
@@ -449,34 +449,157 @@ class _SettingsScreenState extends State<SettingsScreen> {
         .pushNamed(AppRoutes.login, arguments: AppRoutes.settings);
   }
 
-  /// Shows a time picker for selecting the reminder interval.
+  /// Shows a proper duration picker dialog for selecting the reminder interval.
   Future<void> _showIntervalPicker(BuildContext context) async {
-    logger.d(
-        "SettingsScreen: _showIntervalPicker called (TimePicker M3 version)");
+    logger.d("SettingsScreen: _showIntervalPicker called (Duration Picker)");
 
     int currentTotalMinutes = (_selectedIntervalHours * 60).round();
-    int initialPickerHours = currentTotalMinutes ~/ 60;
-    int initialPickerMinutes = currentTotalMinutes % 60;
+    int selectedHours = currentTotalMinutes ~/ 60;
+    int selectedMinutes = currentTotalMinutes % 60;
 
-    if (initialPickerHours > 12) initialPickerHours = 12;
-
-    final TimeOfDay? picked = await showTimePicker(
+    final result = await showDialog<Duration>(
       context: context,
-      initialTime:
-          TimeOfDay(hour: initialPickerHours, minute: initialPickerMinutes),
-      helpText: "SELECT INTERVAL DURATION",
-      initialEntryMode: TimePickerEntryMode.input,
-      builder: (BuildContext context, Widget? child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-          child: child!,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (stfContext, setDialogState) {
+            return AlertDialog(
+              title: const Text(AppStrings.selectIntervalDuration),
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Hours spinner
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(AppStrings.hours,
+                          style: Theme.of(stfContext).textTheme.labelMedium),
+                      SizedBox(height: 8.h),
+                      SizedBox(
+                        width: 80.w,
+                        height: 150.h,
+                        child: ListWheelScrollView.useDelegate(
+                          controller: FixedExtentScrollController(
+                              initialItem: selectedHours),
+                          itemExtent: 40.h,
+                          physics: const FixedExtentScrollPhysics(),
+                          perspective: 0.005,
+                          onSelectedItemChanged: (index) {
+                            setDialogState(() => selectedHours = index);
+                          },
+                          childDelegate: ListWheelChildBuilderDelegate(
+                            builder: (context, index) {
+                              if (index < 0 || index > 12) return null;
+                              return Center(
+                                child: Text(
+                                  '$index',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        color: index == selectedHours
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                        fontWeight: index == selectedHours
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                ),
+                              );
+                            },
+                            childCount: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: Text(':',
+                        style:
+                            Theme.of(stfContext).textTheme.headlineMedium),
+                  ),
+                  // Minutes spinner
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(AppStrings.minutes,
+                          style: Theme.of(stfContext).textTheme.labelMedium),
+                      SizedBox(height: 8.h),
+                      SizedBox(
+                        width: 80.w,
+                        height: 150.h,
+                        child: ListWheelScrollView.useDelegate(
+                          controller: FixedExtentScrollController(
+                              initialItem: selectedMinutes ~/ 15),
+                          itemExtent: 40.h,
+                          physics: const FixedExtentScrollPhysics(),
+                          perspective: 0.005,
+                          onSelectedItemChanged: (index) {
+                            setDialogState(
+                                () => selectedMinutes = index * 15);
+                          },
+                          childDelegate: ListWheelChildBuilderDelegate(
+                            builder: (context, index) {
+                              if (index < 0 || index > 3) return null;
+                              final val = index * 15;
+                              return Center(
+                                child: Text(
+                                  val.toString().padLeft(2, '0'),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        color: val == selectedMinutes
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                        fontWeight: val == selectedMinutes
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                ),
+                              );
+                            },
+                            childCount: 4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text(AppStrings.cancel),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(
+                      Duration(
+                          hours: selectedHours, minutes: selectedMinutes),
+                    );
+                  },
+                  child: const Text(AppStrings.save),
+                ),
+              ],
+            );
+          },
         );
       },
     );
 
-    if (!mounted || picked == null) return;
+    if (!mounted || result == null) return;
 
-    double newIntervalHours = picked.hour + (picked.minute / 60.0);
+    double newIntervalHours =
+        result.inHours + (result.inMinutes.remainder(60) / 60.0);
 
     bool adjustedToMinimum = false;
     if (newIntervalHours < 0.25) {
@@ -491,45 +614,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (adjustedToMinimum) {
       if (context.mounted) {
-        AppUtils.showSnackBar(
-            context, "Minimum reminder interval is 15 minutes. Setting to 15m.",
+        AppUtils.showSnackBar(context, AppStrings.minimumIntervalMessage,
             isError: false);
       }
     }
   }
 
-  /// Sends a test notification to the user.
-  void _sendTestNotification() {
-    if (!mounted) return;
-
-    final notificationService =
-        Provider.of<NotificationService>(context, listen: false);
-    final userState = context.read<UserBloc>().state;
-    final userProfile = userState is UserLoaded ? userState.user : null;
-
-    List<String> favoriteVolumes;
-    if (userProfile != null && userProfile.favoriteIntakeVolumes.isNotEmpty) {
-      favoriteVolumes = userProfile.favoriteIntakeVolumes;
-    } else {
-      favoriteVolumes = ['100', '250', '500'];
-      logger.i(
-          "Test notification: Using default favorite volumes as user profile/volumes are not set.");
-    }
-
-    notificationService.showSimpleNotification(
-      id: 99,
-      title: AppStrings.reminderTitle,
-      body: "Time for some water! Stay hydrated.",
-      favoriteVolumesMl: favoriteVolumes,
-      payload: {'type': 'hydration_reminder_test'},
-    );
-
-    AppUtils.showSnackBar(
-        context, "Test notification sent with favorite volumes!");
-
-    logger.i(
-        "Test notification sent from settings screen with volumes: $favoriteVolumes.");
-  }
+  // Test notification method removed from production build.
 
   @override
   Widget build(BuildContext context) {
@@ -564,10 +655,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle("Integrations", theme),
+        _buildSectionTitle(AppStrings.integrations, theme),
         SwitchListTile(
-          title: const Text("Google Fit Sync"),
-          subtitle: const Text("Sync water intake data"),
+          title: const Text(AppStrings.googleFitSync),
+          subtitle: const Text(AppStrings.syncWaterIntakeData),
           value: _healthConnectEnabled,
           onChanged: _toggleHealthConnect,
           secondary: Icon(Symbols.ecg_heart,
@@ -595,7 +686,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context: context,
           icon: Symbols.person,
           title: AppStrings.profile,
-          subtitle: "Manage your personal details",
+          subtitle: AppStrings.managePersonalDetails,
           onTap: () {
             if (!context.mounted) return;
             Navigator.of(context).pushNamed(AppRoutes.profile);
@@ -627,8 +718,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _buildSettingsTile(
           context: context,
           icon: Symbols.favorite,
-          title: "Favorite Volumes",
-          subtitle: "Customize quick add buttons",
+          title: AppStrings.favoriteVolumes,
+          subtitle: AppStrings.customizeQuickAdd,
           onTap: () => _showEditFavoriteVolumesDialog(context, currentUser),
         ),
       ],
@@ -678,12 +769,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: _selectedEndTime.format(context),
             onTap: () => _selectTime(context, false),
           ),
-          ListTile(
-            leading: Icon(Symbols.notification_important,
-                color: theme.colorScheme.onSurfaceVariant),
-            title: const Text("Send Test Notification"),
-            onTap: _sendTestNotification,
-          ),
+          // "Send Test Notification" removed from production UI.
         ],
       ],
     );
@@ -713,7 +799,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           leading:
               Icon(Symbols.info, color: theme.colorScheme.onSurfaceVariant),
-          title: const Text("App Version"),
+          title: const Text(AppStrings.appVersion),
           subtitle: Text(_appVersion),
         ),
       ],
@@ -754,16 +840,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Formats the interval hours into a readable string.
   String _formatInterval(double hours) {
     if (hours < 1.0) {
-      int minutes = (hours * 60).round();
-      return "$minutes minutes";
+      int mins = (hours * 60).round();
+      return "$mins ${AppStrings.minutes}";
     } else {
       // Handle cases like 1.5 hours
       if (hours % 1 == 0) {
-        return "${hours.toInt()} hour${hours.toInt() > 1 ? 's' : ''}";
+        return "${hours.toInt()} ${hours.toInt() > 1 ? AppStrings.hours : AppStrings.hour}";
       } else {
         int h = hours.floor();
         int m = ((hours - h) * 60).round();
-        return "$h hr $m min";
+        return "$h ${AppStrings.hrAbbr} $m ${AppStrings.minAbbr}";
       }
     }
   }

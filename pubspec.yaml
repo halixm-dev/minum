@@ -74,6 +74,7 @@ dependencies:
   flex_color_picker: ^3.8.0
   flutter_bloc: ^9.1.1
   get_it: ^9.2.1
+  shimmer: ^3.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

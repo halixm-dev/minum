@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -175,7 +176,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
           SizedBox(width: 12.w),
           Expanded(
             child: Text(
-              "You have local data. Log in to sync and backup your history!",
+              AppStrings.loginToSyncPrompt,
               style: theme.textTheme.bodyMedium
                   ?.copyWith(color: theme.colorScheme.onTertiaryContainer),
             ),
@@ -186,7 +187,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               Navigator.of(context)
                   .pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
             },
-            child: Text("Login",
+            child: Text(AppStrings.login,
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary)),
@@ -216,8 +217,8 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
             SizedBox(height: 8.h),
             Text(
               isLoggedIn
-                  ? 'No hydration logs found for the selected period.'
-                  : 'Log some water to see your history here. Log in to sync across devices!',
+                  ? AppStrings.noLoggedInHistory
+                  : AppStrings.noLoggedOutHistory,
               style: theme.textTheme.bodyMedium
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
@@ -227,7 +228,7 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
               FilledButton(
                 onPressed: () =>
                     Navigator.of(context).pushNamed(AppRoutes.login),
-                child: const Text("Login to Sync"),
+                child: const Text(AppStrings.loginToSync),
               )
           ],
         ),
@@ -256,9 +257,49 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
                 _buildLoginToSyncPrompt(context, theme),
               Expanded(
                 child: state.isLoading && state.historyEntries.isEmpty
-                    ? Center(
-                        child: CircularProgressIndicator(
-                            color: theme.colorScheme.primary))
+                    ? Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: Shimmer.fromColors(
+                          baseColor: theme.colorScheme.surfaceContainerHighest,
+                          highlightColor: theme.colorScheme.surface,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 20.h),
+                              Card(
+                                child: SizedBox(
+                                  height: 250.h,
+                                  width: double.infinity,
+                                ),
+                              ),
+                              SizedBox(height: 32.h),
+                              Container(
+                                height: 24.h,
+                                width: 150.w,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(4.r),
+                                ),
+                              ),
+                              SizedBox(height: 16.h),
+                              Expanded(
+                                child: ListView.builder(
+                                  itemCount: 4,
+                                  itemBuilder: (context, index) => Padding(
+                                    padding: EdgeInsets.only(bottom: 8.h),
+                                    child: Card(
+                                      child: SizedBox(
+                                        height: 60.h,
+                                        width: double.infinity,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
                     : (state.historyEntries.isEmpty)
                         ? _buildEmptyState(isLoggedIn, theme)
                         : CustomScrollView(
@@ -275,8 +316,8 @@ class _HydrationHistoryScreenState extends State<HydrationHistoryScreen> {
                                       16.w, 20.h, 16.w, 12.h),
                                   child: Text(
                                     state.viewType == HistoryViewType.weekly
-                                        ? 'Daily Totals'
-                                        : 'Weekly Totals',
+                                        ? AppStrings.dailyTotals
+                                        : AppStrings.weeklyTotals,
                                     style: theme.textTheme.titleLarge?.copyWith(
                                         color: theme.colorScheme.onSurface),
                                   ),

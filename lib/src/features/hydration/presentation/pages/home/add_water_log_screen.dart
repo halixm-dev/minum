@@ -145,7 +145,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
     if (amountMl <= 0) {
       if (mounted) {
-        AppUtils.showSnackBar(context, "Please enter a valid amount.",
+        AppUtils.showSnackBar(context, AppStrings.pleaseEnterValidAmount,
             isError: true);
       }
       return;
@@ -153,7 +153,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
     if (mounted) {
       AppUtils.showLoadingDialog(context,
-          message: _isEditMode ? "Updating log..." : "Logging water...");
+          message: _isEditMode ? AppStrings.updatingLog : AppStrings.loggingWater);
     }
 
     try {
@@ -188,8 +188,8 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
     final confirmed = await AppUtils.showConfirmationDialog(
       context,
-      title: "Delete Log",
-      content: "Are you sure you want to delete this log entry?",
+      title: AppStrings.deleteLog,
+      content: AppStrings.deleteLogConfirmation,
       confirmText: "Delete",
     );
 
@@ -199,7 +199,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
     if (!mounted) return;
 
-    AppUtils.showLoadingDialog(context, message: "Deleting log...");
+    AppUtils.showLoadingDialog(context, message: AppStrings.deletingLog);
 
     try {
       hydrationBloc.add(DeleteHydrationEntryEvent(widget.entryToEdit!));
@@ -249,12 +249,12 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditMode ? "Edit Water Log" : AppStrings.logWaterTitle),
+        title: Text(_isEditMode ? AppStrings.editWaterLog : AppStrings.logWaterTitle),
         actions: [
           if (_isEditMode)
             IconButton(
               icon: Icon(Symbols.delete, color: theme.colorScheme.error),
-              tooltip: "Delete Log",
+              tooltip: AppStrings.deleteLog,
               onPressed: _deleteLog,
             ),
         ],
@@ -266,7 +266,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Amount ($_unitString)',
+              Text('${AppStrings.amount} ($_unitString)',
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
@@ -274,7 +274,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 controller: _amountController,
                 decoration: InputDecoration(
                   labelText: AppStrings.enterAmount,
-                  hintText: 'e.g., 250 or 8',
+                  hintText: AppStrings.amountHint,
                   prefixIcon: Icon(Symbols.water_full_rounded),
                 ),
                 keyboardType:
@@ -291,21 +291,21 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                 controller: _dateTimeController,
                 readOnly: true,
                 decoration: InputDecoration(
-                  labelText: 'Date & Time', // Label integrated here
+                  labelText: AppStrings.dateAndTime, // Label integrated here
                   prefixIcon: Icon(Symbols.edit_calendar),
                 ),
                 onTap: _selectDateTime,
               ),
               SizedBox(height: 20.h),
-              Text('Notes (Optional)',
+              Text(AppStrings.notesOptional,
                   style: theme.textTheme.labelLarge
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               SizedBox(height: 8.h),
               TextFormField(
                 controller: _notesController,
                 decoration: const InputDecoration(
-                  labelText: 'Add a note',
-                  hintText: 'e.g., After workout',
+                  labelText: AppStrings.addANote,
+                  hintText: AppStrings.notesHint,
                 ),
                 maxLines: 3,
                 minLines: 1,
@@ -327,7 +327,7 @@ class _AddWaterLogScreenState extends State<AddWaterLogScreen> {
                             strokeWidth: 2.5,
                             color: theme.colorScheme.onPrimary))
                     : Text(
-                        _isEditMode ? "Update Log" : AppStrings.logWaterTitle),
+                        _isEditMode ? AppStrings.updateLog : AppStrings.logWaterTitle),
               ),
             ],
           ),

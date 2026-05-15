@@ -360,4 +360,236 @@ class AppStrings {
 
   /// Label for calories burned data (conceptual).
   static const String caloriesBurned = "Calories Burned";
+
+  // --- Home / Hydration View ---
+  /// Label for the next reminder card.
+  static const String nextReminder = "Next Reminder:";
+
+  /// Title for today's log section.
+  static const String todaysLog = "Today's Log";
+
+  /// Title prefix for a log on a specific date.
+  static const String logFor = "Log for";
+
+  /// Message when no water has been logged.
+  static const String noWaterLoggedYet = "No water logged yet for today.";
+
+  /// Hint to tap the (+) button to add a drink.
+  static const String tapToAddFirstDrink =
+      "Tap the (+) button to add your first drink!";
+
+  /// Loading message for user data.
+  static const String loadingUserData = "Loading user data...";
+
+  /// Label for "Your Daily Goal" on progress card.
+  static const String yourDailyGoal = "Your Daily Goal";
+
+  /// Suffix for "left" (e.g., "500 mL left").
+  static const String left = "left";
+
+  /// Suffix for "completed" percentage (e.g., "75% completed").
+  static const String completed = "completed";
+
+  /// Text for "added!" snackbar (e.g., "250 mL added!").
+  static const String added = "added!";
+
+  // --- Hydration Entry Sources ---
+  /// Label for a manual entry source.
+  static const String manualEntry = "Manual Entry";
+
+  /// Label for a Google Fit source.
+  static const String googleFit = "Google Fit";
+
+  /// Label for a Health Connect source.
+  static const String healthConnect = "Health Connect";
+
+  // --- History Screen ---
+  /// Label for "Daily Totals" section heading.
+  static const String dailyTotals = "Daily Totals";
+
+  /// Label for "Weekly Totals" section heading.
+  static const String weeklyTotals = "Weekly Totals";
+
+  /// Message shown when not enough data to plot.
+  static const String notEnoughData =
+      "Not enough data to plot for this period.";
+
+  /// Label for login to sync prompt.
+  static const String loginToSync = "Login to Sync";
+
+  /// Prompt text for syncing data after login.
+  static const String loginToSyncPrompt =
+      "You have local data. Log in to sync and backup your history!";
+
+  /// Prompt for logged out empty state.
+  static const String noLoggedOutHistory =
+      "Log some water to see your history here. Log in to sync across devices!";
+
+  /// Prompt for logged in empty state.
+  static const String noLoggedInHistory =
+      "No hydration logs found for the selected period.";
+
+  // --- Settings Screen ---
+  /// Section title for integrations.
+  static const String integrations = "Integrations";
+
+  /// Label for Google Fit Sync toggle.
+  static const String googleFitSync = "Google Fit Sync";
+
+  /// Subtitle for Google Fit Sync toggle.
+  static const String syncWaterIntakeData = "Sync water intake data";
+
+  /// Label for favorite volumes setting.
+  static const String favoriteVolumes = "Favorite Volumes";
+
+  /// Subtitle for favorite volumes setting.
+  static const String customizeQuickAdd = "Customize quick add buttons";
+
+  /// Subtitle for profile setting.
+  static const String managePersonalDetails = "Manage your personal details";
+
+  /// Snackbar message after saving reminder settings.
+  static const String reminderSettingsSaved = "Reminder settings saved!";
+
+  /// Snackbar message after updating measurement unit.
+  static const String measurementUnitUpdated = "Measurement unit updated!";
+
+  /// Snackbar message after updating favorite volumes.
+  static const String favoriteVolumesUpdated = "Favorite volumes updated!";
+
+  /// Snackbar message for Google Fit enabled.
+  static const String googleFitEnabled = "Google Fit Sync enabled!";
+
+  /// Snackbar message for Google Fit disabled.
+  static const String googleFitDisabled = "Google Fit Sync disabled.";
+
+  /// Snackbar message for Google Fit permissions denied.
+  static const String googleFitPermissionsDenied =
+      "Google Fit permissions denied.";
+
+  /// Snackbar message for minimum interval.
+  static const String minimumIntervalMessage =
+      "Minimum reminder interval is 15 minutes. Setting to 15m.";
+
+  /// Help text for selecting reminder start time.
+  static const String selectReminderStartTime = "Select Reminder Start Time";
+
+  /// Help text for selecting reminder end time.
+  static const String selectReminderEndTime = "Select Reminder End Time";
+
+  /// Error for start time before end time.
+  static const String startTimeBeforeEndTime =
+      "Start time must be before end time for a same-day schedule.";
+
+  /// Error for end time after start time.
+  static const String endTimeAfterStartTime =
+      "End time must be after start time for a same-day schedule.";
+
+  /// Title for select interval duration dialog.
+  static const String selectIntervalDuration = "Select Reminder Interval";
+
+  /// Label for minutes unit.
+  static const String minutes = "minutes";
+
+  /// Label for hour(s) unit.
+  static const String hour = "hour";
+
+  /// Label for hours unit.
+  static const String hours = "hours";
+
+  /// Label for hour abbreviation.
+  static const String hrAbbr = "hr";
+
+  /// Label for minute abbreviation.
+  static const String minAbbr = "min";
+
+  // --- Add/Edit Water Log Screen ---
+  /// Title for editing a water log.
+  static const String editWaterLog = "Edit Water Log";
+
+  /// Tooltip for deleting a log entry.
+  static const String deleteLog = "Delete Log";
+
+  /// Label for amount field.
+  static const String amount = "Amount";
+
+  /// Label for date & time field.
+  static const String dateAndTime = "Date & Time";
+
+  /// Label for notes field.
+  static const String notesOptional = "Notes (Optional)";
+
+  /// Placeholder for notes input.
+  static const String addANote = "Add a note";
+
+  /// Hint text for notes.
+  static const String notesHint = "e.g., After workout";
+
+  /// Button text for updating a log.
+  static const String updateLog = "Update Log";
+
+  /// Loading message for logging water.
+  static const String loggingWater = "Logging water...";
+
+  /// Loading message for updating a log.
+  static const String updatingLog = "Updating log...";
+
+  /// Loading message for deleting a log.
+  static const String deletingLog = "Deleting log...";
+
+  /// Confirmation message for deleting a log.
+  static const String deleteLogConfirmation =
+      "Are you sure you want to delete this log entry?";
+
+  /// Error message for invalid amount.
+  static const String pleaseEnterValidAmount = "Please enter a valid amount.";
+
+  /// Amount hint text (e.g., "e.g., 250 or 8").
+  static const String amountHint = "e.g., 250 or 8";
+
+  // --- Welcome / Login Screen ---
+  /// Subtitle for the welcome screen.
+  static const String personalHydrationCompanion =
+      "Your personal hydration companion.";
+
+  /// Button text to start now (guest mode).
+  static const String startNow = "Start Now";
+
+  /// Subtitle for the login screen.
+  static const String stayHydratedEffortlessly =
+      "Stay hydrated, effortlessly.";
+
+  /// Text for skip login button.
+  static const String skipLoginForNow = "Skip login for now";
+
+  /// Hint about logging in later.
+  static const String loginLaterHint =
+      "You can log in later from settings to sync your data.";
+
+  /// Guest mode limitations disclaimer.
+  static const String guestModeLimitations =
+      "Guest mode: Data is stored locally only and won't sync across devices.";
+
+  // --- Swipe Delete ---
+  /// Message shown after deleting an entry (with undo).
+  static const String entryDeleted = "Entry deleted";
+
+  /// Label for the undo action.
+  static const String undo = "Undo";
+
+  // --- Logout ---
+  /// Confirmation message for logging out.
+  static const String logoutConfirmation =
+      "Are you sure you want to log out?";
+
+  /// Tooltip for FAB on home.
+  static const String logWaterIntakeTooltip = "Log Water Intake";
+
+  // --- Formats ---
+  /// Format label for "Week N" (used in charts).
+  static String weekNumber(int n) => "Week $n";
+
+  /// Format label for "Edit Favorite Volumes (unit)".
+  static String editFavoriteVolumesTitle(String unitName) =>
+      "Edit Favorite Volumes ($unitName)";
 }

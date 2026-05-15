@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
@@ -82,7 +83,10 @@ class _MainHydrationViewState extends State<MainHydrationView>
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+                child: CircularProgressIndicator.adaptive(
+                  strokeWidth: 2,
+                  semanticsLabel: AppStrings.loading,
+                ),
               ),
             ),
           );
@@ -116,7 +120,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
                       ),
                       SizedBox(width: 12.w),
                       Text(
-                        "Next Reminder:",
+                        AppStrings.nextReminder,
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const Spacer(),
@@ -136,6 +140,19 @@ class _MainHydrationViewState extends State<MainHydrationView>
         return const SizedBox.shrink();
       },
     );
+  }
+
+  /// Shows a date picker and navigates to the selected date.
+  Future<void> _pickDate(BuildContext context, DateTime currentDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && context.mounted) {
+      context.read<HydrationBloc>().add(SelectDate(picked));
+    }
   }
 
   @override
@@ -245,9 +262,24 @@ class _MainHydrationViewState extends State<MainHydrationView>
                 );
           },
         ),
-        Text(
-          DateFormat('EEEE, MMM d').format(hydrationState.selectedDate),
-          style: Theme.of(context).textTheme.titleLarge,
+        // Tappable date header — opens a date picker for quick navigation
+        GestureDetector(
+          onTap: () => _pickDate(context, hydrationState.selectedDate),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                DateFormat('EEEE, MMM d').format(hydrationState.selectedDate),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(width: 4.w),
+              Icon(
+                Symbols.calendar_today,
+                size: 18.sp,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
         IconButton(
           icon: Icon(Symbols.chevron_right, size: 28.sp),
@@ -292,21 +324,13 @@ class _MainHydrationViewState extends State<MainHydrationView>
         unit: currentUser.preferredUnit,
       );
     } else {
-      return Card(
-        child: SizedBox(
-          height: 150.h,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator.adaptive(),
-                SizedBox(height: 16.h),
-                Text(
-                  "Loading user data...",
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
+      return Shimmer.fromColors(
+        baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        highlightColor: Theme.of(context).colorScheme.surface,
+        child: Card(
+          child: SizedBox(
+            height: 150.h,
+            width: double.infinity,
           ),
         ),
       );
@@ -334,7 +358,7 @@ class _MainHydrationViewState extends State<MainHydrationView>
               );
           AppUtils.showSnackBar(
             context,
-            "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} added!",
+            "${AppUtils.formatAmount(AppUtils.convertToPreferredUnit(volumeMl, currentUser.preferredUnit), decimalDigits: currentUser.preferredUnit == MeasurementUnit.oz ? 1 : 0)} ${currentUser.preferredUnitString} ${AppStrings.added}",
           );
         },
       );
@@ -353,8 +377,8 @@ class _MainHydrationViewState extends State<MainHydrationView>
         padding: EdgeInsets.only(bottom: 8.h, left: 4.w, top: 8.h),
         child: Text(
           DateUtils.isSameDay(hydrationState.selectedDate, DateTime.now())
-              ? "Today's Log"
-              : "Log for ${DateFormat.MMMd().format(hydrationState.selectedDate)}",
+              ? AppStrings.todaysLog
+              : "${AppStrings.logFor} ${DateFormat.MMMd().format(hydrationState.selectedDate)}",
           style: Theme.of(context).textTheme.titleLarge,
         ),
       );
@@ -371,8 +395,23 @@ class _MainHydrationViewState extends State<MainHydrationView>
 
     if (hydrationState.logStatus == HydrationLogStatus.loading &&
         todaysEntries.isEmpty) {
-      return const SliverToBoxAdapter(
-        child: Center(child: CircularProgressIndicator()),
+      return SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+            child: Shimmer.fromColors(
+              baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              highlightColor: Theme.of(context).colorScheme.surface,
+              child: Card(
+                child: SizedBox(
+                  height: 70.h,
+                  width: double.infinity,
+                ),
+              ),
+            ),
+          ),
+          childCount: 3,
+        ),
       );
     }
     if (hydrationState.logStatus == HydrationLogStatus.error) {
@@ -399,14 +438,14 @@ class _MainHydrationViewState extends State<MainHydrationView>
                 ),
                 SizedBox(height: 16.h),
                 Text(
-                  'No water logged yet for today.',
+                  AppStrings.noWaterLoggedYet,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'Tap the (+) button to add your first drink!',
+                  AppStrings.tapToAddFirstDrink,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
