@@ -1,12 +1,11 @@
 # Minum - Smart Water Reminder App 💧
 
-![CI](https://github.com/halixm/minum/actions/workflows/main.yml/badge.svg)
 ![Flutter Version](https://img.shields.io/badge/Flutter-%E2%89%A53.5.0-blue)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 Stay hydrated and on track with Minum, your smart water reminder app! Sync with your Google Account, Google Fit, and Health Connect to automatically calculate your ideal intake using weather, calories burned, and weight data. Manually or automatically set targets, log and manage your water intake, track daily progress, and view long-term hydration trends.
 
-> **🤖 Note for Developers & AI Agents**: Start with [AGENTS.md](AGENTS.md) for project architecture, coding standards, and domain guides.
+> **🤖 Note for Developers & AI Agents**: Start with [AGENTS.md](./agents/AGENTS.md) for project architecture, coding standards, and domain guides.
 
 ## ✨ Features
 
@@ -26,7 +25,7 @@ Stay hydrated and on track with Minum, your smart water reminder app! Sync with 
 - **Local Storage:** `sqflite`, `shared_preferences`
 - **Architecture:** Feature-first modules with BLoC and Repository pattern
 
-*For a full architectural overview, see [AGENTS.md](AGENTS.md).*
+*For a full architectural overview, see [AGENTS.md](./agents/AGENTS.md).*
 
 ## 🚀 Getting Started
 

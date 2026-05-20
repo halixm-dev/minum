@@ -188,7 +188,7 @@ env {
 To automate the entire migration:
 
 ```bash
-./.agent/skills/gcp-migration/scripts/migrate-gcp-project.sh \
+./.agents/skills/gcp-migration/scripts/migrate-gcp-project.sh \
   --old-project OLD_PROJECT \
   --new-project NEW_PROJECT \
   --old-region OLD_REGION \
