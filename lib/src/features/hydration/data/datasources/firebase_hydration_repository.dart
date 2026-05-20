@@ -5,7 +5,7 @@ import 'package:minum/src/features/hydration/data/repositories/hydration_reposit
 import 'package:minum/src/core/utils/logger.dart';
 
 /// A concrete implementation of [HydrationRepository] using Cloud Firestore.
-class FirebaseHydrationDataSource implements HydrationRepository {
+class FirebaseHydrationRepository implements HydrationRepository {
   final FirebaseFirestore _firestore;
   static const String _usersCollection = 'users';
   static const String _hydrationEntriesSubcollection = 'hydrationEntries';
@@ -13,7 +13,7 @@ class FirebaseHydrationDataSource implements HydrationRepository {
   /// Creates a `FirebaseHydrationRepository` instance.
   ///
   /// If [firestore] is not provided, a default instance will be used.
-  FirebaseHydrationDataSource({FirebaseFirestore? firestore})
+  FirebaseHydrationRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// A helper method to get a reference to the `hydrationEntries` subcollection

@@ -1,29 +1,32 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart' show DateUtils;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/src/core/utils/logger.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
-import 'package:minum/src/features/user/data/models/user_model.dart';
-import 'package:minum/src/services/auth_service.dart';
+import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/src/services/notification_service.dart'
-    show prefsPendingWaterAdditionMl;
+import 'package:minum/src/services/prefs/i_prefs_service.dart';
+import 'package:minum/src/core/utils/user_id_resolver.dart';
 import 'package:minum/src/core/constants/app_constants.dart' show guestUserId;
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_event.dart';
 import 'package:minum/src/features/hydration/presentation/bloc/hydration_state.dart';
 
 class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
   final HydrationService hydrationService;
-  final AuthService authService;
+  final AuthBloc authBloc;
+  final IPrefsService prefsService;
+  final UserIdResolver userIdResolver;
 
   StreamSubscription<List<HydrationEntry>>? _entriesSubscription;
-  StreamSubscription<UserModel?>? _authSubscription;
+  StreamSubscription<AuthState>? _authSubscription;
   String? _currentUserId;
 
   HydrationBloc({
     required this.hydrationService,
-    required this.authService,
+    required this.authBloc,
+    required this.prefsService,
+    required this.userIdResolver,
   }) : super(HydrationState(
           selectedDate: DateTime(
               DateTime.now().year, DateTime.now().month, DateTime.now().day),
@@ -50,9 +53,24 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
   }
 
   void _subscribeToAuthChanges() {
-    _authSubscription =
-        authService.authStateChanges.listen((UserModel? authUser) {
-      final newUserId = authUser?.id;
+    // Handle initial auth state
+    final currentState = authBloc.state;
+    if (currentState is Authenticated) {
+      _currentUserId = currentState.user.id;
+      logger.i("HydrationBloc: Initial auth state - user $_currentUserId.");
+      add(FetchHydrationDataRequested());
+    } else if (currentState is Unauthenticated) {
+      if (guestUserId.isNotEmpty) {
+        _currentUserId = guestUserId;
+        logger.i("HydrationBloc: Initial auth state - guest user.");
+        add(FetchHydrationDataRequested());
+      }
+    }
+
+    // Listen for future changes
+    _authSubscription = authBloc.stream.listen((authState) {
+      final newUserId =
+          authState is Authenticated ? authState.user.id : null;
       if (newUserId != _currentUserId) {
         _currentUserId = newUserId;
         logger
@@ -76,7 +94,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
 
   Future<void> _onFetchHydrationDataRequested(
       FetchHydrationDataRequested event, Emitter<HydrationState> emit) async {
-    final userIdForFetch = _currentUserId ?? guestUserId;
+    final userIdForFetch = userIdResolver.effectiveUserId;
     if (userIdForFetch.isEmpty && userIdForFetch != guestUserId) {
       logger.w(
           "HydrationBloc: Cannot fetch daily entries, no valid user/guest ID.");
@@ -138,7 +156,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
 
   Future<void> _onAddHydrationEntry(
       AddHydrationEntryEvent event, Emitter<HydrationState> emit) async {
-    final userIdForAction = _currentUserId ?? guestUserId;
+    final userIdForAction = userIdResolver.effectiveUserId;
     if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
       logger.w("HydrationBloc: Cannot add entry, no valid user/guest ID.");
       emit(state.copyWith(
@@ -176,7 +194,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
 
   Future<void> _onUpdateHydrationEntry(
       UpdateHydrationEntryEvent event, Emitter<HydrationState> emit) async {
-    final userIdForAction = _currentUserId ?? guestUserId;
+    final userIdForAction = userIdResolver.effectiveUserId;
     if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
       emit(state.copyWith(
           actionStatus: HydrationActionStatus.error,
@@ -207,7 +225,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
 
   Future<void> _onDeleteHydrationEntry(
       DeleteHydrationEntryEvent event, Emitter<HydrationState> emit) async {
-    final userIdForAction = _currentUserId ?? guestUserId;
+    final userIdForAction = userIdResolver.effectiveUserId;
     if (userIdForAction.isEmpty && userIdForAction != guestUserId) {
       emit(state.copyWith(
           actionStatus: HydrationActionStatus.error,
@@ -264,19 +282,18 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
   Future<void> _onProcessPendingWaterAddition(
       ProcessPendingWaterAddition event, Emitter<HydrationState> emit) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final double? pendingAmountMl =
-          prefs.getDouble(prefsPendingWaterAdditionMl);
+          await prefsService.getDouble(IPrefsService.keyPendingWaterAdditionMl);
 
       if (pendingAmountMl != null && pendingAmountMl > 0) {
-        if (_currentUserId == null) {
+        if (!userIdResolver.isUserLoggedIn) {
           await Future.delayed(const Duration(seconds: 2));
-          if (_currentUserId == null) return;
+          if (!userIdResolver.isUserLoggedIn) return;
         }
 
         add(AddHydrationEntryEvent(
             amountMl: pendingAmountMl, source: 'notification_action'));
-        await prefs.remove(prefsPendingWaterAdditionMl);
+        await prefsService.remove(IPrefsService.keyPendingWaterAdditionMl);
       }
     } catch (e) {
       logger.e("HydrationBloc: Error processing pending water addition: $e");
@@ -285,7 +302,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
 
   Future<void> _onSyncHealthDataEvent(
       SyncHealthDataEvent event, Emitter<HydrationState> emit) async {
-    final userIdForAction = _currentUserId ?? guestUserId;
+    final userIdForAction = userIdResolver.effectiveUserId;
     if (userIdForAction.isEmpty || userIdForAction == guestUserId) return;
 
     try {

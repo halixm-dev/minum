@@ -1,10 +1,10 @@
 // lib/src/services/hydration_service.dart
-import 'dart:math' as math; // For math.max and math.min
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
-import 'package:minum/src/services/health_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:minum/src/services/i_health_service.dart';
+import 'package:minum/src/core/calculators/intake_calculator.dart';
+import 'package:minum/src/services/prefs/i_prefs_service.dart';
 import 'package:health/health.dart';
 import 'package:minum/src/core/utils/logger.dart';
 
@@ -15,16 +15,22 @@ import 'package:minum/src/core/utils/logger.dart';
 /// hydration entries, as well as calculating recommended intake.
 class HydrationService {
   final HydrationRepository _hydrationRepository;
-  final HealthService _healthService;
+  final IHealthService _healthService;
+  final IntakeCalculator _intakeCalculator;
+  final IPrefsService _prefsService;
 
   /// Creates a `HydrationService` instance.
   ///
   /// Requires a [hydrationRepository] and [healthService].
   HydrationService({
     required HydrationRepository hydrationRepository,
-    required HealthService healthService,
+    required IHealthService healthService,
+    required IPrefsService prefsService,
+    IntakeCalculator? intakeCalculator,
   })  : _hydrationRepository = hydrationRepository,
-        _healthService = healthService;
+        _healthService = healthService,
+        _prefsService = prefsService,
+        _intakeCalculator = intakeCalculator ?? IntakeCalculator();
 
   /// Adds a new hydration entry.
   Future<void> addHydrationEntry({
@@ -50,9 +56,8 @@ class HydrationService {
 
       // Sync to Health Connect if enabled and not already from Health Connect
       if (source != 'health_connect') {
-        final prefs = await SharedPreferences.getInstance();
         final bool healthConnectEnabled =
-            prefs.getBool('prefs_health_connect_enabled') ?? false;
+            await _prefsService.getBool(IPrefsService.keyHealthConnectEnabled);
 
         if (healthConnectEnabled) {
           // Use the entry's ID (or a generated one if needed) as clientRecordId
@@ -164,143 +169,18 @@ class HydrationService {
     return entries.fold(0.0, (sum, entry) => sum + entry.amountMl);
   }
 
-  /// Calculates the recommended daily water intake for a user based on their profile.
-  ///
-  /// The calculation considers weight, gender, age, activity level, health
-  /// conditions, and weather.
-  /// @return A `Future` that completes with the recommended intake in milliliters.
   Future<double> calculateRecommendedDailyIntake({
     required UserModel user,
   }) async {
     logger.i(
         "Calculating recommended intake for user: ${user.id}, Weight: ${user.weightKg}kg, Gender: ${user.gender}, Age: ${user.age}, Activity: ${user.activityLevel}, Weather: ${user.selectedWeatherCondition}, Health: ${user.healthConditions}");
 
-    // 1. Base Calculation
-    double baseIntakeWeight = 2000.0;
-    if (user.weightKg != null && user.weightKg! > 0) {
-      baseIntakeWeight = user.weightKg! * 33.0;
-    }
-
-    double baseIntakeGender = 2000.0;
-    if (user.gender == Gender.male) {
-      baseIntakeGender = 2500.0;
-    } else if (user.gender == Gender.female) {
-      baseIntakeGender = 2000.0;
-    }
-
-    double finalBaseIntake = math.max(baseIntakeWeight, baseIntakeGender);
-    logger.d(
-        "Base (Weight): ${baseIntakeWeight.toInt()}mL, Base (Gender): ${baseIntakeGender.toInt()}mL, Final Base: ${finalBaseIntake.toInt()}mL");
-
-    double calculatedTotalNeed = finalBaseIntake;
-
-    // 2. Age Adjustment
-    if (user.age != null) {
-      if (user.age! < 30) {
-        calculatedTotalNeed *= 1.05;
-        logger.d("Age < 30 adjustment (+5%): ${calculatedTotalNeed.toInt()}mL");
-      } else if (user.age! > 65) {
-        calculatedTotalNeed *= 1.10;
-        logger
-            .d("Age > 65 adjustment (+10%): ${calculatedTotalNeed.toInt()}mL");
-      }
-    }
-
-    // 3. Activity Level Adjustment
-    double activityAdditiveMl = 0;
-    switch (user.activityLevel) {
-      case ActivityLevel.sedentary:
-        activityAdditiveMl = 0;
-        break;
-      case ActivityLevel.light:
-        activityAdditiveMl = 350;
-        break;
-      case ActivityLevel.moderate:
-        activityAdditiveMl = 700;
-        break;
-      case ActivityLevel.active:
-        activityAdditiveMl = 1050;
-        break;
-      case ActivityLevel.extraActive:
-        activityAdditiveMl = 1400;
-        break;
-      case null:
-        activityAdditiveMl = 0;
-        logger.d("Activity level not set, no additive adjustment.");
-        break;
-    }
-    calculatedTotalNeed += activityAdditiveMl;
-    logger.d(
-        "Activity adjustment: Additive ${activityAdditiveMl.toInt()}mL. Intake after activity: ${calculatedTotalNeed.toInt()}mL");
-
-    // 4. Health Conditions Adjustment
-    if (user.healthConditions != null &&
-        user.healthConditions!.isNotEmpty &&
-        !user.healthConditions!.contains(HealthCondition.none)) {
-      for (var condition in user.healthConditions!) {
-        switch (condition) {
-          case HealthCondition.pregnancy:
-            calculatedTotalNeed *= 1.30;
-            logger.d(
-                "Health (Pregnancy) adjustment (+30%): ${calculatedTotalNeed.toInt()}mL");
-            break;
-          case HealthCondition.breastfeeding:
-            calculatedTotalNeed *= 1.50;
-            logger.d(
-                "Health (Breastfeeding) adjustment (+50%): ${calculatedTotalNeed.toInt()}mL");
-            break;
-          case HealthCondition.kidneyIssues:
-            calculatedTotalNeed *= 0.90;
-            logger.d(
-                "Health (Kidney) adjustment (-10%): ${calculatedTotalNeed.toInt()}mL - Advise Doctor Consultation");
-            break;
-          case HealthCondition.heartConditions:
-            calculatedTotalNeed *= 0.95;
-            logger.d(
-                "Health (Heart) adjustment (-5%): ${calculatedTotalNeed.toInt()}mL - Advise Doctor Consultation");
-            break;
-          case HealthCondition.none:
-            break;
-        }
-      }
-    }
-
-    // 5. Weather Adjustment
-    if (user.selectedWeatherCondition != null) {
-      switch (user.selectedWeatherCondition!) {
-        case WeatherCondition.hot:
-          calculatedTotalNeed *= 1.30;
-          logger.d(
-              "Weather (Hot) adjustment (+30%): ${calculatedTotalNeed.toInt()}mL");
-          break;
-        case WeatherCondition.hotAndHumid:
-          calculatedTotalNeed *= 1.40;
-          logger.d(
-              "Weather (Hot & Humid) adjustment (+40%): ${calculatedTotalNeed.toInt()}mL");
-          break;
-        case WeatherCondition.cold:
-          calculatedTotalNeed *= 0.95;
-          logger.d(
-              "Weather (Cold) adjustment (-5%): ${calculatedTotalNeed.toInt()}mL");
-          break;
-        case WeatherCondition.temperate:
-          logger.d("Weather (Temperate) adjustment: None");
-          break;
-      }
-    }
-
-    // 6. Final Goal from Beverages (80% of total physiological need)
-    double finalGoalFromBeverages = calculatedTotalNeed * 0.80;
-    logger.d(
-        "Total physiological water need (100%): ${calculatedTotalNeed.toInt()}mL. Target from beverages (80%): ${finalGoalFromBeverages.toInt()}mL");
-
-    finalGoalFromBeverages = finalGoalFromBeverages.clamp(1000.0, 10000.0);
-    finalGoalFromBeverages = (finalGoalFromBeverages / 50).round() * 50.0;
+    final result = _intakeCalculator.calculate(user: user);
 
     logger.i(
-        "HydrationService: Final Calculated Recommended Intake (from beverages) for user ${user.id}: ${finalGoalFromBeverages.toInt()}mL");
+        "HydrationService: Final Calculated Recommended Intake (from beverages) for user ${user.id}: ${result.toInt()}mL");
 
-    return finalGoalFromBeverages;
+    return result;
   }
 
   bool _isSyncing = false;
@@ -314,9 +194,8 @@ class HydrationService {
     _isSyncing = true;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
       final bool healthConnectEnabled =
-          prefs.getBool('prefs_health_connect_enabled') ?? false;
+          await _prefsService.getBool(IPrefsService.keyHealthConnectEnabled);
 
       if (!healthConnectEnabled) {
         logger.d("HydrationService: Health Connect sync disabled.");

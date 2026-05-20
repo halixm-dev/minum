@@ -16,12 +16,13 @@ import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 import 'package:minum/src/presentation/providers/theme_provider.dart';
 import 'package:minum/src/features/settings/presentation/bloc/reminder_settings_cubit.dart';
 import 'package:minum/src/services/hydration_service.dart';
-import 'package:minum/src/services/notification_service.dart';
-import 'package:minum/src/services/health_service.dart';
+import 'package:minum/src/services/i_notification_service.dart';
+import 'package:minum/src/services/i_health_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:minum/src/core/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:minum/src/core/di/injection_container.dart';
 import 'package:minum/src/features/settings/presentation/widgets/theme_selector.dart';
 import 'package:minum/src/features/settings/presentation/widgets/daily_goal_slider_dialog.dart';
 import 'package:minum/src/features/settings/presentation/widgets/edit_favorite_volumes_dialog.dart';
@@ -173,8 +174,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Toggles Health Connect integration.
   Future<void> _toggleHealthConnect(bool value) async {
     if (value) {
-      // Request permissions
-      final healthService = HealthService();
+      final healthService = sl<IHealthService>();
       bool granted = await healthService.requestPermissions();
       if (!granted) {
         if (mounted) {
@@ -218,7 +218,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     if (mounted) {
-      Provider.of<NotificationService>(context, listen: false)
+      Provider.of<INotificationService>(context, listen: false)
           .scheduleDailyRemindersIfNeeded(forceReschedule: true)
           .then((_) {
         logger.i(

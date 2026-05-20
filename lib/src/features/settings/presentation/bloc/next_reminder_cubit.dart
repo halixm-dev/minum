@@ -1,6 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:minum/src/services/notification_service.dart';
+import 'package:minum/src/services/i_notification_service.dart';
 
 class NextReminderState {
   final NotificationModel? nextReminder;
@@ -23,7 +23,7 @@ class NextReminderState {
 }
 
 class NextReminderCubit extends Cubit<NextReminderState> {
-  final NotificationService notificationService;
+  final INotificationService notificationService;
 
   NextReminderCubit({required this.notificationService})
       : super(const NextReminderState()) {

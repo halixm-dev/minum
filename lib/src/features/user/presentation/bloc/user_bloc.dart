@@ -1,42 +1,46 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:minum/src/core/utils/logger.dart';
 import 'package:minum/src/features/user/data/models/user_model.dart';
 import 'package:minum/src/features/user/data/repositories/user_repository.dart';
-import 'package:minum/src/services/auth_service.dart';
+import 'package:minum/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:minum/src/features/auth/presentation/bloc/auth_state.dart';
+import 'package:minum/src/services/prefs/i_prefs_service.dart';
 import 'package:minum/src/core/constants/app_constants.dart' show guestUserId;
 import 'package:minum/src/features/user/presentation/bloc/user_event.dart';
 import 'package:minum/src/features/user/presentation/bloc/user_state.dart';
 
-// --- SharedPreferences Keys for Guest User Settings ---
-const String prefsGuestDailyGoalMl = 'prefs_guest_daily_goal_ml';
-const String prefsGuestPreferredUnit = 'prefs_guest_preferred_unit';
-const String prefsGuestFavoriteVolumes = 'prefs_guest_favorite_volumes';
-const String prefsGuestDateOfBirth = 'prefs_guest_date_of_birth';
-const String prefsGuestGender = 'prefs_guest_gender';
-const String prefsGuestWeightKg = 'prefs_guest_weight_kg';
-const String prefsGuestHeightCm = 'prefs_guest_height_cm';
-const String prefsGuestActivityLevel = 'prefs_guest_activity_level';
-const String prefsGuestHealthConditions = 'prefs_guest_health_conditions';
-const String prefsGuestSelectedWeather = 'prefs_guest_selected_weather';
-
 class UserBloc extends Bloc<UserEvent, UserState> {
-  final AuthService authService;
+  final AuthBloc authBloc;
   final UserRepository userRepository;
-  StreamSubscription<UserModel?>? _authSubscription;
+  final IPrefsService prefsService;
+  StreamSubscription<AuthState>? _authSubscription;
 
   UserBloc({
-    required this.authService,
+    required this.authBloc,
     required this.userRepository,
+    required this.prefsService,
   }) : super(UserInitial()) {
     on<UserAuthChanged>(_onUserAuthChanged);
     on<LoadGuestProfile>(_onLoadGuestProfile);
     on<UpdateUserProfile>(_onUpdateUserProfile);
 
-    _authSubscription = authService.authStateChanges.listen((authUser) {
-      add(UserAuthChanged(authUser));
+    // Handle initial auth state
+    final initialState = authBloc.state;
+    if (initialState is Authenticated) {
+      add(UserAuthChanged(initialState.user));
+    } else if (initialState is Unauthenticated) {
+      add(UserAuthChanged(null));
+    }
+
+    // Listen for future changes
+    _authSubscription = authBloc.stream.listen((authState) {
+      if (authState is Authenticated) {
+        add(UserAuthChanged(authState.user));
+      } else if (authState is Unauthenticated) {
+        add(UserAuthChanged(null));
+      }
     });
   }
 
@@ -67,11 +71,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       emit(UserLoading());
 
       UserModel? firebaseProfile = await userRepository.getUser(authUser.id);
-      final prefs = await SharedPreferences.getInstance();
 
       if (firebaseProfile != null) {
         firebaseProfile =
-            await _migrateGuestSettingsToFirebaseUser(firebaseProfile, prefs);
+            await _migrateGuestSettingsToFirebaseUser(firebaseProfile);
         emit(UserLoaded(user: firebaseProfile, isGuest: false));
       } else {
         logger.w(
@@ -84,7 +87,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           createdAt: authUser.createdAt,
         );
         final migratedProfile =
-            await _migrateGuestSettingsToFirebaseUser(tempProfile, prefs);
+            await _migrateGuestSettingsToFirebaseUser(tempProfile);
         emit(UserLoaded(user: migratedProfile, isGuest: false));
       }
     } else {
@@ -98,29 +101,28 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       LoadGuestProfile event, Emitter<UserState> emit) async {
     emit(UserLoading());
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final guestGoal = prefs.getDouble(prefsGuestDailyGoalMl) ?? 2000.0;
-      final guestUnit = _parseEnum(prefs.getString(prefsGuestPreferredUnit),
+      final guestGoal = await prefsService.getDouble(IPrefsService.keyGuestDailyGoalMl, defaultValue: 2000.0);
+      final guestUnit = _parseEnum(
+              await prefsService.getString(IPrefsService.keyGuestPreferredUnit),
               MeasurementUnit.values) ??
           MeasurementUnit.ml;
-      final guestFavorites = prefs.getStringList(prefsGuestFavoriteVolumes) ??
-          const ['250', '500', '750'];
+      final guestFavorites = await prefsService.getStringList(IPrefsService.keyGuestFavoriteVolumes,
+          defaultValue: const ['250', '500', '750']);
 
       DateTime? guestDob;
-      final dobString = prefs.getString(prefsGuestDateOfBirth);
-      if (dobString != null) guestDob = DateTime.tryParse(dobString);
+      final dobString = await prefsService.getString(IPrefsService.keyGuestDateOfBirth);
+      if (dobString.isNotEmpty) guestDob = DateTime.tryParse(dobString);
 
       final guestGender =
-          _parseEnum(prefs.getString(prefsGuestGender), Gender.values);
-      final guestWeight = prefs.getDouble(prefsGuestWeightKg);
-      final guestHeight = prefs.getDouble(prefsGuestHeightCm);
+          _parseEnum(await prefsService.getString(IPrefsService.keyGuestGender), Gender.values);
+      final guestWeight = await prefsService.getDouble(IPrefsService.keyGuestWeightKg);
+      final guestHeight = await prefsService.getDouble(IPrefsService.keyGuestHeightCm);
       final guestActivity = _parseEnum(
-          prefs.getString(prefsGuestActivityLevel), ActivityLevel.values);
+          await prefsService.getString(IPrefsService.keyGuestActivityLevel), ActivityLevel.values);
 
       List<HealthCondition> guestHealth = [HealthCondition.none];
-      final healthStrings = prefs.getStringList(prefsGuestHealthConditions);
-      if (healthStrings != null) {
+      final healthStrings = await prefsService.getStringList(IPrefsService.keyGuestHealthConditions);
+      if (healthStrings.isNotEmpty) {
         guestHealth = healthStrings
             .map((s) =>
                 _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
@@ -131,7 +133,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       }
 
       final guestWeather = _parseEnum(
-              prefs.getString(prefsGuestSelectedWeather),
+              await prefsService.getString(IPrefsService.keyGuestSelectedWeather),
               WeatherCondition.values) ??
           WeatherCondition.temperate;
 
@@ -169,45 +171,44 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     try {
       if (isGuest) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setDouble(
-            prefsGuestDailyGoalMl, updatedProfile.dailyGoalMl);
-        await prefs.setString(
-            prefsGuestPreferredUnit, updatedProfile.preferredUnit.toString());
-        await prefs.setStringList(
-            prefsGuestFavoriteVolumes, updatedProfile.favoriteIntakeVolumes);
+        await prefsService.setDouble(
+            IPrefsService.keyGuestDailyGoalMl, updatedProfile.dailyGoalMl);
+        await prefsService.setString(
+            IPrefsService.keyGuestPreferredUnit, updatedProfile.preferredUnit.toString());
+        await prefsService.setStringList(
+            IPrefsService.keyGuestFavoriteVolumes, updatedProfile.favoriteIntakeVolumes);
 
         if (updatedProfile.dateOfBirth != null) {
-          await prefs.setString(prefsGuestDateOfBirth,
+          await prefsService.setString(IPrefsService.keyGuestDateOfBirth,
               updatedProfile.dateOfBirth!.toIso8601String());
         } else {
-          await prefs.remove(prefsGuestDateOfBirth);
+          await prefsService.remove(IPrefsService.keyGuestDateOfBirth);
         }
 
         if (updatedProfile.gender != null) {
-          await prefs.setString(
-              prefsGuestGender, updatedProfile.gender.toString());
+          await prefsService.setString(
+              IPrefsService.keyGuestGender, updatedProfile.gender.toString());
         } else {
-          await prefs.remove(prefsGuestGender);
+          await prefsService.remove(IPrefsService.keyGuestGender);
         }
 
         if (updatedProfile.weightKg != null) {
-          await prefs.setDouble(prefsGuestWeightKg, updatedProfile.weightKg!);
+          await prefsService.setDouble(IPrefsService.keyGuestWeightKg, updatedProfile.weightKg!);
         } else {
-          await prefs.remove(prefsGuestWeightKg);
+          await prefsService.remove(IPrefsService.keyGuestWeightKg);
         }
 
         if (updatedProfile.heightCm != null) {
-          await prefs.setDouble(prefsGuestHeightCm, updatedProfile.heightCm!);
+          await prefsService.setDouble(IPrefsService.keyGuestHeightCm, updatedProfile.heightCm!);
         } else {
-          await prefs.remove(prefsGuestHeightCm);
+          await prefsService.remove(IPrefsService.keyGuestHeightCm);
         }
 
         if (updatedProfile.activityLevel != null) {
-          await prefs.setString(
-              prefsGuestActivityLevel, updatedProfile.activityLevel.toString());
+          await prefsService.setString(
+              IPrefsService.keyGuestActivityLevel, updatedProfile.activityLevel.toString());
         } else {
-          await prefs.remove(prefsGuestActivityLevel);
+          await prefsService.remove(IPrefsService.keyGuestActivityLevel);
         }
 
         if (updatedProfile.healthConditions != null &&
@@ -215,20 +216,20 @@ class UserBloc extends Bloc<UserEvent, UserState> {
             !(updatedProfile.healthConditions!.length == 1 &&
                 updatedProfile.healthConditions!
                     .contains(HealthCondition.none))) {
-          await prefs.setStringList(
-              prefsGuestHealthConditions,
+          await prefsService.setStringList(
+              IPrefsService.keyGuestHealthConditions,
               updatedProfile.healthConditions!
                   .map((e) => e.toString())
                   .toList());
         } else {
-          await prefs.remove(prefsGuestHealthConditions);
+          await prefsService.remove(IPrefsService.keyGuestHealthConditions);
         }
 
         if (updatedProfile.selectedWeatherCondition != null) {
-          await prefs.setString(prefsGuestSelectedWeather,
+          await prefsService.setString(IPrefsService.keyGuestSelectedWeather,
               updatedProfile.selectedWeatherCondition.toString());
         } else {
-          await prefs.remove(prefsGuestSelectedWeather);
+          await prefsService.remove(IPrefsService.keyGuestSelectedWeather);
         }
 
         emit(UserLoaded(user: updatedProfile, isGuest: true));
@@ -249,13 +250,13 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   }
 
   Future<UserModel> _migrateGuestSettingsToFirebaseUser(
-      UserModel firebaseUser, SharedPreferences prefs) async {
+      UserModel firebaseUser) async {
     bool needsUpdate = false;
     UserModel userToUpdate = firebaseUser;
 
-    double? migrateDouble(String key, double? firebaseVal, double? defaultVal) {
-      double? guestVal = prefs.getDouble(key);
-      if (guestVal != null &&
+    Future<double?> migrateDouble(String key, double? firebaseVal, double? defaultVal) async {
+      double? guestVal = await prefsService.getDouble(key);
+      if (guestVal != 0.0 &&
           (firebaseVal == defaultVal ||
               firebaseVal == null ||
               firebaseVal != guestVal)) {
@@ -264,10 +265,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       return firebaseVal;
     }
 
-    T? migrateEnum<T extends Enum>(
-        String prefKey, T? firebaseVal, List<T> enumValues, T? defaultVal) {
-      String? guestValString = prefs.getString(prefKey);
-      if (guestValString != null) {
+    Future<T?> migrateEnum<T extends Enum>(
+        String prefKey, T? firebaseVal, List<T> enumValues, T? defaultVal) async {
+      String? guestValString = await prefsService.getString(prefKey);
+      if (guestValString.isNotEmpty) {
         T? guestVal = _parseEnum(guestValString, enumValues);
         if (guestVal != null &&
             (firebaseVal == null ||
@@ -280,27 +281,27 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
 
     userToUpdate = userToUpdate.copyWith(
-      dailyGoalMl: migrateDouble(
-          prefsGuestDailyGoalMl, firebaseUser.dailyGoalMl, 2000.0),
-      preferredUnit: migrateEnum(
-              prefsGuestPreferredUnit,
+      dailyGoalMl: await migrateDouble(
+          IPrefsService.keyGuestDailyGoalMl, firebaseUser.dailyGoalMl, 2000.0),
+      preferredUnit: await migrateEnum(
+              IPrefsService.keyGuestPreferredUnit,
               firebaseUser.preferredUnit,
               MeasurementUnit.values,
               MeasurementUnit.ml) ??
           MeasurementUnit.ml,
       dateOfBirth:
-          DateTime.tryParse(prefs.getString(prefsGuestDateOfBirth) ?? "") ??
+          DateTime.tryParse(await prefsService.getString(IPrefsService.keyGuestDateOfBirth)) ??
               firebaseUser.dateOfBirth,
-      gender: migrateEnum(
-          prefsGuestGender, firebaseUser.gender, Gender.values, null),
-      weightKg: migrateDouble(prefsGuestWeightKg, firebaseUser.weightKg, null),
-      heightCm: migrateDouble(prefsGuestHeightCm, firebaseUser.heightCm, null),
-      activityLevel: migrateEnum(prefsGuestActivityLevel,
+      gender: await migrateEnum(
+          IPrefsService.keyGuestGender, firebaseUser.gender, Gender.values, null),
+      weightKg: await migrateDouble(IPrefsService.keyGuestWeightKg, firebaseUser.weightKg, null),
+      heightCm: await migrateDouble(IPrefsService.keyGuestHeightCm, firebaseUser.heightCm, null),
+      activityLevel: await migrateEnum(IPrefsService.keyGuestActivityLevel,
           firebaseUser.activityLevel, ActivityLevel.values, null),
     );
 
-    final guestFavorites = prefs.getStringList(prefsGuestFavoriteVolumes);
-    if (guestFavorites != null && guestFavorites.isNotEmpty) {
+    final guestFavorites = await prefsService.getStringList(IPrefsService.keyGuestFavoriteVolumes);
+    if (guestFavorites.isNotEmpty) {
       final defaultFavs = const ['250', '500', '750'];
       bool firebaseIsDefaultFavs =
           listEquals(firebaseUser.favoriteIntakeVolumes, defaultFavs);
@@ -311,8 +312,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       }
     }
 
-    final healthStrings = prefs.getStringList(prefsGuestHealthConditions);
-    if (healthStrings != null) {
+    final healthStrings = await prefsService.getStringList(IPrefsService.keyGuestHealthConditions);
+    if (healthStrings.isNotEmpty) {
       List<HealthCondition> guestHealth = healthStrings
           .map((s) =>
               _parseEnum(s, HealthCondition.values) ?? HealthCondition.none)
@@ -326,8 +327,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
 
     userToUpdate = userToUpdate.copyWith(
-      selectedWeatherCondition: migrateEnum(
-              prefsGuestSelectedWeather,
+      selectedWeatherCondition: await migrateEnum(
+              IPrefsService.keyGuestSelectedWeather,
               firebaseUser.selectedWeatherCondition,
               WeatherCondition.values,
               WeatherCondition.temperate) ??
@@ -339,16 +340,16 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     if (needsUpdate) {
       try {
         await userRepository.updateUser(userToUpdate);
-        await prefs.remove(prefsGuestDailyGoalMl);
-        await prefs.remove(prefsGuestPreferredUnit);
-        await prefs.remove(prefsGuestFavoriteVolumes);
-        await prefs.remove(prefsGuestDateOfBirth);
-        await prefs.remove(prefsGuestGender);
-        await prefs.remove(prefsGuestWeightKg);
-        await prefs.remove(prefsGuestHeightCm);
-        await prefs.remove(prefsGuestActivityLevel);
-        await prefs.remove(prefsGuestHealthConditions);
-        await prefs.remove(prefsGuestSelectedWeather);
+        await prefsService.remove(IPrefsService.keyGuestDailyGoalMl);
+        await prefsService.remove(IPrefsService.keyGuestPreferredUnit);
+        await prefsService.remove(IPrefsService.keyGuestFavoriteVolumes);
+        await prefsService.remove(IPrefsService.keyGuestDateOfBirth);
+        await prefsService.remove(IPrefsService.keyGuestGender);
+        await prefsService.remove(IPrefsService.keyGuestWeightKg);
+        await prefsService.remove(IPrefsService.keyGuestHeightCm);
+        await prefsService.remove(IPrefsService.keyGuestActivityLevel);
+        await prefsService.remove(IPrefsService.keyGuestHealthConditions);
+        await prefsService.remove(IPrefsService.keyGuestSelectedWeather);
         return userToUpdate;
       } catch (e) {
         logger.e("UserBloc: Error migrating guest settings: $e");

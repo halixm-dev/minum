@@ -2,9 +2,10 @@
 import 'dart:async';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
 import 'package:minum/src/features/hydration/data/repositories/hydration_repository.dart';
-import 'package:minum/src/features/hydration/data/datasources/local_hydration_data_source.dart';
-import 'package:minum/src/features/hydration/data/datasources/firebase_hydration_data_source.dart';
-import 'package:minum/src/services/auth_service.dart';
+import 'package:minum/src/features/hydration/data/datasources/local_hydration_repository.dart';
+import 'package:minum/src/features/hydration/data/datasources/firebase_hydration_repository.dart';
+import 'package:minum/src/features/user/data/models/user_model.dart';
+import 'package:minum/src/core/utils/user_id_resolver.dart';
 import 'package:minum/src/core/constants/app_constants.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:minum/src/core/utils/logger.dart';
@@ -13,27 +14,25 @@ import 'package:minum/src/core/utils/logger.dart';
 /// data source for hydration entries. It implements the [HydrationRepository]
 /// interface and provides a unified API for data operations.
 class SyncableHydrationRepository implements HydrationRepository {
-  final LocalHydrationDataSource _localRepository;
-  final FirebaseHydrationDataSource _firebaseRepository;
-  final AuthService _authService;
+  final LocalHydrationRepository _localRepository;
+  final FirebaseHydrationRepository _firebaseRepository;
+  final UserIdResolver _userIdResolver;
   final Connectivity _connectivity = Connectivity();
 
   bool _isSyncing = false;
   Timer? _syncDebounceTimer;
+  StreamSubscription<UserModel?>? _authSubscription;
 
-  /// Creates a `SyncableHydrationRepository` instance.
-  ///
-  /// It requires a [localRepository] for local data storage, a
-  /// [firebaseRepository] for remote data storage, and an [authService]
-  /// to handle user authentication state.
   SyncableHydrationRepository({
-    required LocalHydrationDataSource localRepository,
-    required FirebaseHydrationDataSource firebaseRepository,
-    required AuthService authService,
+    required LocalHydrationRepository localRepository,
+    required FirebaseHydrationRepository firebaseRepository,
+    required UserIdResolver userIdResolver,
   })  : _localRepository = localRepository,
         _firebaseRepository = firebaseRepository,
-        _authService = authService {
-    _authService.authStateChanges.listen((user) {
+        _userIdResolver = userIdResolver;
+
+  void init(Stream<UserModel?> authStream) {
+    _authSubscription = authStream.listen((user) {
       if (user != null) {
         logger.i(
             "SyncableHydrationRepo: User logged in (${user.id}). Migrating guest data and triggering full sync.");
@@ -50,8 +49,13 @@ class SyncableHydrationRepository implements HydrationRepository {
     }
   }
 
-  String get _effectiveUserId => _authService.currentUser?.id ?? guestUserId;
-  bool get _isUserLoggedIn => _authService.currentUser != null;
+  void dispose() {
+    _authSubscription?.cancel();
+    _syncDebounceTimer?.cancel();
+  }
+
+  String get _effectiveUserId => _userIdResolver.effectiveUserId;
+  bool get _isUserLoggedIn => _userIdResolver.isUserLoggedIn;
 
   void _debouncedSyncAllData({String? currentUserId}) {
     _syncDebounceTimer?.cancel();
@@ -191,10 +195,10 @@ class SyncableHydrationRepository implements HydrationRepository {
       return;
     }
 
-    if (_authService.currentUser == null ||
-        _authService.currentUser!.id != userIdToSync) {
+    if (!_isUserLoggedIn ||
+        _effectiveUserId != userIdToSync) {
       logger.w(
-          "SyncableRepo: Sync called for user '$userIdToSync', but current authenticated user is '${_authService.currentUser?.id}'. Aborting sync.");
+          "SyncableRepo: Sync called for user '$userIdToSync', but current authenticated user is '${_effectiveUserId}'. Aborting sync.");
       _isSyncing = false;
       return;
     }

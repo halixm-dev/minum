@@ -7,17 +7,17 @@ import 'package:minum/src/features/user/data/repositories/user_repository.dart';
 import 'package:minum/src/core/utils/logger.dart';
 
 /// A concrete implementation of [AuthRepository] using Firebase Authentication.
-class FirebaseAuthDataSource implements AuthRepository {
+class FirebaseAuthRepository implements AuthRepository {
   final fb_auth.FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
   final UserRepository _userRepository;
 
-  /// Creates a `FirebaseAuthDataSource` instance.
+  /// Creates a `FirebaseAuthRepository` instance.
   ///
   /// If [firebaseAuth] or [googleSignIn] are not provided, default instances
   /// will be used. A [userRepository] is required to manage user data in
   /// Firestore.
-  FirebaseAuthDataSource({
+  FirebaseAuthRepository({
     fb_auth.FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
     required UserRepository userRepository,

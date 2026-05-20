@@ -1,4 +1,4 @@
-// lib/src/features/hydration/data/datasources/local_hydration_data_source.dart
+// lib/src/features/hydration/data/datasources/local_hydration_repository.dart
 import 'dart:async'; // For Stream.fromFuture
 import 'package:minum/src/data/local/database_helper.dart';
 import 'package:minum/src/features/hydration/data/models/hydration_entry_model.dart';
@@ -10,7 +10,7 @@ import 'package:minum/src/core/utils/logger.dart';
 ///
 /// This repository handles all hydration data operations for the local cache,
 /// supporting offline functionality and guest mode.
-class LocalHydrationDataSource implements HydrationRepository {
+class LocalHydrationRepository implements HydrationRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override

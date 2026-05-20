@@ -5,14 +5,14 @@ import 'package:minum/src/features/user/data/repositories/user_repository.dart';
 import 'package:minum/src/core/utils/logger.dart';
 
 /// A concrete implementation of [UserRepository] using Cloud Firestore.
-class FirebaseUserDataSource implements UserRepository {
+class FirebaseUserRepository implements UserRepository {
   final FirebaseFirestore _firestore;
   static const String _usersCollection = 'users';
 
-  /// Creates a `FirebaseUserDataSource` instance.
+  /// Creates a `FirebaseUserRepository` instance.
   ///
   /// If [firestore] is not provided, a default instance will be used.
-  FirebaseUserDataSource({FirebaseFirestore? firestore})
+  FirebaseUserRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// A helper to get a reference to the `users` collection with a type converter.

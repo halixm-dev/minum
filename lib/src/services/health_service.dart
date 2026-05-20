@@ -1,14 +1,16 @@
 import 'dart:io';
 import 'package:health/health.dart';
 import 'package:minum/src/core/utils/logger.dart';
+import 'package:minum/src/services/i_health_service.dart';
 
-/// Service to handle Health Connect integration.
-class HealthService {
+/// Service to handle Health Connect integration on Android.
+class AndroidHealthService implements IHealthService {
   final Health _health = Health();
   bool _isConfigured = false;
 
   /// Configures the Health service.
   /// Checks for Health Connect availability.
+  @override
   Future<void> configure() async {
     if (!Platform.isAndroid) return;
     if (_isConfigured) return;
@@ -32,6 +34,7 @@ class HealthService {
   }
 
   /// Checks if permissions are granted.
+  @override
   Future<bool> hasPermissions() async {
     if (!Platform.isAndroid) return false;
     await configure();
@@ -49,6 +52,7 @@ class HealthService {
   }
 
   /// Requests permissions.
+  @override
   Future<bool> requestPermissions() async {
     if (!Platform.isAndroid) return false;
     await configure();
@@ -79,6 +83,7 @@ class HealthService {
   }
 
   /// Reads hydration data from Health Connect for a given time range.
+  @override
   Future<List<HealthDataPoint>> readHydrationData(
       DateTime startTime, DateTime endTime) async {
     if (!Platform.isAndroid) return [];
@@ -100,6 +105,7 @@ class HealthService {
   }
 
   /// Writes hydration data to Health Connect.
+  @override
   Future<bool> writeHydrationData(double amountMl, DateTime timestamp,
       {String? clientRecordId}) async {
     if (!Platform.isAndroid) return false;
@@ -137,6 +143,7 @@ class HealthService {
   }
 
   /// Deletes hydration data from Health Connect by time range.
+  @override
   Future<bool> deleteHydrationData(DateTime startTime, DateTime endTime) async {
     if (!Platform.isAndroid) return false;
     await configure();
@@ -168,6 +175,7 @@ class HealthService {
   }
 
   /// Install Health Connect if not installed
+  @override
   Future<void> installHealthConnect() async {
     await _health.installHealthConnect();
   }

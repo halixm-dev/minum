@@ -4,20 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:minum/src/core/theme/app_theme.dart';
 import 'package:minum/src/core/constants/app_strings.dart';
 import 'package:minum/src/core/utils/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:minum/src/core/calculators/reminder_schedule_calculator.dart';
+import 'package:minum/src/core/di/injection_container.dart';
+import 'package:minum/src/services/i_notification_service.dart';
+import 'package:minum/src/services/prefs/i_prefs_service.dart';
 
-// SharedPreferences Keys for Reminder Settings
-const String prefsRemindersEnabled = 'prefs_reminders_enabled';
-const String prefsReminderIntervalHours = 'prefs_reminder_interval_hours';
-const String prefsReminderStartTimeHour = 'prefs_reminder_start_time_hour';
-const String prefsReminderStartTimeMinute = 'prefs_reminder_start_time_minute';
-const String prefsReminderEndTimeHour = 'prefs_reminder_end_time_hour';
-const String prefsReminderEndTimeMinute = 'prefs_reminder_end_time_minute';
-const String prefsLastScheduledDate = 'prefs_last_scheduled_date';
-const String prefsFavoriteVolumes =
-    'prefs_favorite_volumes'; // Assuming UserProvider saves this
+class AwesomeNotificationService implements INotificationService {
+  final IPrefsService _prefsService;
 
-class NotificationService {
+  AwesomeNotificationService({required IPrefsService prefsService})
+      : _prefsService = prefsService;
   static const String _basicChannelKey = "basic_channel";
   static const String _basicChannelName = "Basic Notifications";
   static const String _basicChannelDescription =
@@ -28,6 +24,7 @@ class NotificationService {
   static const String _scheduledChannelDescription =
       "Channel for Minum water intake reminders.";
 
+  @override
   Future<void> init() async {
     await AwesomeNotifications().initialize(
       'resource://drawable/res_app_icon',
@@ -75,6 +72,7 @@ class NotificationService {
     logger.i("AwesomeNotificationsService initialized.");
   }
 
+  @override
   Future<bool> requestNotificationPermissions() async {
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) {
@@ -97,6 +95,7 @@ class NotificationService {
     return isAllowed;
   }
 
+  @override
   Future<void> showSimpleNotification({
     int id = 0,
     String title = AppStrings.reminderTitle,
@@ -135,6 +134,7 @@ class NotificationService {
         "Hydration Reminder Test: id=$id, title=$title, volumes: $favoriteVolumesMl");
   }
 
+  @override
   Future<void> scheduleHydrationReminder({
     required int id,
     required String title,
@@ -187,6 +187,7 @@ class NotificationService {
         "Hydration Reminder scheduled: id=$id, title=$title, time=$scheduledTime, volumes: $favoriteVolumesMl");
   }
 
+  @override
   Future<void> scheduleDailyRepeatingReminder({
     required int id,
     required String title,
@@ -220,21 +221,25 @@ class NotificationService {
         "Daily repeating reminder scheduled: id=$id, title=$title, time=$formattedTime");
   }
 
+  @override
   Future<void> cancelNotification(int id) async {
     await AwesomeNotifications().cancel(id);
     logger.i("Notification cancelled: id=$id");
   }
 
+  @override
   Future<void> cancelAllNotifications() async {
     await AwesomeNotifications().cancelAll();
     logger.i("All notifications cancelled.");
   }
 
+  @override
   Future<void> cancelScheduledNotifications() async {
     await AwesomeNotifications().cancelAllSchedules();
     logger.i("All scheduled notifications cancelled.");
   }
 
+  @override
   Future<List<NotificationModel>> listScheduledNotifications() async {
     List<NotificationModel> scheduledNotifications =
         await AwesomeNotifications().listScheduledNotifications();
@@ -243,23 +248,23 @@ class NotificationService {
     return scheduledNotifications;
   }
 
+  @override
   Future<void> scheduleDailyRemindersIfNeeded(
       {bool forceReschedule = false}) async {
     logger.i(
         "NotificationService: scheduleDailyRemindersIfNeeded() called. forceReschedule: $forceReschedule");
-    final prefs = await SharedPreferences.getInstance();
 
-    final bool remindersEnabled = prefs.getBool(prefsRemindersEnabled) ?? false;
+    final bool remindersEnabled = await _prefsService.getBool(IPrefsService.keyRemindersEnabled);
     if (!remindersEnabled) {
       logger.i("Reminders are disabled. No scheduling will occur.");
       await AwesomeNotifications()
           .cancelAllSchedules(); // Cancel any existing just in case
-      await prefs.remove(prefsLastScheduledDate); // Clear last scheduled date
+      await _prefsService.remove(IPrefsService.keyLastScheduledDate); // Clear last scheduled date
       return;
     }
 
     final String? lastScheduledDateStr =
-        prefs.getString(prefsLastScheduledDate);
+        await _prefsService.getString(IPrefsService.keyLastScheduledDate);
     final String todayDateStr =
         DateTime.now().toIso8601String().substring(0, 10);
 
@@ -279,162 +284,57 @@ class NotificationService {
         "Proceeding with notification scheduling check for today ($todayDateStr). Last scheduled: $lastScheduledDateStr, Force: $forceReschedule");
 
     final double intervalHours =
-        prefs.getDouble(prefsReminderIntervalHours) ?? 1.0;
-    final int startTimeHour = prefs.getInt(prefsReminderStartTimeHour) ?? 8;
-    final int startTimeMinute = prefs.getInt(prefsReminderStartTimeMinute) ?? 0;
-    final int endTimeHour = prefs.getInt(prefsReminderEndTimeHour) ?? 22;
-    final int endTimeMinute = prefs.getInt(prefsReminderEndTimeMinute) ?? 0;
+        await _prefsService.getDouble(IPrefsService.keyReminderIntervalHours, defaultValue: 1.0);
+    final int startTimeHour = await _prefsService.getInt(IPrefsService.keyReminderStartTimeHour, defaultValue: 8);
+    final int startTimeMinute = await _prefsService.getInt(IPrefsService.keyReminderStartTimeMinute, defaultValue: 0);
+    final int endTimeHour = await _prefsService.getInt(IPrefsService.keyReminderEndTimeHour, defaultValue: 22);
+    final int endTimeMinute = await _prefsService.getInt(IPrefsService.keyReminderEndTimeMinute, defaultValue: 0);
     final List<String> favoriteVolumes =
-        prefs.getStringList(prefsFavoriteVolumes) ?? ['100', '250', '500'];
+        await _prefsService.getStringList(IPrefsService.keyFavoriteVolumes, defaultValue: ['100', '250', '500']);
 
     await AwesomeNotifications()
-        .cancelAllSchedules(); // Clear previous day's schedules
+        .cancelAllSchedules();
     logger.i("Cancelled all previously scheduled notifications.");
 
-    DateTime currentTime = DateTime.now();
-    DateTime scheduleStart = DateTime(currentTime.year, currentTime.month,
-        currentTime.day, startTimeHour, startTimeMinute);
-    DateTime scheduleEnd = DateTime(currentTime.year, currentTime.month,
-        currentTime.day, endTimeHour, endTimeMinute);
+    final calculator = ReminderScheduleCalculator();
+    final slots = calculator.calculateScheduleForToday(
+      intervalHours: intervalHours,
+      startTimeHour: startTimeHour,
+      startTimeMinute: startTimeMinute,
+      endTimeHour: endTimeHour,
+      endTimeMinute: endTimeMinute,
+    );
 
-    // If scheduleEnd is before scheduleStart (e.g. end time is 2 AM, start time is 8 AM for previous day),
-    // and we are scheduling for *today*, this implies an overnight schedule that should end today.
-    // However, our logic aims to schedule *within* today.
-    // If current time has already passed scheduleEnd for *today*, then no scheduling for today.
-    if (scheduleEnd.isBefore(scheduleStart) &&
-        scheduleEnd.day == scheduleStart.day) {
-      // This case implies an overnight schedule ending on the same calendar day it started, which is unusual for this logic.
-      // For simplicity, if end time is "before" start time on the same day, assume it means "next day".
-      // But since we are only scheduling for *today*, if scheduleEnd (e.g. 2AM today) is before scheduleStart (e.g. 8AM today)
-      // it actually means the period has not started or is an invalid range for "today".
-      // More robust: if end time is 'earlier' than start time, it means it crosses midnight.
-      // For "today-only" scheduling, if scheduleEnd (e.g. 02:00) is before scheduleStart (e.g. 08:00),
-      // it means the active period is overnight. We only care about the part that falls on *today*.
-      // If start is 22:00 and end is 02:00:
-      // - Schedule from 22:00 today to 23:59 today.
-      // - Schedule from 00:00 today to 02:00 today (if current logic were for *next* day's end part).
-      // This simplified version doesn't split overnight schedules perfectly across two `scheduleDailyRemindersIfNeeded` calls.
-      // It will schedule from startTime to endTime *within the current day*.
-      // If endTimeHour < startTimeHour, it effectively means schedule until end of day if current time is past startTime.
-      // Or from start of day until endTime if current time is before endTime. This needs care.
-
-      // Let's simplify: If scheduleEnd is on the same day but earlier than scheduleStart,
-      // it implies the "active" period might be overnight.
-      // For "today-only" scheduling:
-      // if _selectedStartTime = 22:00 and _selectedEndTime = 02:00
-      // scheduleStart = today@22:00, scheduleEnd = today@02:00. scheduleEnd is before scheduleStart.
-      // This means the effective period for *today* is from 22:00 to 23:59:59.
-      // And for *tomorrow* it would be 00:00 to 02:00.
-      // The current logic of `scheduleEnd.add(Duration(days:1))` is for continuous rescheduling.
-      // For `scheduleDailyRemindersIfNeeded`, we *only* care about today.
-      // If scheduleEnd (today @ 02:00) is before scheduleStart (today @ 22:00),
-      // it means the user intends an overnight schedule.
-      // For *today*, we only schedule between scheduleStart (22:00) and midnight.
-      // And if it's past midnight, we schedule between midnight and scheduleEnd (02:00).
-
-      // Simpler interpretation for "today only":
-      // If endTime < startTime, it means the period crosses midnight.
-      // For today, this means two potential blocks: 00:00 to endTime, AND startTime to 23:59.
-      // The current loop `while (nextReminderTime.isBefore(scheduleEnd))` will not run if scheduleEnd < scheduleStart.
-      // Let's adjust scheduleEnd if it's for an overnight period that *ends* today.
-      if (scheduleEnd.hour < scheduleStart.hour &&
-          scheduleEnd.day == scheduleStart.day) {
-        // This means the period started yesterday and ends today. e.g. Start 22:00, End 02:00.
-        // For today, we are interested in 00:00 up to 02:00.
-        // So, scheduleStart for *today's segment* should be midnight.
-        scheduleStart = DateTime(
-            currentTime.year, currentTime.month, currentTime.day, 0, 0);
-        // scheduleEnd is already correctly today @ 02:00
-        logger.i(
-            "Adjusted for overnight schedule ending today. Effective range for today: ${scheduleStart.toIso8601String()} to ${scheduleEnd.toIso8601String()}");
-      }
-      // If it's an overnight schedule starting today and ending tomorrow (e.g. start 22:00, end 02:00)
-      // then for *today* scheduleEnd should effectively be end of day.
-      else if (scheduleStart.hour > scheduleEnd.hour &&
-          scheduleStart.day == scheduleEnd.day) {
-        scheduleEnd = DateTime(
-            currentTime.year, currentTime.month, currentTime.day, 23, 59, 59);
-        logger.i(
-            "Adjusted for overnight schedule starting today. Effective range for today: ${scheduleStart.toIso8601String()} to ${scheduleEnd.toIso8601String()}");
-      }
-    }
-
-    int notificationIdBase = 100;
-    int notificationId = notificationIdBase;
-    int maxNotificationsPerDay = 120; // Max 120 notifications (IDs 100-219)
-    DateTime nextReminderTime = scheduleStart;
-
-    // If current time is already past the scheduleStart, find the next valid reminder time from now.
-    if (currentTime.isAfter(scheduleStart)) {
-      int intervalInMinutes = (intervalHours * 60).toInt();
-      if (intervalInMinutes <= 0) {
-        logger.w(
-            "Interval is <= 0 minutes. Cannot schedule. Interval Hours: $intervalHours");
-        await prefs.setString(prefsLastScheduledDate,
-            todayDateStr); // Mark as "processed" for today.
-        return;
-      }
-      nextReminderTime = scheduleStart;
-      while (nextReminderTime.isBefore(currentTime)) {
-        nextReminderTime =
-            nextReminderTime.add(Duration(minutes: intervalInMinutes));
-      }
-    }
-
-    // Ensure nextReminderTime is not before scheduleStart (e.g. if current time was before scheduleStart)
-    if (nextReminderTime.isBefore(scheduleStart)) {
-      nextReminderTime = scheduleStart;
-    }
-
+    int notificationId = 100;
     int scheduledCount = 0;
     logger.i(
-        "Starting scheduling loop for today: Start=${scheduleStart.toIso8601String()}, End=${scheduleEnd.toIso8601String()}, NextReminderStart=${nextReminderTime.toIso8601String()}");
+        "Starting scheduling loop for today. Slots to schedule: ${slots.length}");
 
-    while ((nextReminderTime.isBefore(scheduleEnd) ||
-            nextReminderTime.isAtSameMomentAs(scheduleEnd)) &&
-        nextReminderTime.day == currentTime.day) {
-      if (nextReminderTime.isAfter(DateTime.now())) {
-        // Ensure we only schedule for the future
-        if (notificationId >= notificationIdBase + maxNotificationsPerDay) {
-          logger.w(
-              "Reached maximum notification limit for today ($maxNotificationsPerDay). Stopping further scheduling for today. Last ID: $notificationId");
-          break;
-        }
-        scheduleHydrationReminder(
-            // Use the class method
-            id: notificationId++,
-            title: AppStrings
-                .reminderTitle, // Assuming AppStrings is accessible or pass as param
-            body: "Time for some water! Stay hydrated.",
-            scheduledTime: nextReminderTime,
-            favoriteVolumesMl: favoriteVolumes,
-            payload: {
-              'type': 'hydration_reminder',
-              'scheduled_at': nextReminderTime.toIso8601String()
-            });
-        scheduledCount++;
-      }
-      int intervalMinutes = (intervalHours * 60).toInt();
-      if (intervalMinutes <= 0) {
-        // Should have been caught earlier, but as a safeguard
-        logger.e(
-            "Critical: Interval is <= 0 minutes inside loop. Breaking. Interval Hours: $intervalHours");
-        break;
-      }
-      nextReminderTime =
-          nextReminderTime.add(Duration(minutes: intervalMinutes));
+    for (final slot in slots) {
+      scheduleHydrationReminder(
+          id: notificationId++,
+          title: AppStrings.reminderTitle,
+          body: "Time for some water! Stay hydrated.",
+          scheduledTime: slot,
+          favoriteVolumesMl: favoriteVolumes,
+          payload: {
+            'type': 'hydration_reminder',
+            'scheduled_at': slot.toIso8601String()
+          });
+      scheduledCount++;
     }
 
     if (scheduledCount > 0) {
       logger.i(
-          "Successfully scheduled $scheduledCount reminders for today ($todayDateStr). Last ID used: ${notificationId - 1}. Favorite volumes: $favoriteVolumes");
+          "Successfully scheduled $scheduledCount reminders for today. Last ID used: ${notificationId - 1}. Favorite volumes: $favoriteVolumes");
     } else {
       logger.i(
-          "No reminders were scheduled for today ($todayDateStr). This might be because the time window has passed or due to settings.");
+          "No reminders were scheduled for today. This might be because the time window has passed or due to settings.");
     }
-    await prefs.setString(prefsLastScheduledDate, todayDateStr);
+    await _prefsService.setString(IPrefsService.keyLastScheduledDate, todayDateStr);
   }
 
+  @override
   Future<void> checkAndLogExactAlarmPermissionStatus() async {
     logger.i(
         "Note: For precise alarms (if `preciseAlarm: true` is used in scheduling), "
@@ -443,8 +343,6 @@ class NotificationService {
         "Users may need to grant this via system settings if alarms are not precise.");
   }
 }
-
-const String prefsPendingWaterAdditionMl = 'prefs_pending_water_addition_ml';
 
 class NotificationController {
   @pragma("vm:entry-point")
@@ -474,10 +372,6 @@ class NotificationController {
     logger.d(
         'Action received: ${receivedAction.id} - ${receivedAction.title}, buttonKey: ${receivedAction.buttonKeyPressed}, payload: ${receivedAction.payload}');
 
-    // if (receivedAction.buttonKeyPressed == 'MARK_AS_DONE') {
-    //   logger.i("Notification ${receivedAction.id} marked as done by user.");
-    // }
-
     if (receivedAction.buttonKeyPressed.startsWith('ADD_WATER_')) {
       final parts = receivedAction.buttonKeyPressed.split('_');
       if (parts.length == 3) {
@@ -485,12 +379,12 @@ class NotificationController {
         final double? volumeMl = double.tryParse(volumeStr);
         if (volumeMl != null) {
           try {
-            final prefs = await SharedPreferences.getInstance();
+            final prefsService = sl<IPrefsService>();
             double currentPendingAmount =
-                prefs.getDouble(prefsPendingWaterAdditionMl) ?? 0.0;
+                await prefsService.getDouble(IPrefsService.keyPendingWaterAdditionMl);
             double newTotalPendingAmount = currentPendingAmount + volumeMl;
-            await prefs.setDouble(
-                prefsPendingWaterAdditionMl, newTotalPendingAmount);
+            await prefsService.setDouble(
+                IPrefsService.keyPendingWaterAdditionMl, newTotalPendingAmount);
             logger.i(
                 "ADD_WATER action: ${receivedAction.buttonKeyPressed}, volume $volumeMl ml. Total pending: $newTotalPendingAmount ml saved to SharedPreferences.");
           } catch (e) {
