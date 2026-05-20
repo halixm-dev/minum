@@ -1,0 +1,1 @@
+D:/Projects/minum/AGENTS.md

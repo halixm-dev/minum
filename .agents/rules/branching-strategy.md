@@ -126,7 +126,7 @@ git checkout -b fix/your-bug-fix
 git pull origin main  # or develop
 
 # 2. Run tests and linting
-npm test
+flutter analyze && flutter test
 
 # 3. Merge to main (solo) or develop (team)
 git checkout main  # or develop
